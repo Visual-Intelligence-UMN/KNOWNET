@@ -14,11 +14,11 @@ export function FooterText({ className, ...props }: React.ComponentProps<'p'>) {
     >
       Visualization Conversational Agent AI chatbot built with{' '}
       <ExternalLink href="https://qianwen.info/">
-        UMN Qianwen Wang's lab
+        UMN Qianwen Wang&apos;s lab
       </ExternalLink>{' '}
       and{' '}
       <ExternalLink href="https://ruizhang.umn.edu/">
-        Rui Zhang's lab
+        Rui Zhang&apos;s lab
       </ExternalLink>
       .
     </p>
