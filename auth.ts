@@ -21,7 +21,7 @@ export const {
   ],
   callbacks: {
     jwt({ token, profile, account }) {
-      console.log('Profile:', profile)
+      // console.log('Profile:', profile)
       if (profile) {
         // Use 'sub' for Google profiles and 'id' for others
         token.id =
@@ -31,8 +31,8 @@ export const {
       return token
     },
     session: ({ session, token }) => {
-      console.log('Session:', session)
-      console.log('Token:', token)
+      // console.log('Session:', session)
+      // console.log('Token:', token)
       if (session?.user && token?.id) {
         session.user.id = String(token.id)
       } else if (session?.user) {
