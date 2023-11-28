@@ -1,41 +1,34 @@
+// login-button.tsx
 'use client'
+// Mark as a client component
 
 import * as React from 'react'
 import { signIn } from 'next-auth/react'
 
 import { cn } from '@/lib/utils'
 import { Button, type ButtonProps } from '@/components/ui/button'
-import { IconGitHub, IconSpinner } from '@/components/ui/icons'
 
 interface LoginButtonProps extends ButtonProps {
-  showGithubIcon?: boolean
-  text?: string
+  provider: 'github' | 'google'
+  text: string
+  icon: JSX.Element
 }
 
 export function LoginButton({
-  text = 'Login with GitHub',
-  showGithubIcon = true,
+  provider,
+  text,
+  icon,
   className,
   ...props
 }: LoginButtonProps) {
-  const [isLoading, setIsLoading] = React.useState(false)
   return (
     <Button
       variant="outline"
-      onClick={() => {
-        setIsLoading(true)
-        // next-auth signIn() function doesn't work yet at Edge Runtime due to usage of BroadcastChannel
-        signIn('github', { callbackUrl: `/` })
-      }}
-      disabled={isLoading}
+      onClick={() => signIn(provider, { callbackUrl: '/' })}
       className={cn(className)}
       {...props}
     >
-      {isLoading ? (
-        <IconSpinner className="mr-2 animate-spin" />
-      ) : showGithubIcon ? (
-        <IconGitHub className="mr-2" />
-      ) : null}
+      {icon}
       {text}
     </Button>
   )

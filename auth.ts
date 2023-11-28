@@ -1,5 +1,6 @@
 import NextAuth, { type DefaultSession } from 'next-auth'
 import GitHub from 'next-auth/providers/github'
+import Google from 'next-auth/providers/google' // Import Google provider
 
 declare module 'next-auth' {
   interface Session {
@@ -14,18 +15,28 @@ export const {
   handlers: { GET, POST },
   auth
 } = NextAuth({
-  providers: [GitHub],
+  providers: [
+    GitHub, // Existing GitHub provider
+    Google
+  ],
   callbacks: {
-    jwt({ token, profile }) {
+    jwt({ token, profile, account }) {
+      console.log('Profile:', profile)
       if (profile) {
-        token.id = profile.id
+        // Use 'sub' for Google profiles and 'id' for others
+        token.id =
+          account && account.provider === 'google' ? profile.sub : profile.id
         token.image = profile.avatar_url || profile.picture
       }
       return token
     },
     session: ({ session, token }) => {
+      console.log('Session:', session)
+      console.log('Token:', token)
       if (session?.user && token?.id) {
         session.user.id = String(token.id)
+      } else if (session?.user) {
+        session.user.id = String(token.sub)
       }
       return session
     },
@@ -34,6 +45,6 @@ export const {
     }
   },
   pages: {
-    signIn: '/sign-in' // overrides the next-auth default signin page https://authjs.dev/guides/basics/pages
+    signIn: '/sign-in' // overrides the next-auth default signin page
   }
 })
