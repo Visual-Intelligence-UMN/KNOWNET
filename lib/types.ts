@@ -16,3 +16,25 @@ export type ServerActionResult<Result> = Promise<
       error: string
     }
 >
+
+export interface Node {
+  id: number
+  label: string
+  group: string
+}
+
+export interface Edge {
+  source: number
+  target: number
+}
+
+export interface GraphData {
+  nodes: Node[]
+  edges: Edge[]
+}
+
+export interface GraphModalProps {
+  isOpen: boolean
+  onClose: () => void
+  graphData: GraphData
+}

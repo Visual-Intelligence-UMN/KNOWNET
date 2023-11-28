@@ -12,7 +12,7 @@ export function FooterText({ className, ...props }: React.ComponentProps<'p'>) {
       )}
       {...props}
     >
-      Visualization Conversational Agent AI chatbot built with{' '}
+      Visualization Conversational Agent AI chatbot built by{' '}
       <ExternalLink href="https://qianwen.info/">
         UMN Qianwen Wang&apos;s lab
       </ExternalLink>{' '}

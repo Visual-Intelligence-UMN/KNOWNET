@@ -1,8 +1,7 @@
 'use client'
 
 import { useChat, type Message } from 'ai/react'
-
-import { cn } from '@/lib/utils'
+import { GraphCard } from '@/components/ui/GraphCard'
 import { ChatList } from '@/components/chat-list'
 import { ChatPanel } from '@/components/chat-panel'
 import { EmptyScreen } from '@/components/empty-screen'
@@ -21,6 +20,7 @@ import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { toast } from 'react-hot-toast'
 import { usePathname, useRouter } from 'next/navigation'
+import { GraphData } from '@/lib/types'
 
 const IS_PREVIEW = process.env.VERCEL_ENV === 'preview'
 export interface ChatProps extends React.ComponentProps<'div'> {
@@ -37,6 +37,23 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
   )
   const [previewTokenDialog, setPreviewTokenDialog] = useState(IS_PREVIEW)
   const [previewTokenInput, setPreviewTokenInput] = useState(previewToken ?? '')
+  const [isGraphModalOpen, setGraphModalOpen] = useState(false)
+  const [graphData, setGraphData] = useState<GraphData>({
+    nodes: [
+      { id: 1, label: 'Node 1', group: 'type1' },
+      { id: 2, label: 'Node 2', group: 'type2' },
+      { id: 3, label: 'Node 3', group: 'type3' }
+    ],
+    edges: [
+      { source: 1, target: 2 },
+      { source: 2, target: 3 }
+    ]
+  })
+  const handleOpenGraphModal = () => {
+    // Fetch and set the graph data if needed, then open the modal
+    setGraphModalOpen(true)
+  }
+
   const { messages, append, reload, stop, isLoading, input, setInput } =
     useChat({
       initialMessages,
@@ -59,15 +76,26 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
     })
   return (
     <>
-      <div className={cn('pb-[200px] pt-4 md:pt-10', className)}>
-        {messages.length ? (
-          <>
-            <ChatList messages={messages} />
-            <ChatScrollAnchor trackVisibility={isLoading} />
-          </>
-        ) : (
-          <EmptyScreen setInput={setInput} />
-        )}
+      <div className={`container mx-auto ${className}`}>
+        {/* <div className={cn('pb-[200px] pt-4 md:pt-10', className)}> */}
+
+        <div className="flex flex-col md:flex-row pb-[200px] pt-4 md:pt-10 space-y-4 md:space-y-0 md:space-x-4">
+          {messages.length ? (
+            <>
+              {' '}
+              <div className="hidden md:block sticky top-4 h-[calc(100vh-1rem)]">
+                <GraphCard graphData={graphData} />
+              </div>
+              <div className="grow overflow-auto">
+                <ChatList messages={messages} />
+
+                <ChatScrollAnchor trackVisibility={isLoading} />
+              </div>
+            </>
+          ) : (
+            <EmptyScreen setInput={setInput} />
+          )}
+        </div>
       </div>
       <ChatPanel
         id={id}

@@ -1,7 +1,4 @@
-<a href="https://vis-con-agent.vercel.app/">
-
-  <h1 align="center">Visualization Conversational Agent AI Chatbot</h1>
-</a>
+# [Visualization Conversational Agent AI Chatbot](https://vis-con-agent.vercel.app)
 
 An Visualization Conversational Agent AI Chatbot template built with Next.js, the Vercel AI SDK, OpenAI, and Vercel KV, using [Next.js AI chatbot template](https://github.com/vercel/ai-chatbot#nextjs-ai-chatbot).
 
