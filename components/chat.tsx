@@ -15,14 +15,14 @@ import {
   DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { toast } from 'react-hot-toast'
 import { usePathname, useRouter } from 'next/navigation'
 import { GraphData } from '@/lib/types'
 
-const IS_PREVIEW = process.env.VERCEL_ENV === 'preview'
+// const IS_PREVIEW = process.env.VERCEL_ENV === 'preview'
 export interface ChatProps extends React.ComponentProps<'div'> {
   initialMessages?: Message[]
   id?: string
@@ -35,7 +35,12 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
     'ai-token',
     null
   )
-  const [previewTokenDialog, setPreviewTokenDialog] = useState(IS_PREVIEW)
+  const [hasTokenBeenSet, setHasTokenBeenSet] = useLocalStorage<boolean>(
+    'has-token-been-set',
+    false
+  )
+  const initialRender = useRef(true)
+  const [previewTokenDialog, setPreviewTokenDialog] = useState(false)
   const [previewTokenInput, setPreviewTokenInput] = useState(previewToken ?? '')
   const [isGraphModalOpen, setGraphModalOpen] = useState(false)
   const [graphData, setGraphData] = useState<GraphData>({
@@ -74,6 +79,21 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
         }
       }
     })
+
+  useEffect(() => {
+    if (initialRender.current) {
+      const tokenSet = localStorage.getItem('has-token-been-set') === 'true'
+      setPreviewTokenDialog(!tokenSet)
+      initialRender.current = false
+    }
+  }, [])
+
+  const handleSaveToken = () => {
+    setPreviewToken(previewTokenInput)
+    localStorage.setItem('has-token-been-set', 'true') // Directly update local storage
+    setPreviewTokenDialog(false)
+  }
+
   return (
     <>
       <div className={`container mx-auto ${className}`}>
@@ -132,14 +152,7 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
             onChange={e => setPreviewTokenInput(e.target.value)}
           />
           <DialogFooter className="items-center">
-            <Button
-              onClick={() => {
-                setPreviewToken(previewTokenInput)
-                setPreviewTokenDialog(false)
-              }}
-            >
-              Save Token
-            </Button>
+            <Button onClick={handleSaveToken}>Save Token</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
