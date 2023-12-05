@@ -17,20 +17,20 @@ export type ServerActionResult<Result> = Promise<
     }
 >
 
-export interface Node {
+export interface GraphNode {
   id: number
   label: string
   group: string
 }
 
-export interface Edge {
+export interface GraphEdge {
   source: number
   target: number
 }
 
 export interface GraphData {
-  nodes: Node[]
-  edges: Edge[]
+  nodes: GraphNode[]
+  edges: GraphEdge[]
 }
 
 export interface GraphModalProps {

@@ -1,5 +1,5 @@
 'use client'
-
+import { Edge, Node, Position, ReactFlowProvider } from 'reactflow'
 import { useChat, type Message } from 'ai/react'
 import { GraphCard } from '@/components/ui/GraphCard'
 import { ChatList } from '@/components/chat-list'
@@ -21,6 +21,7 @@ import { Input } from './ui/input'
 import { toast } from 'react-hot-toast'
 import { usePathname, useRouter } from 'next/navigation'
 import { GraphData } from '@/lib/types'
+import Flow from '@/components/flow' // Import the Flow component
 
 // const IS_PREVIEW = process.env.VERCEL_ENV === 'preview'
 export interface ChatProps extends React.ComponentProps<'div'> {
@@ -94,29 +95,71 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
     setPreviewTokenDialog(false)
   }
 
+  //Flow
+  const nodeSize = {
+    width: 100,
+    height: 40
+  }
+
+  // this example uses some v12 features that are not released yet
+  const initialNodes: Node[] = [
+    {
+      id: '1',
+      type: 'input',
+      data: { label: 'Node 1' },
+      position: { x: 250, y: 5 },
+      width: nodeSize.width,
+      height: nodeSize.height
+    },
+    {
+      id: '2',
+      data: { label: 'Node 2' },
+      position: { x: 100, y: 100 },
+      width: nodeSize.width,
+      height: nodeSize.height
+    },
+    {
+      id: '3',
+      data: { label: 'Node 3' },
+      position: { x: 400, y: 100 },
+      width: nodeSize.width,
+      height: nodeSize.height
+    }
+  ]
+
+  const initialEdges: Edge[] = [
+    { id: 'e1-2', source: '1', target: '2', animated: true },
+    { id: 'e1-3', source: '1', target: '3', animated: true }
+  ]
+
   return (
     <>
       <div className={`container mx-auto ${className}`}>
-        {/* <div className={cn('pb-[200px] pt-4 md:pt-10', className)}> */}
-
-        <div className="flex flex-col md:flex-row pb-[200px] pt-4 md:pt-10 space-y-4 md:space-y-0 md:space-x-4">
-          {messages.length ? (
-            <>
+        {messages.length ? (
+          <div className="md:flex  pt-4 md:pt-10">
+            {/* Left column for GraphCard and Flow */}
+            <div className="md:w-1/3 space-y-1 pr-4">
               {' '}
-              <div className="hidden md:block sticky top-4 h-[calc(100vh-1rem)]">
+              {/* Adjust the padding-right (pr-4) as needed */}
+              <div className="top-4 h-[calc(40vh-1rem)]">
                 <GraphCard graphData={graphData} />
               </div>
-              <div className="grow overflow-auto">
-                <ChatList messages={messages} />
+              <ReactFlowProvider>
+                <Flow nodes={initialNodes} edges={initialEdges} />
+              </ReactFlowProvider>
+            </div>
 
-                <ChatScrollAnchor trackVisibility={isLoading} />
-              </div>
-            </>
-          ) : (
-            <EmptyScreen setInput={setInput} />
-          )}
-        </div>
+            {/* Right column for ChatList */}
+            <div className="md:w-2/3 grow overflow-auto">
+              <ChatList messages={messages} />
+              <ChatScrollAnchor trackVisibility={isLoading} />
+            </div>
+          </div>
+        ) : (
+          <EmptyScreen setInput={setInput} />
+        )}
       </div>
+
       <ChatPanel
         id={id}
         isLoading={isLoading}
