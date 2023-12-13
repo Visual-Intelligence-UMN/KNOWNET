@@ -4,13 +4,19 @@ import MobileStepper from '@mui/material/MobileStepper'
 import Button from '@mui/material/Button'
 import KeyboardArrowLeft from '@mui/icons-material/KeyboardArrowLeft'
 import KeyboardArrowRight from '@mui/icons-material/KeyboardArrowRight'
+type DotsMobileStepperProps = {
+  steps: number
+  activeStep: number
+  handleNext: () => void
+  handleBack: () => void
+}
 
 export default function DotsMobileStepper({
   steps,
   activeStep,
   handleNext,
   handleBack
-}) {
+}: DotsMobileStepperProps) {
   const theme = useTheme()
 
   return (

@@ -129,7 +129,9 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
             return [...prevNodes, newNode]
           })
 
-          setProcessedMessageIds(prevIds => new Set([...prevIds, message.id]))
+          setProcessedMessageIds(
+            prevIds => new Set([...Array.from(prevIds), message.id])
+          )
           setActiveStep(nodes.length - 1)
         }
       }
@@ -182,7 +184,7 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
   //   { id: 'e1-3', source: '1', target: '3', animated: true }
   // ]
   // State management for nodes and edges using React Flow's hooks
-  const initialNodes = [
+  const initialNodes: Node<{ label: string }, string | undefined>[] = [
     {
       id: '1',
       type: 'input',
@@ -231,7 +233,7 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
       position: { x: 15, y: 65 },
       className: 'light',
       parentNode: '4',
-      extent: 'parent'
+      extent: 'parent' as const
     },
     {
       id: '4b',
@@ -405,7 +407,7 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
   // }, [messages, nodeBank, setNodes, setEdges, processedMessageIds])
 
   // Handler for dot stepper change
-  const handleStepChange = step => {
+  const handleStepChange = (step: number) => {
     setActiveStep(step)
   }
   const proOptions = { hideAttribution: true }
