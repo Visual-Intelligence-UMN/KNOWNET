@@ -90,10 +90,47 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
           toast.error(response.statusText)
         }
       },
-      onFinish() {
-        if (!path.includes('chat')) {
-          router.push(`/chat/${id}`, { shallow: true })
-          router.refresh()
+      onFinish: message => {
+        // if (!path.includes('chat')) {
+        //   router.push(`/chat/${id}`, { shallow: true })
+        //   router.refresh()
+        // }
+        // Add a new node and edge when a message is finished processing
+        if (
+          message.role === 'assistant' &&
+          processedMessageIds.has(message.id) === false
+        ) {
+          const randomNodeIndex = Math.floor(Math.random() * nodeBank.length)
+          const newNode = {
+            ...nodeBank[randomNodeIndex],
+            style: { backgroundColor: nodeBank[randomNodeIndex].data.color }
+          }
+
+          setNodes(prevNodes => {
+            // Check if the node is already added
+            if (prevNodes.find(node => node.id === newNode.id)) {
+              return prevNodes
+            }
+            if (prevNodes.length > 0) {
+              const randomExistingNodeIndex = Math.floor(
+                Math.random() * prevNodes.length
+              )
+              const selectedNode = prevNodes[randomExistingNodeIndex]
+              const newEdge = {
+                id: `e${selectedNode.id}-${newNode.id}`,
+                source: selectedNode.id,
+                target: newNode.id,
+                label: getRandomEdgeText(),
+                animated: true
+              }
+
+              setEdges(prevEdges => [...prevEdges, newEdge])
+            }
+            return [...prevNodes, newNode]
+          })
+
+          setProcessedMessageIds(prevIds => new Set([...prevIds, message.id]))
+          setActiveStep(nodes.length - 1)
         }
       }
     })
@@ -113,11 +150,6 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
   }
 
   //Flow
-
-  const nodeSize = {
-    width: 100,
-    height: 40
-  }
 
   // this example uses some v12 features that are not released yet
   // const initialNodes: Node[] = [
@@ -150,13 +182,101 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
   //   { id: 'e1-3', source: '1', target: '3', animated: true }
   // ]
   // State management for nodes and edges using React Flow's hooks
-  const [nodes, setNodes, onNodesChange] = useNodesState([])
-  const [edges, setEdges, onEdgesChange] = useEdgesState([])
+  const initialNodes = [
+    {
+      id: '1',
+      type: 'input',
+      data: { label: 'Node 0' },
+      position: { x: 250, y: 5 },
+      className: 'light'
+    },
+    {
+      id: '2',
+      data: { label: 'Group A' },
+      position: { x: 100, y: 100 },
+      className: 'light',
+      style: {
+        backgroundColor: 'rgba(255, 0, 0, 0.2)',
+        width: 200,
+        height: 200
+      }
+    },
+    {
+      id: '2a',
+      data: { label: 'Node A.1' },
+      position: { x: 10, y: 50 },
+      parentNode: '2'
+    },
+    {
+      id: '3',
+      data: { label: 'Node 1' },
+      position: { x: 320, y: 100 },
+      className: 'light'
+    },
+    {
+      id: '4',
+      data: { label: 'Group B' },
+      position: { x: 320, y: 200 },
+      className: 'light',
+      style: {
+        backgroundColor: 'rgba(255, 0, 0, 0.2)',
+        width: 300,
+        height: 300
+      },
+      type: 'group'
+    },
+    {
+      id: '4a',
+      data: { label: 'Node B.1' },
+      position: { x: 15, y: 65 },
+      className: 'light',
+      parentNode: '4',
+      extent: 'parent'
+    },
+    {
+      id: '4b',
+      data: { label: 'Group B.A' },
+      position: { x: 15, y: 120 },
+      className: 'light',
+      style: {
+        backgroundColor: 'rgba(255, 0, 255, 0.2)',
+        height: 150,
+        width: 270
+      },
+      parentNode: '4'
+    },
+    {
+      id: '4b1',
+      data: { label: 'Node B.A.1' },
+      position: { x: 20, y: 40 },
+      className: 'light',
+      parentNode: '4b'
+    },
+    {
+      id: '4b2',
+      data: { label: 'Node B.A.2' },
+      position: { x: 100, y: 100 },
+      className: 'light',
+      parentNode: '4b'
+    }
+  ]
+
+  const initialEdges = [
+    { id: 'e1-2', source: '1', target: '2', animated: true },
+    { id: 'e1-3', source: '1', target: '3' },
+    { id: 'e2a-4a', source: '2a', target: '4a' },
+    { id: 'e3-4b', source: '3', target: '4b' },
+    { id: 'e4a-4b1', source: '4a', target: '4b1' },
+    { id: 'e4a-4b2', source: '4a', target: '4b2' },
+    { id: 'e4b1-4b2', source: '4b1', target: '4b2' }
+  ]
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
   const [activeStep, setActiveStep] = useState(0)
   const [processedMessageIds, setProcessedMessageIds] = useState(new Set())
   const nodeBank = [
     {
-      id: '1',
+      id: '11',
       data: {
         label: '#ffc800',
         color: '#ffc800'
@@ -164,7 +284,7 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
       position: { x: 0, y: 0 }
     },
     {
-      id: '2',
+      id: '12',
       data: {
         label: '#6865A5',
         color: '#6865A5'
@@ -172,7 +292,7 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
       position: { x: 150, y: 0 }
     },
     {
-      id: '3',
+      id: '13',
       data: {
         label: '#ff6700',
         color: '#ff6700'
@@ -180,7 +300,7 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
       position: { x: 50, y: 100 }
     },
     {
-      id: '4',
+      id: '14',
       data: {
         label: '#0041d0',
         color: '#0041d0'
@@ -188,7 +308,7 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
       position: { x: 200, y: 100 }
     },
     {
-      id: '5',
+      id: '15',
       data: {
         label: '#ff0072',
         color: '#ff0072'
@@ -196,7 +316,7 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
       position: { x: 0, y: 200 }
     },
     {
-      id: '6',
+      id: '16',
       data: {
         label: '#00d7ca',
         color: '#00d7ca'
@@ -204,7 +324,7 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
       position: { x: 150, y: 200 }
     },
     {
-      id: '7',
+      id: '17',
       data: {
         label: '#6ede87',
         color: '#6ede87'
@@ -212,7 +332,7 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
       position: { x: 50, y: 300 }
     },
     {
-      id: '8',
+      id: '18',
       data: {
         label: '#9ca8b3',
         color: '#9ca8b3'
@@ -220,68 +340,69 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
       position: { x: 200, y: 300 }
     }
   ]
-  // On initial load, set the nodes to be only the first one visible
-  useEffect(() => {
-    setNodes(nds => nds.map((node, i) => ({ ...node, hidden: i > activeStep })))
-    setEdges(eds => eds.map(edge => ({ ...edge, hidden: true })))
-  }, [])
+
+  // // On initial load, set the nodes to be only the first one visible
+  // useEffect(() => {
+  //   setNodes(nds => nds.map((node, i) => ({ ...node, hidden: i > activeStep })))
+  //   setEdges(eds => eds.map(edge => ({ ...edge, hidden: true })))
+  // }, [])
   // Update nodes visibility when activeStep changes
   useEffect(() => {
     setNodes(nds => nds.map((node, i) => ({ ...node, hidden: i > activeStep })))
     setEdges(eds =>
       eds.map(edge => ({
-        ...edge,
-        hidden:
-          parseInt(edge.source) > activeStep ||
-          parseInt(edge.target) > activeStep
+        ...edge
+        // hidden:
+        //   parseInt(edge.source) > activeStep ||
+        //   parseInt(edge.target) > activeStep
       }))
     )
   }, [activeStep])
 
-  useEffect(() => {
-    messages.forEach(message => {
-      if (message.role !== 'user' && !processedMessageIds.has(message.id)) {
-        // Randomly select a node from the node bank
-        const randomNodeIndex = Math.floor(Math.random() * nodeBank.length)
-        const newNode = {
-          ...nodeBank[randomNodeIndex],
-          id: uuidv4(),
-          xstyle: { backgroundColor: nodeBank[randomNodeIndex].data.color }
-        } // Clone the node and assign a unique ID
+  // useEffect(() => {
+  //   messages.forEach(message => {
+  //     if (message.role !== 'user' && !processedMessageIds.has(message.id)) {
+  //       // Randomly select a node from the node bank
+  //       const randomNodeIndex = Math.floor(Math.random() * nodeBank.length)
+  //       const newNode = {
+  //         ...nodeBank[randomNodeIndex],
+  //         id: uuidv4(),
+  //         xstyle: { backgroundColor: nodeBank[randomNodeIndex].data.color }
+  //       } // Clone the node and assign a unique ID
 
-        setNodes(prevNodes => {
-          // Check if the node is already added
-          if (prevNodes.find(node => node.data.label === newNode.data.label)) {
-            return prevNodes
-          }
+  //       setNodes(prevNodes => {
+  //         // Check if the node is already added
+  //         if (prevNodes.find(node => node.data.label === newNode.data.label)) {
+  //           return prevNodes
+  //         }
 
-          // Randomly select an existing node to connect with, if there are any
-          if (prevNodes.length > 0) {
-            const randomExistingNodeIndex = Math.floor(
-              Math.random() * prevNodes.length
-            )
-            const selectedNode = prevNodes[randomExistingNodeIndex]
+  //         // Randomly select an existing node to connect with, if there are any
+  //         if (prevNodes.length > 0) {
+  //           const randomExistingNodeIndex = Math.floor(
+  //             Math.random() * prevNodes.length
+  //           )
+  //           const selectedNode = prevNodes[randomExistingNodeIndex]
 
-            // Create a new edge
-            const newEdge = {
-              id: `e${selectedNode.id}-${newNode.id}`,
-              source: selectedNode.id,
-              target: newNode.id,
-              label: getRandomEdgeText(),
-              animated: true
-            }
+  //           // Create a new edge
+  //           const newEdge = {
+  //             id: `e${selectedNode.id}-${newNode.id}`,
+  //             source: selectedNode.id,
+  //             target: newNode.id,
+  //             label: getRandomEdgeText(),
+  //             animated: true
+  //           }
 
-            setEdges(prevEdges => [...prevEdges, newEdge])
-          }
+  //           setEdges(prevEdges => [...prevEdges, newEdge])
+  //         }
 
-          // Return the updated nodes array with the new node
-          return [...prevNodes, newNode]
-        })
+  //         // Return the updated nodes array with the new node
+  //         return [...prevNodes, newNode]
+  //       })
 
-        setProcessedMessageIds(prevIds => new Set([...prevIds, message.id]))
-      }
-    })
-  }, [messages, nodeBank, setNodes, setEdges, processedMessageIds])
+  //       setProcessedMessageIds(prevIds => new Set([...prevIds, message.id]))
+  //     }
+  //   })
+  // }, [messages, nodeBank, setNodes, setEdges, processedMessageIds])
 
   // Handler for dot stepper change
   const handleStepChange = step => {
@@ -323,7 +444,7 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
                 >
                   <ReactFlow
                     nodes={nodes.filter((node, i) => i <= activeStep)}
-                    edges={edges.filter(edge => !edge.hidden)}
+                    edges={edges}
                     onNodesChange={onNodesChange}
                     onEdgesChange={onEdgesChange}
                     fitView
@@ -333,12 +454,17 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
                     {' '}
                     <Background color="#aaa" gap={16} />
                   </ReactFlow>
-                  {/* <div
-                    className="relativ"
-                    style={{ width: '10px', height: '10px' }}
+                  <div
+                    className="absolute"
+                    style={{
+                      top: '10px',
+                      left: '10px',
+                      width: '80px',
+                      height: '80px'
+                    }} // Adjust size here
                   >
                     <MiniMap style={minimapStyle} zoomable pannable />
-                  </div> */}
+                  </div>
                   <div className="absolute bottom-0 right-0">
                     {' '}
                     {/* Position for Controls */}
