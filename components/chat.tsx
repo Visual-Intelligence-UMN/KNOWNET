@@ -431,9 +431,9 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
     <>
       <div className={cn('pb-[200px] pt-4 md:pt-10', className)}>
         {messages.length ? (
-          <div className="md:flex  pt-4 md:pt-10">
+          <div className="md:flex pt-4 md:pt-10">
             {/* Left column for GraphCard and Flow */}
-            <div className="md:w-1/3 space-y-1 pr-4">
+            <div className="md:w-1/3 top-10 space-y-1 pr-4">
               {' '}
               {/* Adjust the padding-right (pr-4) as needed */}
               {/* <div className="top-4 h-[calc(40vh-1rem)]">
@@ -456,17 +456,12 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
                     {' '}
                     <Background color="#aaa" gap={16} />
                   </ReactFlow>
-                  <div
-                    className="absolute"
-                    style={{
-                      top: '10px',
-                      left: '10px',
-                      width: '80px',
-                      height: '80px'
-                    }} // Adjust size here
+                  {/* <div
+                    className="absolute buttom-1 right-1"
+                    // Adjust size here
                   >
                     <MiniMap style={minimapStyle} zoomable pannable />
-                  </div>
+                  </div> */}
                   <div className="absolute bottom-0 right-0">
                     {' '}
                     {/* Position for Controls */}

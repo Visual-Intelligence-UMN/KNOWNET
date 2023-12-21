@@ -18,10 +18,12 @@ export interface ChatPanelProps
     | 'setInput'
   > {
   id?: string
+  title?: string
 }
 
 export function ChatPanel({
   id,
+  title,
   isLoading,
   stop,
   append,
@@ -30,6 +32,14 @@ export function ChatPanel({
   setInput,
   messages
 }: ChatPanelProps) {
+  // Function to handle specific context button click
+  const handleContextButtonClick = async (contextMessage: string) => {
+    await append({
+      id,
+      content: contextMessage,
+      role: 'user'
+    })
+  }
   return (
     <div className="fixed inset-x-0 bottom-0 bg-gradient-to-b from-muted/10 from-10% to-muted/30 to-50%">
       <ButtonScrollToBottom />
@@ -45,15 +55,47 @@ export function ChatPanel({
               Stop generating
             </Button>
           ) : (
-            messages?.length > 0 && (
-              <Button
-                variant="outline"
-                onClick={() => reload()}
-                className="bg-background"
-              >
-                <IconRefresh className="mr-2" />
-                Regenerate response
-              </Button>
+            messages?.length >= 2 && (
+              <div className="flex space-x-2">
+                <Button variant="outline" onClick={() => reload()}>
+                  <IconRefresh className="mr-2" />
+                  Regenerate response
+                </Button>
+                {id ? (
+                  <>
+                    <Button
+                      variant="outline"
+                      onClick={() =>
+                        handleContextButtonClick(
+                          "Explain Omega-3 fatty acids relation with Alzheimer's disease"
+                        )
+                      }
+                    >
+                      Omega-3
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() =>
+                        handleContextButtonClick(
+                          "Explain Vitamin E relation with Alzheimer's disease"
+                        )
+                      }
+                    >
+                      Vitamin E
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() =>
+                        handleContextButtonClick(
+                          "Explain Vitamin B12 relation with Alzheimer's disease"
+                        )
+                      }
+                    >
+                      Vitamin B12
+                    </Button>
+                  </>
+                ) : null}
+              </div>
             )
           )}
         </div>
