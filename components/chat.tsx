@@ -346,7 +346,7 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
                     <Controls />
                   </div>
                   <DotsMobileStepper
-                    steps={nodes.length}
+                    steps={nodes.length - 1}
                     activeStep={activeStep}
                     handleNext={() =>
                       handleStepChange(

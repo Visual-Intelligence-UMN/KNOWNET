@@ -1,9 +1,7 @@
-import * as React from 'react'
-import { useTheme } from '@mui/material/styles'
-import MobileStepper from '@mui/material/MobileStepper'
-import Button from '@mui/material/Button'
-import KeyboardArrowLeft from '@mui/icons-material/KeyboardArrowLeft'
-import KeyboardArrowRight from '@mui/icons-material/KeyboardArrowRight'
+'use client'
+import React from 'react'
+import { Stepper, Step, Button } from '@material-tailwind/react'
+
 type DotsMobileStepperProps = {
   steps: number
   activeStep: number
@@ -17,42 +15,25 @@ export default function DotsMobileStepper({
   handleNext,
   handleBack
 }: DotsMobileStepperProps) {
-  const theme = useTheme()
+  const isLastStep = activeStep === steps - 1
+  const isFirstStep = activeStep === 0
+  // Define your custom theme here
 
   return (
-    <MobileStepper
-      variant="dots"
-      steps={steps}
-      position="static"
-      activeStep={activeStep}
-      sx={{
-        maxWidth: 400,
-        flexGrow: 1
-      }}
-      nextButton={
-        <Button
-          size="small"
-          onClick={handleNext}
-          disabled={activeStep === steps - 1}
-        >
-          Next
-          {theme.direction === 'rtl' ? (
-            <KeyboardArrowLeft />
-          ) : (
-            <KeyboardArrowRight />
-          )}
-        </Button>
-      }
-      backButton={
-        <Button size="small" onClick={handleBack} disabled={activeStep === 0}>
-          {theme.direction === 'rtl' ? (
-            <KeyboardArrowRight />
-          ) : (
-            <KeyboardArrowLeft />
-          )}
+    <div className="pt-16 px-5">
+      <Stepper activeStep={activeStep}>
+        {Array.from({ length: steps }, (_, index) => (
+          <Step key={index} className="h-3 w-3" onClick={() => handleBack()} />
+        ))}
+      </Stepper>
+      <div className="mt-4 flex justify-between">
+        <Button onClick={handleBack} disabled={isFirstStep}>
           Back
         </Button>
-      }
-    />
+        <Button onClick={handleNext} disabled={isLastStep}>
+          Next
+        </Button>
+      </div>
+    </div>
   )
 }
