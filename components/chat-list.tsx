@@ -8,12 +8,16 @@ import * as Switch from '@radix-ui/react-switch'
 
 export interface ChatListProps {
   messages: Message[]
+  activeStep: number
+  setActiveStep: (step: number) => void
 }
 
-export function ChatList({ messages }: ChatListProps) {
+export function ChatList({
+  messages,
+  activeStep,
+  setActiveStep
+}: ChatListProps) {
   const [isPaneView, setIsPaneView] = useState(false) // State to manage switch position
-
-  const [currentIndex, setCurrentIndex] = useState(0)
 
   const toggleViewMode = () => {
     setIsPaneView(!isPaneView) // Toggle between true and false
@@ -25,14 +29,14 @@ export function ChatList({ messages }: ChatListProps) {
   }
 
   const handleNext = () => {
-    if (currentIndex < messagePairs.length - 1) {
-      setCurrentIndex(currentIndex + 1)
+    if (activeStep < messagePairs.length - 1) {
+      setActiveStep(activeStep + 1)
     }
   }
 
   const handleBack = () => {
-    if (currentIndex > 0) {
-      setCurrentIndex(currentIndex - 1)
+    if (activeStep > 0) {
+      setActiveStep(activeStep - 1)
     }
   }
 
@@ -61,10 +65,10 @@ export function ChatList({ messages }: ChatListProps) {
 
       {isPaneView ? (
         <>
-          <ChatPane messagePair={messagePairs[currentIndex] || []} />
+          <ChatPane messagePair={messagePairs[activeStep] || []} />
           <DotsMobileStepper
             steps={messagePairs.length}
-            activeStep={currentIndex}
+            activeStep={activeStep}
             handleNext={handleNext}
             handleBack={handleBack}
           />

@@ -47,35 +47,14 @@ export interface ChatProps extends React.ComponentProps<'div'> {
 }
 
 export function Chat({ id, initialMessages, className }: ChatProps) {
-  const router = useRouter()
-  const path = usePathname()
   const [previewToken, setPreviewToken] = useLocalStorage<string | null>(
     'ai-token',
     null
   )
-  const [hasTokenBeenSet, setHasTokenBeenSet] = useLocalStorage<boolean>(
-    'has-token-been-set',
-    false
-  )
+
   const initialRender = useRef(true)
   const [previewTokenDialog, setPreviewTokenDialog] = useState(false)
   const [previewTokenInput, setPreviewTokenInput] = useState(previewToken ?? '')
-  // const [isGraphModalOpen, setGraphModalOpen] = useState(false)
-  // const [graphData, setGraphData] = useState<GraphData>({
-  //   nodes: [
-  //     { id: 1, label: 'Node 1', group: 'type1' },
-  //     { id: 2, label: 'Node 2', group: 'type2' },
-  //     { id: 3, label: 'Node 3', group: 'type3' }
-  //   ],
-  //   edges: [
-  //     { source: 1, target: 2 },
-  //     { source: 2, target: 3 }
-  //   ]
-  // })
-  // const handleOpenGraphModal = () => {
-  //   // Fetch and set the graph data if needed, then open the modal
-  //   setGraphModalOpen(true)
-  // }
 
   const { messages, append, reload, stop, isLoading, input, setInput } =
     useChat({
@@ -91,10 +70,6 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
         }
       },
       onFinish: message => {
-        // if (!path.includes('chat')) {
-        //   router.push(`/chat/${id}`, { shallow: true })
-        //   router.refresh()
-        // }
         // Add a new node and edge when a message is finished processing
         if (
           message.role === 'assistant' &&
@@ -151,38 +126,6 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
     setPreviewTokenDialog(false)
   }
 
-  //Flow
-
-  // this example uses some v12 features that are not released yet
-  // const initialNodes: Node[] = [
-  //   {
-  //     id: '1',
-  //     type: 'input',
-  //     data: { label: 'Node 1' },
-  //     position: { x: 250, y: 5 },
-  //     width: nodeSize.width,
-  //     height: nodeSize.height
-  //   },
-  //   {
-  //     id: '2',
-  //     data: { label: 'Node 2' },
-  //     position: { x: 100, y: 100 },
-  //     width: nodeSize.width,
-  //     height: nodeSize.height
-  //   },
-  //   {
-  //     id: '3',
-  //     data: { label: 'Node 3' },
-  //     position: { x: 400, y: 100 },
-  //     width: nodeSize.width,
-  //     height: nodeSize.height
-  //   }
-  // ]
-
-  // const initialEdges: Edge[] = [
-  //   { id: 'e1-2', source: '1', target: '2', animated: true },
-  //   { id: 'e1-3', source: '1', target: '3', animated: true }
-  // ]
   // State management for nodes and edges using React Flow's hooks
   const initialNodes: Node<{ label: string }, string | undefined>[] = [
     {
@@ -342,82 +285,20 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
       position: { x: 200, y: 300 }
     }
   ]
-
-  // // On initial load, set the nodes to be only the first one visible
-  // useEffect(() => {
-  //   setNodes(nds => nds.map((node, i) => ({ ...node, hidden: i > activeStep })))
-  //   setEdges(eds => eds.map(edge => ({ ...edge, hidden: true })))
-  // }, [])
-  // Update nodes visibility when activeStep changes
   useEffect(() => {
     setNodes(nds => nds.map((node, i) => ({ ...node, hidden: i > activeStep })))
     setEdges(eds =>
       eds.map(edge => ({
         ...edge
-        // hidden:
-        //   parseInt(edge.source) > activeStep ||
-        //   parseInt(edge.target) > activeStep
       }))
     )
   }, [activeStep])
-
-  // useEffect(() => {
-  //   messages.forEach(message => {
-  //     if (message.role !== 'user' && !processedMessageIds.has(message.id)) {
-  //       // Randomly select a node from the node bank
-  //       const randomNodeIndex = Math.floor(Math.random() * nodeBank.length)
-  //       const newNode = {
-  //         ...nodeBank[randomNodeIndex],
-  //         id: uuidv4(),
-  //         xstyle: { backgroundColor: nodeBank[randomNodeIndex].data.color }
-  //       } // Clone the node and assign a unique ID
-
-  //       setNodes(prevNodes => {
-  //         // Check if the node is already added
-  //         if (prevNodes.find(node => node.data.label === newNode.data.label)) {
-  //           return prevNodes
-  //         }
-
-  //         // Randomly select an existing node to connect with, if there are any
-  //         if (prevNodes.length > 0) {
-  //           const randomExistingNodeIndex = Math.floor(
-  //             Math.random() * prevNodes.length
-  //           )
-  //           const selectedNode = prevNodes[randomExistingNodeIndex]
-
-  //           // Create a new edge
-  //           const newEdge = {
-  //             id: `e${selectedNode.id}-${newNode.id}`,
-  //             source: selectedNode.id,
-  //             target: newNode.id,
-  //             label: getRandomEdgeText(),
-  //             animated: true
-  //           }
-
-  //           setEdges(prevEdges => [...prevEdges, newEdge])
-  //         }
-
-  //         // Return the updated nodes array with the new node
-  //         return [...prevNodes, newNode]
-  //       })
-
-  //       setProcessedMessageIds(prevIds => new Set([...prevIds, message.id]))
-  //     }
-  //   })
-  // }, [messages, nodeBank, setNodes, setEdges, processedMessageIds])
 
   // Handler for dot stepper change
   const handleStepChange = (step: number) => {
     setActiveStep(step)
   }
   const proOptions = { hideAttribution: true }
-  const minimapStyle = {
-    background: '#192633',
-    border: '1px solid #192633',
-    borderRadius: '4px',
-
-    opacity: 0.8
-  }
   const onConnect: OnConnect = useCallback(
     params => setEdges(eds => addEdge(params, eds)),
     [setEdges]
@@ -456,12 +337,6 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
                     {' '}
                     <Background color="#aaa" gap={16} />
                   </ReactFlow>
-                  {/* <div
-                    className="absolute buttom-1 right-1"
-                    // Adjust size here
-                  >
-                    <MiniMap style={minimapStyle} zoomable pannable />
-                  </div> */}
                   <div className="absolute bottom-0 right-0">
                     {' '}
                     {/* Position for Controls */}
@@ -485,7 +360,11 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
 
             {/* Right column for ChatList */}
             <div className="md:w-2/3 grow overflow-auto">
-              <ChatList messages={messages} />
+              <ChatList
+                messages={messages}
+                activeStep={activeStep}
+                setActiveStep={setActiveStep}
+              />
               <ChatScrollAnchor trackVisibility={isLoading} />
             </div>
           </div>
