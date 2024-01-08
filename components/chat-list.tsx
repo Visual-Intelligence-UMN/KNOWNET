@@ -1,10 +1,16 @@
 'use client'
-import React, { useState } from 'react'
+import React from 'react'
 import { Message } from 'ai'
 import { ChatPane } from '@/components/chat-pane'
 import { ChatMessage } from '@/components/chat-message'
-import DotsMobileStepper from '@/components/dotstepper'
 import * as Switch from '@radix-ui/react-switch'
+import {
+  Tabs,
+  TabsHeader,
+  TabsBody,
+  Tab,
+  TabPanel
+} from '@material-tailwind/react'
 
 export interface ChatListProps {
   messages: Message[]
@@ -17,10 +23,10 @@ export function ChatList({
   activeStep,
   setActiveStep
 }: ChatListProps) {
-  const [isPaneView, setIsPaneView] = useState(false) // State to manage switch position
+  const [isPaneView, setIsPaneView] = React.useState(false)
 
   const toggleViewMode = () => {
-    setIsPaneView(!isPaneView) // Toggle between true and false
+    setIsPaneView(!isPaneView)
   }
 
   const messagePairs: [Message, Message?][] = []
@@ -28,16 +34,16 @@ export function ChatList({
     messagePairs.push([messages[i], messages[i + 1]])
   }
 
-  const handleNext = () => {
-    if (activeStep < messagePairs.length - 1) {
-      setActiveStep(activeStep + 1)
-    }
-  }
+  // Create tab data based on the number of message pairs
+  const tabsData = messagePairs.map((_, index) => ({
+    label: `Step ${index + 1}`,
+    value: index.toString() // Using index as value
+  }))
 
-  const handleBack = () => {
-    if (activeStep > 0) {
-      setActiveStep(activeStep - 1)
-    }
+  // Function to change the active step (tab)
+  const handleTabClick = (step: number) => {
+    console.log('Tab clicked, changing active step to:', step)
+    setActiveStep(step)
   }
 
   if (!messages.length) {
@@ -48,8 +54,8 @@ export function ChatList({
     <div className="p-4">
       <div className="flex items-center mb-4">
         <Switch.Root
-          className="w-[42px] h-[25px]  bg-black rounded-full relative shadow-[0_2px_10px] shadow-blackA4 focus:shadow-[0_0_0_2px] focus:shadow-black data-[state=checked]:bg-black outline-none cursor-default right-2"
-          id="airplane-mode"
+          className="w-[42px] h-[25px] bg-black rounded-full relative shadow-[0_2px_10px] shadow-blackA4 focus:shadow-[0_0_0_2px] focus:shadow-black data-[state=checked]:bg-black outline-none cursor-default right-2"
+          id="switch-mode"
           checked={isPaneView}
           onCheckedChange={toggleViewMode}
         >
@@ -65,13 +71,31 @@ export function ChatList({
 
       {isPaneView ? (
         <>
-          <ChatPane messagePair={messagePairs[activeStep] || []} />
-          <DotsMobileStepper
-            steps={messagePairs.length}
-            activeStep={activeStep}
-            handleNext={handleNext}
-            handleBack={handleBack}
-          />
+          <Tabs key={activeStep} value={activeStep.toString()}>
+            <TabsHeader
+              className="rounded-none border-b border-blue-gray-50 bg-transparent p-0"
+              indicatorProps={{
+                className:
+                  'bg-transparent border-b-2 border-gray-900 shadow-none rounded-none'
+              }}
+            >
+              {tabsData.map(({ label, value }, index) => (
+                <Tab
+                  key={value}
+                  value={value}
+                  onClick={() => handleTabClick(index)}
+                >
+                  {label}
+                </Tab>
+              ))}
+            </TabsHeader>
+            <TabsBody>
+              {/* Render only the active TabPanel */}
+              <TabPanel value={activeStep.toString()}>
+                <ChatPane messagePair={messagePairs[activeStep] || []} />
+              </TabPanel>
+            </TabsBody>
+          </Tabs>
         </>
       ) : (
         <div className="relative mx-auto px-14">

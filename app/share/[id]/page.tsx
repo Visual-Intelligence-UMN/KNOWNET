@@ -45,7 +45,9 @@ export default async function SharePage({ params }: SharePageProps) {
         <ChatList
           messages={chat.messages}
           activeStep={0}
-          setActiveStep={() => {}}
+          setActiveStep={function (step: number): void {
+            throw new Error('Function not implemented.')
+          }}
         />
       </div>
       <FooterText className="py-8" />

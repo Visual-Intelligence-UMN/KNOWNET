@@ -292,7 +292,7 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
         ...edge
       }))
     )
-  }, [activeStep])
+  }, [activeStep, setNodes, setEdges])
 
   // Handler for dot stepper change
   const handleStepChange = (step: number) => {
@@ -322,8 +322,11 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
               </div> */}
               <ReactFlowProvider>
                 <div
-                  className="sticky top-4 left-4 pb-10"
-                  style={{ width: '400px', height: '400px' }}
+                  className="sticky top-4 left-4 pb-10 border rounded-md shadow-md bg-white dark:bg-gray-800"
+                  style={{
+                    width: 'calc(100% - 2rem)',
+                    height: 'calc(40vh - 1rem)'
+                  }}
                 >
                   <ReactFlow
                     nodes={nodes.filter((node, i) => i <= activeStep)}
@@ -363,7 +366,7 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
               <ChatList
                 messages={messages}
                 activeStep={activeStep}
-                setActiveStep={setActiveStep}
+                setActiveStep={handleStepChange}
               />
               <ChatScrollAnchor trackVisibility={isLoading} />
             </div>
