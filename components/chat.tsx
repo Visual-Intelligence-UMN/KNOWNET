@@ -38,7 +38,7 @@ import { usePathname, useRouter } from 'next/navigation'
 // import { GraphData } from '@/lib/types'
 // import Flow from '@/components/flow' // Import the Flow component
 import DotsMobileStepper from '@/components/dotstepper'
-import { v4 as uuidv4 } from 'uuid' // for generating unique IDs
+// import { v4 as uuidv4 } from 'uuid' // for generating unique IDs
 import { cn } from '@/lib/utils'
 // const IS_PREVIEW = process.env.VERCEL_ENV === 'preview'
 export interface ChatProps extends React.ComponentProps<'div'> {

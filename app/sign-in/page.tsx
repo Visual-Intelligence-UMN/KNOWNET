@@ -12,7 +12,7 @@ export default async function SignInPage() {
   }
 
   return (
-    <div className="flex h-[calc(100vh-theme(spacing.16))] items-center justify-center py-10">
+    <div className="flex flex-col h-[calc(100vh-theme(spacing.16))] items-center justify-center py-10">
       <LoginButton
         provider="github"
         text="Login with GitHub"
