@@ -310,7 +310,12 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
   }
   return (
     <>
-      <div className={cn('pb-[200px] pt-4 md:pt-10', className)}>
+      <div
+        className={cn(
+          ' sm:max-w-4xl px-1 mx-auto border rounded-md shadow-md dark:bg-gray-800',
+          className
+        )}
+      >
         {messages.length ? (
           <div className="md:flex pt-4 md:pt-10">
             {/* Left column for GraphCard and Flow */}
@@ -322,7 +327,7 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
               </div> */}
               <ReactFlowProvider>
                 <div
-                  className="sticky top-4 left-4 pb-10 border rounded-md shadow-md bg-white dark:bg-gray-800"
+                  className="sticky top-3 left-10 pb-10 border rounded-md shadow-md bg-white dark:bg-gray-800"
                   style={{
                     width: 'calc(100% - 2rem)',
                     height: 'calc(40vh - 1rem)'
@@ -346,7 +351,7 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
                     <Controls />
                   </div>
                   <DotsMobileStepper
-                    steps={nodes.length - 1}
+                    steps={messages.length / 2}
                     activeStep={activeStep}
                     handleNext={() =>
                       handleStepChange(
