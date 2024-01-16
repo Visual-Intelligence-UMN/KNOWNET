@@ -19,7 +19,7 @@ export function useViewMode() {
 }
 
 export function ViewModeProvider({ children }: { children: ReactNode }) {
-  const [isPaneView, setIsPaneView] = useState(false)
+  const [isPaneView, setIsPaneView] = useState(true)
 
   const toggleViewMode = () => {
     setIsPaneView(!isPaneView)

@@ -1,6 +1,7 @@
 'use client'
 import React from 'react'
-import { Stepper, Step, Button } from '@material-tailwind/react'
+import { Stepper, Step } from '@material-tailwind/react'
+import { Button } from '@/components/ui/button'
 
 type DotsMobileStepperProps = {
   steps: number
@@ -46,12 +47,22 @@ export default function DotsMobileStepper({
 
   return (
     <div className="pt-16 px-5">
-      {renderStepIndicator()}
-      <div className="mt-4 flex justify-between">
-        <Button onClick={handleBack} disabled={isFirstStep}>
+      <div className="flex justify-between items-center">
+        <Button
+          variant="outline"
+          onClick={handleBack}
+          disabled={isFirstStep}
+          className="mr-2"
+        >
           Back
         </Button>
-        <Button onClick={handleNext} disabled={isLastStep}>
+        {renderStepIndicator()}
+        <Button
+          variant="outline"
+          onClick={handleNext}
+          disabled={isLastStep}
+          className="ml-2"
+        >
           Next
         </Button>
       </div>

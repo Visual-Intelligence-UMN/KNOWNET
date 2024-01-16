@@ -310,72 +310,66 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
   }
   return (
     <>
-      <div
-        className={cn(
-          ' sm:max-w-4xl px-1 mx-auto border rounded-md shadow-md dark:bg-gray-800',
-          className
-        )}
-      >
+      <div className="mx-auto max-w-4xl  rounded-lg border bg-background p-4 ">
         {messages.length ? (
-          <div className="md:flex pt-4 md:pt-10">
-            {/* Left column for GraphCard and Flow */}
-            <div className="md:w-1/3 top-10 space-y-1 pr-4">
-              {' '}
-              {/* Adjust the padding-right (pr-4) as needed */}
-              {/* <div className="top-4 h-[calc(40vh-1rem)]">
+          <>
+            {/* DotsMobileStepper positioned here */}
+            <DotsMobileStepper
+              steps={messages.length / 2}
+              activeStep={activeStep}
+              handleNext={() =>
+                handleStepChange(Math.min(activeStep + 1, nodes.length - 1))
+              }
+              handleBack={() => handleStepChange(Math.max(activeStep - 1, 0))}
+            />
+
+            <div className="md:flex pt-4 md:pt-10">
+              <div className="md:w-1/2 top-10 space-y-1 pr-4">
+                {' '}
+                {/* Adjust the padding-right (pr-4) as needed */}
+                {/* <div className="top-4 h-[calc(40vh-1rem)]">
                 <GraphCard graphData={graphData} />
               </div> */}
-              <ReactFlowProvider>
-                <div
-                  className="sticky top-3 left-10 pb-10 border rounded-md shadow-md bg-white dark:bg-gray-800"
-                  style={{
-                    width: 'calc(100% - 2rem)',
-                    height: 'calc(40vh - 1rem)'
-                  }}
-                >
-                  <ReactFlow
-                    nodes={nodes.filter((node, i) => i <= activeStep)}
-                    edges={edges}
-                    onNodesChange={onNodesChange}
-                    onEdgesChange={onEdgesChange}
-                    fitView
-                    proOptions={proOptions}
-                    onConnect={onConnect}
+                <ReactFlowProvider>
+                  <div
+                    className="sticky top-3 left-10 pb-10 border rounded-md shadow-md bg-white dark:bg-gray-800"
+                    style={{
+                      width: 'calc(100% - 2rem)',
+                      height: 'calc(40vh - 1rem)'
+                    }}
                   >
-                    {' '}
-                    <Background color="#aaa" gap={16} />
-                  </ReactFlow>
-                  <div className="absolute bottom-0 right-0">
-                    {' '}
-                    {/* Position for Controls */}
-                    <Controls />
+                    <ReactFlow
+                      nodes={nodes.filter((node, i) => i <= activeStep)}
+                      edges={edges}
+                      onNodesChange={onNodesChange}
+                      onEdgesChange={onEdgesChange}
+                      fitView
+                      proOptions={proOptions}
+                      onConnect={onConnect}
+                    >
+                      {' '}
+                      <Background color="#aaa" gap={16} />
+                    </ReactFlow>
+                    <div className="absolute bottom-0 right-0">
+                      {' '}
+                      {/* Position for Controls */}
+                      <Controls />
+                    </div>
                   </div>
-                  <DotsMobileStepper
-                    steps={messages.length / 2}
-                    activeStep={activeStep}
-                    handleNext={() =>
-                      handleStepChange(
-                        Math.min(activeStep + 1, nodes.length - 1)
-                      )
-                    }
-                    handleBack={() =>
-                      handleStepChange(Math.max(activeStep - 1, 0))
-                    }
-                  />
-                </div>
-              </ReactFlowProvider>
-            </div>
+                </ReactFlowProvider>
+              </div>
 
-            {/* Right column for ChatList */}
-            <div className="md:w-2/3 grow overflow-auto">
-              <ChatList
-                messages={messages}
-                activeStep={activeStep}
-                setActiveStep={handleStepChange}
-              />
-              <ChatScrollAnchor trackVisibility={isLoading} />
+              {/* Right column for ChatList */}
+              <div className="md:w-1/2 grow overflow-auto">
+                <ChatList
+                  messages={messages}
+                  activeStep={activeStep}
+                  setActiveStep={handleStepChange}
+                />
+                <ChatScrollAnchor trackVisibility={isLoading} />
+              </div>
             </div>
-          </div>
+          </>
         ) : (
           <EmptyScreen setInput={setInput} />
         )}
