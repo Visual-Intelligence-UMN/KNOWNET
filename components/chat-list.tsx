@@ -37,12 +37,13 @@ export function ChatList({
   return (
     <div className="relative mx-auto px-14">
       {isPaneView ? (
-        <>
+        <div className="max-h-96">
+          {' '}
           {messagePairs[activeStep]?.map(
             (message, index) =>
               message && <ChatMessage key={index} message={message} />
           )}
-        </>
+        </div>
       ) : (
         <>
           {messages.map((message, index) => (

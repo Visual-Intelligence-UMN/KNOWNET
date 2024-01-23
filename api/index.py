@@ -32,19 +32,12 @@ def retrieve_chat_session(chat_id):
     return jsonify(response)
 
 # Create/Update Chat Session
-@app.route("/api/chat", methods=["GET"])
+@app.route("/api/chat", methods=["GET", "POST"])
 def create_update_chat_session():
-    # data = request.json
-    # # Here, you would normally process the data and persist it.
-    # # Returning mock response
-    # response = {
-    #     "status": "success",
-    #     "message": "Chat session created/updated successfully",
-    #     "data": data  # Echoing back the received data for now
-    # }
-    # return jsonify(response)
+    if request.method == "POST":
+        data = request.json
+        # Process and save the data
 
-    #testing with fake data
     data = {
         "id": "chat_id",
         "messages": [
