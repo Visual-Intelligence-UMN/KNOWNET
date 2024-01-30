@@ -39,7 +39,6 @@ const nextConfig = {
             ? 'http://127.0.0.1:5328/api/python/:path*'
             : 'http://your_production_flask_server/api/python/:path*'
       }
-      // Add more rewrites as needed
     ]
   }
 }

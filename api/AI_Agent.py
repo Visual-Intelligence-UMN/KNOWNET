@@ -1,73 +1,24 @@
-from flask import Flask, jsonify, request
-from flask_cors import CORS
-from dotenv import load_dotenv
-import os
+"""
+_*_CODING:UTF-8_*_
+@Author: Yu Hou
+@File: AI_Agent.py
+@Time: 11/29/2310:07AM
+"""
+
 import openai
-import pandas as pd
 from neo4j import GraphDatabase
+import pandas as pd
+from embeddings_utils import get_embedding, cosine_similarity
 import numpy as np
 import re
 from sklearn.preprocessing import normalize
 from sklearn.metrics.pairwise import cosine_similarity as cosine_similarity_sklearn
-from embeddings_utils import get_embedding
 
-# Initialize Flask App
-app = Flask(__name__)
-app.secret_key = os.urandom(12)
-CORS(app)
+kg_nodes_embedding = pd.read_parquet("/Users/youfuyan/Desktop/UMN/QianwenWang'lab/VisConAgent/api/ADInt_CUI_embeddings.parquet")
+print("KG nodes embedding load complete...")
+openai.api_key = ""
+neo4j_url = "neo4j://3.83.33.130:7687"
 
-# Load environment variables
-dotenv_path = os.path.join(os.path.dirname(__file__), '..', '.env.local')
-load_dotenv(dotenv_path)
-openai.api_key = os.getenv("OPENAI_API_KEY")
-
-# Global variables from AI_Agent.py
-kg_nodes_embedding = pd.read_parquet("api/ADInt_CUI_embeddings.parquet")
-print("kg_nodes_embedding loaded" + str(kg_nodes_embedding.shape))
-neo4j_url = os.getenv("NEO4J_URL")
-# print("OPENAI API Key:", os.getenv("OPENAI_API_KEY"))
-recommendation_space = []
-
-@app.route("/api/python", methods=["GET"])
-def hello_world():
-    return "<p>Hello, I am testing flask</p>"
-
-@app.route("/api/chat", methods=["POST"])
-def post_chat_message():
-    data = request.json
-    input_type = data.get("input_type")
-    user_id = data.get("userId")
-    messages = data.get("data", {}).get("messages", [])
-    recommendId = data.get("data", {}).get("recommendId")
-
-    if not user_id:
-        return jsonify({"status": "error", "message": "Unauthorized"}), 401
-
-    try:
-        # Call the agent function from AI_agent.py
-        if input_type == "new_conversation":
-            user_input = messages[-1]["content"] if messages else ""
-            response_data = agent(kg_nodes_embedding, user_input, "new_conversation")
-            # print(response_data)
-        elif input_type == "continue_conversation":
-            # Handle the continue conversation logic
-            response_data = agent(kg_nodes_embedding, recommendId, "continue_conversation")
-        else:
-            raise ValueError("Invalid input type")
-
-        # Format the response data as per your schema
-        response = {
-            "status": "success",
-            "message": "Chat session retrieved/created successfully",
-            "data": response_data
-        }
-
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
-
-    return jsonify(response)
-
-## AI Agent METHOD
 
 def AI_respnse(message):
     qa_prompt = """
@@ -226,6 +177,10 @@ def visualization(node_list):
 
     return res
 
+
+recommendation_space = []
+
+
 def add_recommendation_space(entity_list):
     for entity in entity_list:
         cypher_statement = "MATCH path=(sub:Node{CUI:\"" + entity[0] + "\"})-[rel:Relation*1]-(obj:Node) RETURN path LIMIT 30"
@@ -243,70 +198,45 @@ def generate_recommendation():
 
     return res
 
+
 def agent(kg_nodes_embedding, user_input, input_type):
-    response_data = {
-        "messages": []
-    }
-
-    if input_type == "new_conversation":
-        # User's message
-        response_data["messages"].append({
-            "role": "user",
-            "content": user_input
-        })
-
-        # Get response from AI
+    if input_type == "user_input":
         qa_response, keywords_list_answer, keywords_list_question = AI_respnse(user_input)
-
-        # Assistant's response
-        response_data["messages"].append({
-            "role": "assistant",
-            "content": qa_response
-        })
-
-        # Additional data processing
+        print(qa_response)
+        print(keywords_list_answer)
+        print(keywords_list_question)
         nodes_list_answer = match_KG_nodes(keywords_list_answer, kg_nodes_embedding)
         nodes_list_question = match_KG_nodes(keywords_list_question, kg_nodes_embedding)
+        print(nodes_list_answer)
+        print(nodes_list_question)
         add_recommendation_space(nodes_list_question)
+        print(recommendation_space)
         vis_res = visualization(nodes_list_answer)
+        print(vis_res)
         recommendation = generate_recommendation()
-
-        # Add visualizations and recommendations to the response
-        response_data.update({
-            "vis_res": vis_res,
-            "recommendation": recommendation
-        })
-
-    elif input_type == "continue_conversation":
+        print(recommendation)
+    if input_type == "follow_recommendation":
+        # print(recommendation_space)
         selected_recommendation = recommendation_space.pop(user_input)
-        input_text = "I want know more information between " + selected_recommendation[1] + " and " + selected_recommendation[2]
-
-        # User's follow-up message
-        response_data["messages"].append({
-            "role": "user",
-            "content": input_text
-        })
-
-        # Get response from AI
+        # print(selected_recommendation)
+        input_text = "I want know more information between " + selected_recommendation[1] + " and " + selected_recommendation[2] + "."
+        print(input_text)
         qa_response, keywords_list_answer, keywords_list_question = AI_respnse(input_text)
-
-        # Assistant's response
-        response_data["messages"].append({
-            "role": "assistant",
-            "content": qa_response
-        })
-
-        # Additional data processing
+        print(qa_response)
         vis_res = subgraph_type(selected_recommendation[0], selected_recommendation[2])
+        print(vis_res)
         recommendation = generate_recommendation()
-
-        # Add visualizations and recommendations to the response
-        response_data.update({
-            "vis_res": vis_res,
-            "recommendation": recommendation
-        })
-
-    return response_data
+        print(recommendation)
 
 
+def main():
 
+
+    print("KG nodes embedding load complete...")
+    # agent(kg_nodes_embedding, "Can Ginkgo biloba prevent Alzheimer‘s Disease?", "user_input")
+    agent(kg_nodes_embedding, "What are the benefits of Coenzyme Q10?", "user_input")
+    agent(kg_nodes_embedding, 1, "follow_recommendation")
+
+
+if __name__ == '__main__':
+    main()

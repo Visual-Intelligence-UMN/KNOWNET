@@ -67,11 +67,14 @@ export function ChatPanel({
                       variant="outline"
                       onClick={() =>
                         handleContextButtonClick(
-                          "Explain Omega-3 fatty acids relation with Alzheimer's disease"
+                          //TODO: CHANGE TO RECMOMENDATION ID SEND TO BACKEND
+                          'Recomendation id:1 # ' +
+                            "rExplain Omega-3 fatty acids relation with Alzheimer's disease"
                         )
                       }
                     >
-                      Omega-3
+                      Explain Omega-3 fatty acids relation with Alzheimer's
+                      disease
                     </Button>
                     <Button
                       variant="outline"

@@ -8,27 +8,32 @@ export interface Chat extends Record<string, any> {
   path: string
   messages: Message[]
   sharePath?: string
+  recommendation: string
+  visRes: VisualizationResult[]
 }
 
-export type ServerActionResult<Result> = Promise<
-  | Result
-  | {
-      error: string
-    }
->
+export type ServerActionResult<Result> = Promise<Result | { error: string }>
 
 export interface GraphNode {
-  id: number
+  id: string // Node ID is now a string
   label: string
   group: string
+  CUI?: string // include other properties like CUI from your API
 }
 
 export interface GraphEdge {
-  source: number
-  target: number
+  source: string // Source and target are now strings
+  target: string
+  type?: string // Including the type of relationship
+  PubMed_ID?: string // PubMed ID for the relation
 }
 
 export interface GraphData {
+  nodes: GraphNode[]
+  edges: GraphEdge[]
+}
+
+export interface VisualizationResult {
   nodes: GraphNode[]
   edges: GraphEdge[]
 }
