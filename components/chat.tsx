@@ -40,6 +40,90 @@ import DotsMobileStepper from '@/components/dotstepper'
 // import { v4 as uuidv4 } from 'uuid' // for generating unique IDs
 
 // const IS_PREVIEW = process.env.VERCEL_ENV === 'preview'
+
+const testBackendData = {
+  data: {
+    recommendation:
+      'I want know more information between coenzyme Q10 and Disorders.\nI want know more information between coenzyme Q10 and Genes & Molecular Sequences.\nI want know more information between coenzyme Q10 and Chemicals & Drugs.\nI want know more information between coenzyme Q10 and Physiology.\nI want know more information between coenzyme Q10 and Living Beings.\nI want know more information between coenzyme Q10 and Anatomy.\nI want know more information between coenzyme Q10 and Dietary Supplement.\n',
+    vis_res: [
+      {
+        edges: [
+          {
+            PubMed_ID: '23221577 | 31687097',
+            Relation_ID: 1,
+            Source: 1,
+            Target: 2,
+            Type: 'ASSOCIATED_WITH'
+          },
+          {
+            PubMed_ID: '23221577',
+            Relation_ID: 2,
+            Source: 1,
+            Target: 2,
+            Type: 'AFFECTS'
+          }
+        ],
+        nodes: [
+          {
+            CUI: 'DC0056077',
+            Label: 'Dietary Supplement',
+            Name: 'coenzyme Q10',
+            Node_ID: 1
+          },
+          {
+            CUI: 'C0018802',
+            Label: 'Disorders',
+            Name: 'Congestive heart failure',
+            Node_ID: 2
+          }
+        ]
+      },
+      {
+        edges: [
+          {
+            PubMed_ID: '24593795',
+            Relation_ID: 1,
+            Source: 1,
+            Target: 2,
+            Type: 'TREATS'
+          }
+        ],
+        nodes: [
+          {
+            CUI: 'DC0056077',
+            Label: 'Dietary Supplement',
+            Name: 'coenzyme Q10',
+            Node_ID: 1
+          },
+          { CUI: 'C0011847', Label: 'Disorders', Name: 'Diabetes', Node_ID: 2 }
+        ]
+      },
+      {
+        edges: [
+          {
+            PubMed_ID: '22005267 | 26232096',
+            Relation_ID: 1,
+            Source: 1,
+            Target: 2,
+            Type: 'AFFECTS'
+          }
+        ],
+        nodes: [
+          {
+            CUI: 'C0920563',
+            Label: 'Disorders',
+            Name: 'Insulin Sensitivity',
+            Node_ID: 1
+          },
+          { CUI: 'C0011847', Label: 'Disorders', Name: 'Diabetes', Node_ID: 2 }
+        ]
+      }
+    ]
+  },
+  message: 'Chat session retrieved/created successfully',
+  status: 'success'
+}
+
 export interface ChatProps extends React.ComponentProps<'div'> {
   initialMessages?: Message[]
   id?: string
@@ -74,35 +158,6 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
           message.role === 'assistant' &&
           processedMessageIds.has(message.id) === false
         ) {
-          const randomNodeIndex = Math.floor(Math.random() * nodeBank.length)
-          const newNode = {
-            ...nodeBank[randomNodeIndex],
-            style: { backgroundColor: nodeBank[randomNodeIndex].data.color }
-          }
-
-          setNodes(prevNodes => {
-            // Check if the node is already added
-            if (prevNodes.find(node => node.id === newNode.id)) {
-              return prevNodes
-            }
-            if (prevNodes.length > 0) {
-              const randomExistingNodeIndex = Math.floor(
-                Math.random() * prevNodes.length
-              )
-              const selectedNode = prevNodes[randomExistingNodeIndex]
-              const newEdge = {
-                id: `e${selectedNode.id}-${newNode.id}`,
-                source: selectedNode.id,
-                target: newNode.id,
-                label: getRandomEdgeText(),
-                animated: true
-              }
-
-              setEdges(prevEdges => [...prevEdges, newEdge])
-            }
-            return [...prevNodes, newNode]
-          })
-
           setProcessedMessageIds(
             prevIds => new Set([...Array.from(prevIds), message.id])
           )
@@ -125,188 +180,172 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
     setPreviewTokenDialog(false)
   }
 
-  // State management for nodes and edges using React Flow's hooks
-  const initialNodes: Node<{ label: string }, string | undefined>[] = [
-    {
-      id: '1',
-      type: 'input',
-      data: { label: 'Node 0' },
-      position: { x: 250, y: 5 },
-      className: 'light'
-    },
-    {
-      id: '2',
-      data: { label: 'Group A' },
-      position: { x: 100, y: 100 },
-      className: 'light',
-      style: {
-        backgroundColor: 'rgba(255, 0, 0, 0.2)',
-        width: 200,
-        height: 200
-      }
-    },
-    {
-      id: '2a',
-      data: { label: 'Node A.1' },
-      position: { x: 10, y: 50 },
-      parentNode: '2'
-    },
-    {
-      id: '3',
-      data: { label: 'Node 1' },
-      position: { x: 320, y: 100 },
-      className: 'light'
-    },
-    {
-      id: '4',
-      data: { label: 'Group B' },
-      position: { x: 320, y: 200 },
-      className: 'light',
-      style: {
-        backgroundColor: 'rgba(255, 0, 0, 0.2)',
-        width: 300,
-        height: 300
-      },
-      type: 'group'
-    },
-    {
-      id: '4a',
-      data: { label: 'Node B.1' },
-      position: { x: 15, y: 65 },
-      className: 'light',
-      parentNode: '4',
-      extent: 'parent' as const
-    },
-    {
-      id: '4b',
-      data: { label: 'Group B.A' },
-      position: { x: 15, y: 120 },
-      className: 'light',
-      style: {
-        backgroundColor: 'rgba(255, 0, 255, 0.2)',
-        height: 150,
-        width: 270
-      },
-      parentNode: '4'
-    },
-    {
-      id: '4b1',
-      data: { label: 'Node B.A.1' },
-      position: { x: 20, y: 40 },
-      className: 'light',
-      parentNode: '4b'
-    },
-    {
-      id: '4b2',
-      data: { label: 'Node B.A.2' },
-      position: { x: 100, y: 100 },
-      className: 'light',
-      parentNode: '4b'
-    }
-  ]
+  // Helper function to convert backend data to React Flow nodes and edges
+  const convertDataToFlowElements = data => {
+    const nodes = []
+    const edges = []
 
-  const initialEdges = [
-    { id: 'e1-2', source: '1', target: '2', animated: true },
-    { id: 'e1-3', source: '1', target: '3' },
-    { id: 'e2a-4a', source: '2a', target: '4a' },
-    { id: 'e3-4b', source: '3', target: '4b' },
-    { id: 'e4a-4b1', source: '4a', target: '4b1' },
-    { id: 'e4a-4b2', source: '4a', target: '4b2' },
-    { id: 'e4b1-4b2', source: '4b1', target: '4b2' }
-  ]
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
-  const [activeStep, setActiveStep] = useState(0)
-  const [processedMessageIds, setProcessedMessageIds] = useState(new Set())
-  const nodeBank = [
-    {
-      id: '11',
-      data: {
-        label: '#ffc800',
-        color: '#ffc800'
-      },
-      position: { x: 0, y: 0 }
-    },
-    {
-      id: '12',
-      data: {
-        label: '#6865A5',
-        color: '#6865A5'
-      },
-      position: { x: 150, y: 0 }
-    },
-    {
-      id: '13',
-      data: {
-        label: '#ff6700',
-        color: '#ff6700'
-      },
-      position: { x: 50, y: 100 }
-    },
-    {
-      id: '14',
-      data: {
-        label: '#0041d0',
-        color: '#0041d0'
-      },
-      position: { x: 200, y: 100 }
-    },
-    {
-      id: '15',
-      data: {
-        label: '#ff0072',
-        color: '#ff0072'
-      },
-      position: { x: 0, y: 200 }
-    },
-    {
-      id: '16',
-      data: {
-        label: '#00d7ca',
-        color: '#00d7ca'
-      },
-      position: { x: 150, y: 200 }
-    },
-    {
-      id: '17',
-      data: {
-        label: '#6ede87',
-        color: '#6ede87'
-      },
-      position: { x: 50, y: 300 }
-    },
-    {
-      id: '18',
-      data: {
-        label: '#9ca8b3',
-        color: '#9ca8b3'
-      },
-      position: { x: 200, y: 300 }
+    if (!data || !data.vis_res) {
+      console.warn('Data is not in the expected format or is null:', data)
+      // Now returning already initialized, but empty arrays
+      return { nodes, edges }
     }
-  ]
-  useEffect(() => {
-    setNodes(nds => nds.map((node, i) => ({ ...node, hidden: i > activeStep })))
-    setEdges(eds =>
-      eds.map(edge => ({
-        ...edge
-      }))
-    )
-  }, [activeStep, setNodes, setEdges])
 
-  // Handler for dot stepper change
-  const handleStepChange = (step: number) => {
-    setActiveStep(step)
+    data.vis_res.forEach((graph, index) => {
+      graph.nodes.forEach(node => {
+        nodes.push({
+          id: node.Node_ID.toString(),
+          data: { label: node.Name },
+          position: { x: Math.random() * 400, y: Math.random() * 400 }, // Random position, you might want to calculate this
+          type: 'default'
+        })
+      })
+
+      graph.edges.forEach(edge => {
+        edges.push({
+          id: `e${edge.Source}-${edge.Target}`,
+          source: edge.Source.toString(),
+          target: edge.Target.toString(),
+          label: edge.Type
+        })
+      })
+    })
+
+    return { nodes, edges }
   }
+
+  // Use the generated nodes and edges as initial states
+  const [nodes, setNodes, onNodesChange] = useNodesState([])
+  const [edges, setEdges, onEdgesChange] = useEdgesState([])
+  const [activeStep, setActiveStep] = useState(0)
+
+  const [processedMessageIds, setProcessedMessageIds] = useState(new Set())
+
+  // useEffect(() => {
+  //   setNodes(nds => nds.map((node, i) => ({ ...node, hidden: i > activeStep })))
+  //   setEdges(eds =>
+  //     eds.map(edge => ({
+  //       ...edge
+  //     }))
+  //   )
+  // }, [activeStep, setNodes, setEdges])
+
+  const appendDataToFlow = useCallback(
+    newData => {
+      const { nodes: newNodes, edges: newEdges } =
+        convertDataToFlowElements(newData)
+
+      setNodes(currentNodes => {
+        // Ensure no duplicate nodes by checking if the node already exists
+        const updatedNodes = [...currentNodes]
+        newNodes.forEach(newNode => {
+          if (!currentNodes.find(node => node.id === newNode.id)) {
+            updatedNodes.push({
+              ...newNode,
+              position: { x: Math.random() * 400, y: Math.random() * 400 }
+            })
+          }
+        })
+        return updatedNodes
+      })
+
+      setEdges(currentEdges => {
+        // Ensure no duplicate edges by checking if the edge already exists
+        const updatedEdges = [...currentEdges]
+        newEdges.forEach(newEdge => {
+          if (!currentEdges.find(edge => edge.id === newEdge.id)) {
+            updatedEdges.push(newEdge)
+          }
+        })
+        return updatedEdges
+      })
+      // Dynamically update active steps based on the nodes length
+      setActiveStep(prevStep => prevStep + newNodes.length)
+    },
+    [setNodes, setEdges]
+  )
+  // Fetch and append data on component mount or update
+  // useEffect to use backendData once it's fetched and set
+  useEffect(() => {
+    if (backendData && backendData.vis_res) {
+      appendDataToFlow(testBackendData.data)
+    }
+  }, [])
+
+  // Handler for dot stepper change, adjusted for dynamic steps
+  const handleStepChange = useCallback((step: number) => {
+    setActiveStep(step)
+  }, [])
+
   const proOptions = { hideAttribution: true }
   const onConnect: OnConnect = useCallback(
     params => setEdges(eds => addEdge(params, eds)),
     [setEdges]
   )
-  // Function to generate random edge text
-  const getRandomEdgeText = () => {
-    const texts = ['Connected', 'Linked', 'Related', 'Joined', 'Associated']
-    return texts[Math.floor(Math.random() * texts.length)]
+  // // Function to generate random edge text
+  // const getRandomEdgeText = () => {
+  //   const texts = ['Connected', 'Linked', 'Related', 'Joined', 'Associated']
+  //   return texts[Math.floor(Math.random() * texts.length)]
+  // }
+
+  const [backendData, setBackendData] = useState(null)
+
+  // Function to fetch data from backend
+  const fetchDataFromBackend = async () => {
+    const payload = {
+      input_type: 'new_conversation',
+      userId: 'user123',
+      data: {
+        keywords_list_answer: [
+          'Coenzyme Q10',
+          'ATP',
+          'antioxidant',
+          'selenium',
+          'enzymes',
+          'heart conditions',
+          'congestive heart failure',
+          'high blood pressure',
+          'chemotherapy drugs',
+          'insulin sensitivity',
+          'diabetes'
+        ],
+        keywords_list_question: ['Coenzyme Q10']
+      }
+    }
+
+    try {
+      const response = await fetch('http://localhost:5328/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const data = await response.json()
+      setBackendData(data)
+      // Here you would call the function that integrates the data into your flow, e.g., appendDataToFlow(data);
+    } catch (error) {
+      console.error('Failed to fetch data from backend:', error)
+    }
   }
+
+  // useEffect to fetch data on component mount
+  useEffect(() => {
+    fetchDataFromBackend()
+  }, []) // Empty dependency array means this effect runs once on mount
+
+  // Continue with your component logic...
+  // For example, use backendData for your flow once it's fetched and set
+  useEffect(() => {
+    if (backendData) {
+      appendDataToFlow(testBackendData.data)
+    }
+  }, [backendData, appendDataToFlow])
   return (
     <>
       <div className="mx-auto max-w-4xl  rounded-lg border bg-background p-4 ">
@@ -383,6 +422,7 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
         messages={messages}
         input={input}
         setInput={setInput}
+        recommendation={backendData ? testBackendData.data.recommendation : ''}
       />
 
       <Dialog open={previewTokenDialog} onOpenChange={setPreviewTokenDialog}>

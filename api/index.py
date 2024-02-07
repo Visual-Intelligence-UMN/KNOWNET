@@ -37,7 +37,8 @@ def post_chat_message():
     data = request.json
     input_type = data.get("input_type")
     user_id = data.get("userId")
-    messages = data.get("data", {}).get("messages", [])
+    keywords_list_answer = data.get("data", {}).get("keywords_list_answer")
+    keywords_list_question = data.get("data", {}).get("keywords_list_question")
     recommendId = data.get("data", {}).get("recommendId")
 
     if not user_id:
@@ -46,12 +47,12 @@ def post_chat_message():
     try:
         # Call the agent function from AI_agent.py
         if input_type == "new_conversation":
-            user_input = messages[-1]["content"] if messages else ""
-            response_data = agent(kg_nodes_embedding, user_input, "new_conversation")
+            response_data = agent(kg_nodes_embedding, keywords_list_answer, keywords_list_question, 0, "new_conversation")
+
             # print(response_data)
         elif input_type == "continue_conversation":
             # Handle the continue conversation logic
-            response_data = agent(kg_nodes_embedding, recommendId, "continue_conversation")
+            response_data = agent(kg_nodes_embedding, keywords_list_answer, keywords_list_question, recommendId, "continue_conversation")
         else:
             raise ValueError("Invalid input type")
 
@@ -69,48 +70,48 @@ def post_chat_message():
 
 ## AI Agent METHOD
 
-def AI_respnse(message):
-    qa_prompt = """
-    You are an expert in healthcare domain and need to help user to answer the healthcare related questions.
-    Also, please summary the specific entity/terms in your response (the keywords).
-    In addition, please identify the specific entity/terms from the question.
-    The entities/terms (keywords) can only be the following types: Dietary Supplement, Drugs, Disease, Symptom and Gene.
-    Please return your response in three parts: the first part is the answer of the question; the part part is the summarized entities/terms (keywords); the third part is the identified entities/terms from the question.
-    Please use " || " to split the three parts.
-    Please split the entities/terms (keywords) by " | " if there are more than one, and put them in "[]".
-    For example, if the question is "Can Ginkgo biloba prevent Alzheimer's Disease?"
-    Your response could be:
-    "Gingko biloba is a plant extract...
-    Some studies have suggested that Gingko biloba may improve cognitive function and behavior in people with Alzheimer's disease... ||
-    [Ginkgo biloba | Alzheimer‘s Disease] || [Ginkgo biloba | Alzheimer‘s Disease]"
-    If the question is "What are the benefits of fish oil?"
-    Your response could be:
-    "Fish oil is known for its rich content of Omega-3 fatty acids... The benefits of Fish Oil: Fish oil can delay or reduce the risk of cognitive decline.
-    Fight Inflammation: Omega-3 has potent... || [Fish Oil | Omega-3 fatty acids | cognitive decline | Inflammation] || [Fish Oil]"
-    If the question is "Can Coenzyme Q10 prevent Heart disease?"
-    Your response could be:
-    "Some studies have suggested that Coenzyme Q10 supplementation may have potential benefits for heart health... CoQ10 has antioxidant properties... ||
-    [Coenzyme Q10 | heart health || antioxidant] || [Coenzyme Q10 | Heart disease]
-    """
+# def AI_respnse(message):
+#     qa_prompt = """
+#     You are an expert in healthcare domain and need to help user to answer the healthcare related questions.
+#     Also, please summary the specific entity/terms in your response (the keywords).
+#     In addition, please identify the specific entity/terms from the question.
+#     The entities/terms (keywords) can only be the following types: Dietary Supplement, Drugs, Disease, Symptom and Gene.
+#     Please return your response in three parts: the first part is the answer of the question; the part part is the summarized entities/terms (keywords); the third part is the identified entities/terms from the question.
+#     Please use " || " to split the three parts.
+#     Please split the entities/terms (keywords) by " | " if there are more than one, and put them in "[]".
+#     For example, if the question is "Can Ginkgo biloba prevent Alzheimer's Disease?"
+#     Your response could be:
+#     "Gingko biloba is a plant extract...
+#     Some studies have suggested that Gingko biloba may improve cognitive function and behavior in people with Alzheimer's disease... ||
+#     [Ginkgo biloba | Alzheimer‘s Disease] || [Ginkgo biloba | Alzheimer‘s Disease]"
+#     If the question is "What are the benefits of fish oil?"
+#     Your response could be:
+#     "Fish oil is known for its rich content of Omega-3 fatty acids... The benefits of Fish Oil: Fish oil can delay or reduce the risk of cognitive decline.
+#     Fight Inflammation: Omega-3 has potent... || [Fish Oil | Omega-3 fatty acids | cognitive decline | Inflammation] || [Fish Oil]"
+#     If the question is "Can Coenzyme Q10 prevent Heart disease?"
+#     Your response could be:
+#     "Some studies have suggested that Coenzyme Q10 supplementation may have potential benefits for heart health... CoQ10 has antioxidant properties... ||
+#     [Coenzyme Q10 | heart health || antioxidant] || [Coenzyme Q10 | Heart disease]
+#     """
 
-    completions = openai.chat.completions.create(
-        model="gpt-4",
-        messages=[
-            {"role": "system", "content": qa_prompt},
-            {"role": "user", "content": message},
-        ]
-    )
+#     completions = openai.chat.completions.create(
+#         model="gpt-4",
+#         messages=[
+#             {"role": "system", "content": qa_prompt},
+#             {"role": "user", "content": message},
+#         ]
+#     )
 
-    response = completions.choices[0].message.content.split(" || ")
+#     response = completions.choices[0].message.content.split(" || ")
 
-    first_part = response[0]
-    second_part = response[1]
-    third_part = response[2]
+#     first_part = response[0]
+#     second_part = response[1]
+#     third_part = response[2]
 
-    keywords_list_answer = re.search(r'\[([^]]*)\]', second_part).group(1).split(" | ")
-    keywords_list_question = re.search(r'\[([^]]*)\]', third_part).group(1).split(" | ")
+#     keywords_list_answer = re.search(r'\[([^]]*)\]', second_part).group(1).split(" | ")
+#     keywords_list_question = re.search(r'\[([^]]*)\]', third_part).group(1).split(" | ")
 
-    return [first_part, keywords_list_answer, keywords_list_question]
+#     return [first_part, keywords_list_answer, keywords_list_question]
 
 
 def match_KG_nodes(entity_list, kg_nodes_embedding):
@@ -243,60 +244,23 @@ def generate_recommendation():
 
     return res
 
-def agent(kg_nodes_embedding, user_input, input_type):
-    response_data = {
-        "messages": []
-    }
+def agent(kg_nodes_embedding, keywords_list_answer, keywords_list_question, recommand_id, input_type):
+    response_data = {"vis_res": [], "recommendation": ""}
+
+    # Process for both new and continued conversations
+    nodes_list_answer = match_KG_nodes(keywords_list_answer, kg_nodes_embedding)
+    vis_res = visualization(nodes_list_answer)
+    response_data["vis_res"] = vis_res
 
     if input_type == "new_conversation":
-        # User's message
-        response_data["messages"].append({
-            "role": "user",
-            "content": user_input
-        })
-
-        # Get response from AI
-        qa_response, keywords_list_answer, keywords_list_question = AI_respnse(user_input)
-
-        # Assistant's response
-        response_data["messages"].append({
-            "role": "assistant",
-            "content": qa_response
-        })
-
-        # Additional data processing
-        nodes_list_answer = match_KG_nodes(keywords_list_answer, kg_nodes_embedding)
         nodes_list_question = match_KG_nodes(keywords_list_question, kg_nodes_embedding)
-        add_recommendation_space(nodes_list_question)
-        vis_res = visualization(nodes_list_answer)
-        recommendation = generate_recommendation()
+        add_recommendation_space(nodes_list_question)  # Potentially updates the recommendation space
 
-        # Add visualizations and recommendations to the response
-        response_data.update({
-            "vis_res": vis_res,
-            "recommendation": recommendation
-        })
+    recommendation = generate_recommendation()  # Generate recommendation based on updated space
+    response_data["recommendation"] = recommendation
 
-    elif input_type == "continue_conversation":
-        selected_recommendation = recommendation_space.pop(user_input)
-        input_text = "I want know more information between " + selected_recommendation[1] + " and " + selected_recommendation[2]
-
-        # User's follow-up message
-        response_data["messages"].append({
-            "role": "user",
-            "content": input_text
-        })
-
-        # Get response from AI
-        qa_response, keywords_list_answer, keywords_list_question = AI_respnse(input_text)
-
-        # Assistant's response
-        response_data["messages"].append({
-            "role": "assistant",
-            "content": qa_response
-        })
-
-        # Additional data processing
+    if input_type == "continue_conversation" and recommand_id is not None and recommand_id < len(recommendation_space):
+        selected_recommendation = recommendation_space.pop(recommand_id)
         vis_res = subgraph_type(selected_recommendation[0], selected_recommendation[2])
         recommendation = generate_recommendation()
 

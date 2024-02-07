@@ -19,6 +19,7 @@ export interface ChatPanelProps
   > {
   id?: string
   title?: string
+  recommendation?: string
 }
 
 export function ChatPanel({
@@ -30,7 +31,8 @@ export function ChatPanel({
   reload,
   input,
   setInput,
-  messages
+  messages,
+  recommendation
 }: ChatPanelProps) {
   // Function to handle specific context button click
   const handleContextButtonClick = async (contextMessage: string) => {
@@ -40,6 +42,10 @@ export function ChatPanel({
       role: 'user'
     })
   }
+  // Parse the recommendation string into actionable items
+  const recommendations =
+    recommendation?.split('\n').filter(r => r.length) || []
+
   return (
     <div className="fixed inset-x-0 bottom-0 bg-gradient-to-b from-muted/10 from-10% to-muted/30 to-50%">
       <ButtonScrollToBottom />
@@ -56,48 +62,20 @@ export function ChatPanel({
             </Button>
           ) : (
             messages?.length >= 2 && (
-              <div className="flex space-x-2">
+              <div className="flex flex-wrap gap-2">
                 <Button variant="outline" onClick={() => reload()}>
                   <IconRefresh className="mr-2" />
                   Regenerate response
                 </Button>
-                {id ? (
-                  <>
-                    <Button
-                      variant="outline"
-                      onClick={() =>
-                        handleContextButtonClick(
-                          //TODO: CHANGE TO RECMOMENDATION ID SEND TO BACKEND
-                          'Recomendation id:1 # ' +
-                            "rExplain Omega-3 fatty acids relation with Alzheimer's disease"
-                        )
-                      }
-                    >
-                      Explain Omega-3 fatty acids relation with Alzheimer's
-                      disease
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() =>
-                        handleContextButtonClick(
-                          "Explain Vitamin E relation with Alzheimer's disease"
-                        )
-                      }
-                    >
-                      Vitamin E
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() =>
-                        handleContextButtonClick(
-                          "Explain Vitamin B12 relation with Alzheimer's disease"
-                        )
-                      }
-                    >
-                      Vitamin B12
-                    </Button>
-                  </>
-                ) : null}
+                {recommendations.map((rec, index) => (
+                  <Button
+                    key={index}
+                    variant="outline"
+                    onClick={() => handleContextButtonClick(rec)}
+                  >
+                    {rec.substring(0, 50)}...
+                  </Button>
+                ))}
               </div>
             )
           )}

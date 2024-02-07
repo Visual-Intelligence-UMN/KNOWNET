@@ -16,8 +16,8 @@ from sklearn.metrics.pairwise import cosine_similarity as cosine_similarity_skle
 
 kg_nodes_embedding = pd.read_parquet("/Users/youfuyan/Desktop/UMN/QianwenWang'lab/VisConAgent/api/ADInt_CUI_embeddings.parquet")
 print("KG nodes embedding load complete...")
-openai.api_key = ""
-neo4j_url = "neo4j://3.83.33.130:7687"
+openai.api_key = "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"
+neo4j_url = "neo4j://3.82.211.172:7687"
 
 
 def AI_respnse(message):
