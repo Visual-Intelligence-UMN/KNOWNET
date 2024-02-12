@@ -240,7 +240,7 @@ def generate_recommendation():
     res = ""
     if len(recommendation_space) > 0:
         for recommendation_candidate in recommendation_space:
-            res += "I want know more information between " + recommendation_candidate[1] + " and " + recommendation_candidate[2] + ".\n"
+            res += recommendation_candidate[1] + " and " + recommendation_candidate[2] + ".\n"
 
     return res
 

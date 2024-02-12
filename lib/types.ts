@@ -8,8 +8,8 @@ export interface Chat extends Record<string, any> {
   path: string
   messages: Message[]
   sharePath?: string
-  recommendation: string
-  visRes: VisualizationResult[]
+  keywordsListAnswer: string[]
+  keywordsListQuestion: string[]
 }
 
 export type ServerActionResult<Result> = Promise<Result | { error: string }>

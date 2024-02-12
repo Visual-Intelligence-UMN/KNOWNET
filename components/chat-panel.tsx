@@ -5,6 +5,7 @@ import { PromptForm } from '@/components/prompt-form'
 import { ButtonScrollToBottom } from '@/components/button-scroll-to-bottom'
 import { IconRefresh, IconStop } from '@/components/ui/icons'
 import { FooterText } from '@/components/footer'
+import { SpeedDial, SpeedDialAction, Icon } from '@material-tailwind/react'
 
 export interface ChatPanelProps
   extends Pick<
@@ -43,9 +44,11 @@ export function ChatPanel({
     })
   }
   // Parse the recommendation string into actionable items
+  // Parse the recommendation string into actionable items
   const recommendations =
     recommendation?.split('\n').filter(r => r.length) || []
-
+  const topRecommendations = recommendations.slice(0, 3)
+  const otherRecommendations = recommendations.slice(3)
   return (
     <div className="fixed inset-x-0 bottom-0 bg-gradient-to-b from-muted/10 from-10% to-muted/30 to-50%">
       <ButtonScrollToBottom />
@@ -67,7 +70,7 @@ export function ChatPanel({
                   <IconRefresh className="mr-2" />
                   Regenerate response
                 </Button>
-                {recommendations.map((rec, index) => (
+                {topRecommendations.map((rec, index) => (
                   <Button
                     key={index}
                     variant="outline"
@@ -76,6 +79,20 @@ export function ChatPanel({
                     {rec.substring(0, 50)}...
                   </Button>
                 ))}
+
+                {otherRecommendations.length > 0 && (
+                  <SpeedDial direction="top" alwaysShowTitle={true}>
+                    {otherRecommendations.map((rec, index) => (
+                      <SpeedDialAction
+                        key={index}
+                        tooltip={rec.substring(0, 50)}
+                        onClick={() => handleContextButtonClick(rec)}
+                        // You might need an icon here, for example:
+                        icon={<Icon name="more_vert" size="sm" />}
+                      />
+                    ))}
+                  </SpeedDial>
+                )}
               </div>
             )
           )}

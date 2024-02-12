@@ -13,7 +13,7 @@ import {
   Controls
 } from 'reactflow'
 import 'reactflow/dist/style.css'
-import React, { useCallback } from 'react'
+import React, { use, useCallback } from 'react'
 import { useChat, type Message } from 'ai/react'
 // import { GraphCard } from '@/components/ui/GraphCard'
 import { ChatList } from '@/components/chat-list'
@@ -44,7 +44,7 @@ import DotsMobileStepper from '@/components/dotstepper'
 const testBackendData = {
   data: {
     recommendation:
-      'I want know more information between coenzyme Q10 and Disorders.\nI want know more information between coenzyme Q10 and Genes & Molecular Sequences.\nI want know more information between coenzyme Q10 and Chemicals & Drugs.\nI want know more information between coenzyme Q10 and Physiology.\nI want know more information between coenzyme Q10 and Living Beings.\nI want know more information between coenzyme Q10 and Anatomy.\nI want know more information between coenzyme Q10 and Dietary Supplement.\n',
+      ' coenzyme Q10 and Disorders.\n coenzyme Q10 and Genes & Molecular Sequences.\n coenzyme Q10 and Chemicals & Drugs.\n coenzyme Q10 and Physiology.\n coenzyme Q10 and Living Beings.\n coenzyme Q10 and Anatomy.\n coenzyme Q10 and Dietary Supplement.\n',
     vis_res: [
       {
         edges: [
@@ -127,9 +127,17 @@ const testBackendData = {
 export interface ChatProps extends React.ComponentProps<'div'> {
   initialMessages?: Message[]
   id?: string
+  keywordsListAnswer?: string[]
+  keywordsListQuestion?: string[]
 }
 
-export function Chat({ id, initialMessages, className }: ChatProps) {
+export function Chat({
+  id,
+  initialMessages,
+  keywordsListAnswer,
+  keywordsListQuestion,
+  className
+}: ChatProps) {
   const [previewToken, setPreviewToken] = useLocalStorage<string | null>(
     'ai-token',
     null
@@ -161,7 +169,7 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
           setProcessedMessageIds(
             prevIds => new Set([...Array.from(prevIds), message.id])
           )
-          setActiveStep(nodes.length - 1)
+          setActiveStep(prevStep => prevStep + 1)
         }
       }
     })
@@ -266,11 +274,6 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
   )
   // Fetch and append data on component mount or update
   // useEffect to use backendData once it's fetched and set
-  useEffect(() => {
-    if (backendData && backendData.vis_res) {
-      appendDataToFlow(testBackendData.data)
-    }
-  }, [])
 
   // Handler for dot stepper change, adjusted for dynamic steps
   const handleStepChange = useCallback((step: number) => {
@@ -282,34 +285,14 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
     params => setEdges(eds => addEdge(params, eds)),
     [setEdges]
   )
-  // // Function to generate random edge text
-  // const getRandomEdgeText = () => {
-  //   const texts = ['Connected', 'Linked', 'Related', 'Joined', 'Associated']
-  //   return texts[Math.floor(Math.random() * texts.length)]
-  // }
 
-  const [backendData, setBackendData] = useState(null)
-
-  // Function to fetch data from backend
-  const fetchDataFromBackend = async () => {
+  const fetchDataFromBackend = useCallback(async () => {
     const payload = {
       input_type: 'new_conversation',
       userId: 'user123',
       data: {
-        keywords_list_answer: [
-          'Coenzyme Q10',
-          'ATP',
-          'antioxidant',
-          'selenium',
-          'enzymes',
-          'heart conditions',
-          'congestive heart failure',
-          'high blood pressure',
-          'chemotherapy drugs',
-          'insulin sensitivity',
-          'diabetes'
-        ],
-        keywords_list_question: ['Coenzyme Q10']
+        keywords_list_answer: keywordsListAnswer,
+        keywords_list_question: keywordsListQuestion
       }
     }
 
@@ -332,20 +315,22 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
     } catch (error) {
       console.error('Failed to fetch data from backend:', error)
     }
-  }
+  }, [keywordsListAnswer, keywordsListQuestion])
 
-  // useEffect to fetch data on component mount
-  useEffect(() => {
-    fetchDataFromBackend()
-  }, []) // Empty dependency array means this effect runs once on mount
+  const [backendData, setBackendData] = useState(null)
 
-  // Continue with your component logic...
-  // For example, use backendData for your flow once it's fetched and set
   useEffect(() => {
-    if (backendData) {
-      appendDataToFlow(testBackendData.data)
+    if (backendData && backendData.data && backendData.data.vis_res) {
+      appendDataToFlow(backendData.data)
     }
   }, [backendData, appendDataToFlow])
+
+  useEffect(() => {
+    if (keywordsListAnswer && keywordsListQuestion) {
+      fetchDataFromBackend()
+    }
+  }, [keywordsListAnswer, keywordsListQuestion, fetchDataFromBackend])
+
   return (
     <>
       <div className="mx-auto max-w-4xl  rounded-lg border bg-background p-4 ">
@@ -377,7 +362,7 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
                     }}
                   >
                     <ReactFlow
-                      nodes={nodes.filter((node, i) => i <= activeStep)}
+                      nodes={nodes}
                       edges={edges}
                       onNodesChange={onNodesChange}
                       onEdgesChange={onEdgesChange}
@@ -422,7 +407,8 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
         messages={messages}
         input={input}
         setInput={setInput}
-        recommendation={backendData ? testBackendData.data.recommendation : ''}
+        // recommendation={backendData ? backendData.data.recommendation : ''}
+        recommendation={testBackendData.data.recommendation}
       />
 
       <Dialog open={previewTokenDialog} onOpenChange={setPreviewTokenDialog}>

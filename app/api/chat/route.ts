@@ -87,8 +87,8 @@ export async function POST(req: Request) {
       const keywordsListQuestion =
         thirdPart.match(/\[(.*?)\]/)?.[1].split(' | ') || []
 
-      console.log('Keywords List Answer:', keywordsListAnswer)
-      console.log('Keywords List Question:', keywordsListQuestion)
+      // console.log('Keywords List Answer:', keywordsListAnswer)
+      // console.log('Keywords List Question:', keywordsListQuestion)
 
       const title = json.messages[0].content.substring(0, 100)
       const id = json.id ?? nanoid()
