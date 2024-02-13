@@ -3,9 +3,21 @@ import { type UseChatHelpers } from 'ai/react'
 import { Button } from '@/components/ui/button'
 import { PromptForm } from '@/components/prompt-form'
 import { ButtonScrollToBottom } from '@/components/button-scroll-to-bottom'
-import { IconRefresh, IconStop } from '@/components/ui/icons'
+import {
+  IconRefresh,
+  IconStop,
+  IconPlus,
+  IconMessage
+} from '@/components/ui/icons'
 import { FooterText } from '@/components/footer'
-import { SpeedDial, SpeedDialAction, Icon } from '@material-tailwind/react'
+import {
+  SpeedDial,
+  SpeedDialHandler,
+  SpeedDialContent,
+  SpeedDialAction,
+  IconButton,
+  Typography
+} from '@material-tailwind/react'
 
 export interface ChatPanelProps
   extends Pick<
@@ -53,51 +65,80 @@ export function ChatPanel({
     <div className="fixed inset-x-0 bottom-0 bg-gradient-to-b from-muted/10 from-10% to-muted/30 to-50%">
       <ButtonScrollToBottom />
       <div className="mx-auto sm:max-w-2xl sm:px-4">
-        <div className="flex h-10 items-center justify-center">
-          {isLoading ? (
-            <Button
-              variant="outline"
-              onClick={() => stop()}
-              className="bg-background"
-            >
-              <IconStop className="mr-2" />
-              Stop generating
-            </Button>
-          ) : (
-            messages?.length >= 2 && (
-              <div className="flex flex-wrap gap-2">
-                <Button variant="outline" onClick={() => reload()}>
-                  <IconRefresh className="mr-2" />
-                  Regenerate response
-                </Button>
-                {topRecommendations.map((rec, index) => (
+        <div className="flex flex-col gap-4">
+          <div className="grid grid-cols-1 gap-2 items-center justify-items-stretch">
+            {isLoading ? (
+              <Button
+                variant="outline"
+                onClick={() => stop()}
+                className="col-span-2"
+              >
+                <IconStop className="mr-2" />
+                Stop
+              </Button>
+            ) : (
+              messages?.length >= 2 && (
+                <>
                   <Button
-                    key={index}
                     variant="outline"
-                    onClick={() => handleContextButtonClick(rec)}
+                    onClick={() => reload()}
+                    className="col-span-2"
                   >
-                    {rec.substring(0, 50)}...
+                    <IconRefresh className="mr-2" />
+                    Regenerate response
                   </Button>
-                ))}
-
-                {otherRecommendations.length > 0 && (
-                  <SpeedDial direction="top" alwaysShowTitle={true}>
-                    {otherRecommendations.map((rec, index) => (
-                      <SpeedDialAction
-                        key={index}
-                        tooltip={rec.substring(0, 50)}
-                        onClick={() => handleContextButtonClick(rec)}
-                        // You might need an icon here, for example:
-                        icon={<Icon name="more_vert" size="sm" />}
-                      />
-                    ))}
-                  </SpeedDial>
-                )}
-              </div>
-            )
-          )}
+                  {/* Speed Dial Positioned Absolutely */}
+                  <div className="relative col-start-3 row-start-2 row-span-2 ">
+                    <SpeedDial>
+                      <SpeedDialHandler>
+                        <IconButton size="lg" className="rounded-full">
+                          <IconPlus className="h-5 w-5 transition-transform group-hover:rotate-45 " />{' '}
+                          {/* Adjust as needed */}
+                        </IconButton>
+                      </SpeedDialHandler>
+                      <SpeedDialContent>
+                        {otherRecommendations.map((rec, index) => (
+                          // <SpeedDialAction key={index} className="relative">
+                          //   <IconMessage /> {/* Adjust as needed */}
+                          //   <Typography
+                          //     // variant="small"
+                          //     // color="blue-gray"
+                          //     className="absolute top-2/4 -left-2/4 -translate-y-2/4 -translate-x-3/4 font-normal"
+                          //     style={{ whiteSpace: 'nowrap' }}
+                          //   >
+                          //     {rec.substring(0, 100)}...
+                          //   </Typography>
+                          // </SpeedDialAction>
+                          <Button
+                            key={index}
+                            variant="outline"
+                            onClick={() => handleContextButtonClick(rec)}
+                            className={`col-span-2 `}
+                          >
+                            {rec.substring(0, 100)}...
+                          </Button>
+                        ))}
+                      </SpeedDialContent>
+                    </SpeedDial>
+                  </div>
+                </>
+              )
+            )}
+            {/* Top Recommendations */}
+            {topRecommendations.map((rec, index) => (
+              <Button
+                key={index}
+                variant="outline"
+                onClick={() => handleContextButtonClick(rec)}
+                className={`col-span-2 `} // Make the first recommendation button larger if needed
+              >
+                {rec.substring(0, 100)}...
+              </Button>
+            ))}
+          </div>
         </div>
-        <div className="space-y-4 border-t bg-background px-4 py-2 shadow-lg sm:rounded-t-xl sm:border md:py-4">
+
+        <div className="mt-4 space-y-4 border-t bg-background px-4 py-2 shadow-lg sm:rounded-t-xl sm:border md:py-4">
           <PromptForm
             onSubmit={async value => {
               await append({

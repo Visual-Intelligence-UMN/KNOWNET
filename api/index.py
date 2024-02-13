@@ -130,56 +130,45 @@ def match_KG_nodes(entity_list, kg_nodes_embedding):
     return nodes_list
 
 
-def select_subgraph(cypher_statement):
+def select_subgraph(cypher_statement,node_id, rel_id, node_id_map, rel_id_map):
     uri = neo4j_url
     driver = GraphDatabase.driver(uri, auth=("neo4j", "yuhou"))
     session = driver.session()
     neo4j_res = session.run(cypher_statement)
 
-    nodes = []
     nodes_res = []
-    rel = []
     rel_res = []
 
-    node_id = 1
-    rel_id = 1
-    for i, record in enumerate(neo4j_res):
+    for record in neo4j_res:
         path_nodes = record['path'].nodes
         path_rels = record['path'].relationships
-        source_node_info = {"CUI": path_nodes[0]['CUI'], "Name": path_nodes[0]['Name'], "Label": path_nodes[0]['Label']}
-        target_node_info = {"CUI": path_nodes[1]['CUI'], "Name": path_nodes[1]['Name'], "Label": path_nodes[1]['Label']}
+         # Process each node in path
+        for node in path_nodes:
+            cui = node['CUI']
+            if cui not in node_id_map:
+                node_id_map[cui] = node_id
+                nodes_res.append({'Node_ID': node_id, "CUI": cui, "Name": node['Name'], "Label": node['Label']})
+                node_id += 1
+            else:
+                # Node already exists, reuse Node_ID from map
+                nodes_res.append({'Node_ID': node_id_map[cui], "CUI": cui, "Name": node['Name'], "Label": node['Label']})
 
-        if source_node_info not in nodes:
-            nodes.append(source_node_info)
-            source_node_info_all = {'Node_ID': node_id, "CUI":  path_nodes[0]['CUI'], "Name": path_nodes[0]['Name'], "Label": path_nodes[0]['Label']}
-            nodes_res.append(source_node_info_all)
-            source_id = node_id
-            node_id += 1
-        else:
-            source_idx = nodes.index(source_node_info)
-            source_id = nodes_res[source_idx]['Node_ID']
-        if target_node_info not in nodes:
-            nodes.append(target_node_info)
-            target_node_info_all = {'Node_ID': node_id, "CUI": path_nodes[1]['CUI'], "Name": path_nodes[1]['Name'], "Label": path_nodes[1]['Label']}
-            nodes_res.append(target_node_info_all)
-            target_id = node_id
-            node_id += 1
-        else:
-            target_idx = nodes.index(target_node_info)
-            target_id = nodes_res[target_idx]['Node_ID']
+        for rel in path_rels:
+            rel_key = (path_nodes[0]['CUI'], path_nodes[1]['CUI'], rel['Type'])
+            if rel_key not in rel_id_map:
+                rel_id_map[rel_key] = rel_id
+                rel_res.append({'Relation_ID': rel_id, "Source": node_id_map[path_nodes[0]['CUI']], "Target": node_id_map[path_nodes[1]['CUI']], "Type": rel['Type'], 'PubMed_ID': rel['PubMed_ID']})
+                rel_id += 1
+            else:
+                # Relationship already exists, reuse Relation_ID from map
+                existing_rel_id = rel_id_map[rel_key]
+                # Update PubMed_ID for existing relationship if needed
+                for existing_rel in rel_res:
+                    if existing_rel['Relation_ID'] == existing_rel_id:
+                        existing_rel['PubMed_ID'] += " | " + rel['PubMed_ID']
+                        break
 
-        rel_info = {"Source": source_id, "Target": target_id, "Type": path_rels[0]['Type']}
-        if rel_info not in rel:
-            rel.append(rel_info)
-            rel_info_all = {'Relation_ID': rel_id, "Source": source_id, "Target": target_id, "Type": path_rels[0]['Type'], 'PubMed_ID':  path_rels[0]['PubMed_ID']}
-            rel_res.append(rel_info_all)
-            rel_id += 1
-        else:
-            rel_idx = rel.index(rel_info)
-            rel_info_all = rel_res[rel_idx]
-            rel_info_all['PubMed_ID'] = rel_info_all['PubMed_ID'] + " | " + path_rels[0]['PubMed_ID']
-
-    return [nodes_res, rel_res]
+    return nodes_res, rel_res, node_id, rel_id
 
 
 def summarize_neighbor_type(cypher_statement):
@@ -197,18 +186,19 @@ def summarize_neighbor_type(cypher_statement):
     return res
 
 
-def subgraph_type(cui, target_type):
+def subgraph_type(cui, target_type, node_id, rel_id, node_id_map, rel_id_map):
+    res = []
     cypher_statement = "MATCH path=(sub:Node{CUI:\"" + cui + "\"})-[rel:Relation*1]-(obj:Node{Label:\"" + target_type + "\"}) RETURN path LIMIT 20"
-    nodes, edges = select_subgraph(cypher_statement)
+    nodes, edges, node_id, rel_id = select_subgraph(cypher_statement, node_id, rel_id, node_id_map, rel_id_map)
+    res.append({"nodes": nodes, "edges": edges})
+    return res, node_id, rel_id
 
-    return {"nodes": nodes, "edges": edges}
 
-
-def visualization(node_list):
+def visualization(node_list, node_id, rel_id, node_id_map, rel_id_map):
     res = []
     if len(node_list) == 1:
         cypher_statement = "MATCH path=(sub:Node{CUI:\"" + node_list[0][0] + "\"})-[rel:Relation*1]-(obj:Node) RETURN path LIMIT 20"
-        nodes, edges = select_subgraph(cypher_statement)
+        nodes, edges, node_id, rel_id = select_subgraph(cypher_statement, node_id, rel_id, node_id_map, rel_id_map)
         res.append({"nodes": nodes, "edges": edges})
     else:
         for i in range(len(node_list) - 1):
@@ -216,16 +206,16 @@ def visualization(node_list):
             for j in range(i + 1, len(node_list)):
                 next_entity = node_list[j][0]
                 cypher_statement = "MATCH path=(sub:Node{CUI:\"" + current_entity + "\"})-[rel:Relation*1]-(obj:Node{CUI:\"" + next_entity + "\"}) RETURN path LIMIT 20"
-                nodes, edges = select_subgraph(cypher_statement)
+                nodes, edges, node_id, rel_id = select_subgraph(cypher_statement, node_id, rel_id, node_id_map, rel_id_map)
                 if len(nodes) != 0:
                     res.append({"nodes": nodes, "edges": edges})
     if len(res) == 0:
         for i in range(len(node_list)):
             cypher_statement = "MATCH path=(sub:Node{CUI:\"" + node_list[i][0] + "\"})-[rel:Relation*1]-(obj:Node) RETURN path LIMIT 20"
-            nodes, edges = select_subgraph(cypher_statement)
+            nodes, edges, node_id, rel_id = select_subgraph(cypher_statement, node_id, rel_id, node_id_map, rel_id_map)
             res.append({"nodes": nodes, "edges": edges})
 
-    return res
+    return res, node_id, rel_id
 
 def add_recommendation_space(entity_list):
     for entity in entity_list:
@@ -245,11 +235,16 @@ def generate_recommendation():
     return res
 
 def agent(kg_nodes_embedding, keywords_list_answer, keywords_list_question, recommand_id, input_type):
+    node_id = 0
+    rel_id = 0
+    node_id_map = {}  # Maps CUI to Node_ID
+    rel_id_map = {}  # Maps (Source_CUI, Target_CUI, Relation_Type) to Relation_ID
+
     response_data = {"vis_res": [], "recommendation": ""}
 
     # Process for both new and continued conversations
     nodes_list_answer = match_KG_nodes(keywords_list_answer, kg_nodes_embedding)
-    vis_res = visualization(nodes_list_answer)
+    vis_res, node_id, rel_id = visualization(nodes_list_answer, node_id, rel_id, node_id_map, rel_id_map)
     response_data["vis_res"] = vis_res
 
     if input_type == "new_conversation":
@@ -261,7 +256,7 @@ def agent(kg_nodes_embedding, keywords_list_answer, keywords_list_question, reco
 
     if input_type == "continue_conversation" and recommand_id is not None and recommand_id < len(recommendation_space):
         selected_recommendation = recommendation_space.pop(recommand_id)
-        vis_res = subgraph_type(selected_recommendation[0], selected_recommendation[2])
+        vis_res, node_id, rel_id = subgraph_type(selected_recommendation[0], selected_recommendation[2], node_id, rel_id, node_id_map, rel_id_map)
         recommendation = generate_recommendation()
 
         # Add visualizations and recommendations to the response

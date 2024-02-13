@@ -33,7 +33,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { toast } from 'react-hot-toast'
-
+import { usePathname, useRouter } from 'next/navigation'
 // import { GraphData } from '@/lib/types'
 // import Flow from '@/components/flow' // Import the Flow component
 import DotsMobileStepper from '@/components/dotstepper'
@@ -84,7 +84,7 @@ const testBackendData = {
             PubMed_ID: '24593795',
             Relation_ID: 1,
             Source: 1,
-            Target: 2,
+            Target: 3,
             Type: 'TREATS'
           }
         ],
@@ -95,7 +95,7 @@ const testBackendData = {
             Name: 'coenzyme Q10',
             Node_ID: 1
           },
-          { CUI: 'C0011847', Label: 'Disorders', Name: 'Diabetes', Node_ID: 2 }
+          { CUI: 'C0011847', Label: 'Disorders', Name: 'Diabetes', Node_ID: 3 }
         ]
       },
       {
@@ -103,8 +103,8 @@ const testBackendData = {
           {
             PubMed_ID: '22005267 | 26232096',
             Relation_ID: 1,
-            Source: 1,
-            Target: 2,
+            Source: 4,
+            Target: 3,
             Type: 'AFFECTS'
           }
         ],
@@ -113,9 +113,9 @@ const testBackendData = {
             CUI: 'C0920563',
             Label: 'Disorders',
             Name: 'Insulin Sensitivity',
-            Node_ID: 1
+            Node_ID: 4
           },
-          { CUI: 'C0011847', Label: 'Disorders', Name: 'Diabetes', Node_ID: 2 }
+          { CUI: 'C0011847', Label: 'Disorders', Name: 'Diabetes', Node_ID: 3 }
         ]
       }
     ]
@@ -138,6 +138,8 @@ export function Chat({
   keywordsListQuestion,
   className
 }: ChatProps) {
+  const router = useRouter()
+  const path = usePathname()
   const [previewToken, setPreviewToken] = useLocalStorage<string | null>(
     'ai-token',
     null
@@ -161,6 +163,10 @@ export function Chat({
         }
       },
       onFinish: message => {
+        if (!path.includes('chat')) {
+          router.push(`/chat/${id}`, { shallow: true })
+          router.refresh()
+        }
         // Add a new node and edge when a message is finished processing
         if (
           message.role === 'assistant' &&
@@ -169,8 +175,9 @@ export function Chat({
           setProcessedMessageIds(
             prevIds => new Set([...Array.from(prevIds), message.id])
           )
-          setActiveStep(prevStep => prevStep + 1)
+          setActiveStep(messages.length / 2)
         }
+        fetchDataFromBackend()
       }
     })
 
@@ -229,15 +236,6 @@ export function Chat({
 
   const [processedMessageIds, setProcessedMessageIds] = useState(new Set())
 
-  // useEffect(() => {
-  //   setNodes(nds => nds.map((node, i) => ({ ...node, hidden: i > activeStep })))
-  //   setEdges(eds =>
-  //     eds.map(edge => ({
-  //       ...edge
-  //     }))
-  //   )
-  // }, [activeStep, setNodes, setEdges])
-
   const appendDataToFlow = useCallback(
     newData => {
       const { nodes: newNodes, edges: newEdges } =
@@ -267,19 +265,17 @@ export function Chat({
         })
         return updatedEdges
       })
-      // Dynamically update active steps based on the nodes length
-      setActiveStep(prevStep => prevStep + newNodes.length)
     },
     [setNodes, setEdges]
   )
-  // Fetch and append data on component mount or update
-  // useEffect to use backendData once it's fetched and set
 
   // Handler for dot stepper change, adjusted for dynamic steps
   const handleStepChange = useCallback((step: number) => {
     setActiveStep(step)
   }, [])
-
+  useEffect(() => {
+    console.log(`Current active step: ${activeStep}`)
+  }, [activeStep])
   const proOptions = { hideAttribution: true }
   const onConnect: OnConnect = useCallback(
     params => setEdges(eds => addEdge(params, eds)),
@@ -322,6 +318,7 @@ export function Chat({
   useEffect(() => {
     if (backendData && backendData.data && backendData.data.vis_res) {
       appendDataToFlow(backendData.data)
+      // appendDataToFlow(testBackendData.data)
     }
   }, [backendData, appendDataToFlow])
 
@@ -407,8 +404,8 @@ export function Chat({
         messages={messages}
         input={input}
         setInput={setInput}
-        // recommendation={backendData ? backendData.data.recommendation : ''}
-        recommendation={testBackendData.data.recommendation}
+        recommendation={backendData ? backendData.data.recommendation : ''}
+        // recommendation={backendData.data.recommendation}
       />
 
       <Dialog open={previewTokenDialog} onOpenChange={setPreviewTokenDialog}>
