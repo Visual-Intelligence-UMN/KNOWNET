@@ -18,7 +18,7 @@ import {
   IconButton,
   Typography
 } from '@material-tailwind/react'
-
+import { Recommendation } from '@/lib/types'
 export interface ChatPanelProps
   extends Pick<
     UseChatHelpers,
@@ -32,7 +32,8 @@ export interface ChatPanelProps
   > {
   id?: string
   title?: string
-  recommendation?: string
+  recommendations?: Recommendation[]
+  continueConversation?: (recommendId: number) => void
 }
 
 export function ChatPanel({
@@ -45,8 +46,12 @@ export function ChatPanel({
   input,
   setInput,
   messages,
-  recommendation
+  recommendations,
+  continueConversation
 }: ChatPanelProps) {
+  const topRecommendations = recommendations?.slice(0, 3) || []
+  const otherRecommendations = recommendations?.slice(3) || []
+
   // Function to handle specific context button click
   const handleContextButtonClick = async (contextMessage: string) => {
     await append({
@@ -56,85 +61,90 @@ export function ChatPanel({
     })
   }
   // Parse the recommendation string into actionable items
-  // Parse the recommendation string into actionable items
-  const recommendations =
-    recommendation?.split('\n').filter(r => r.length) || []
-  const topRecommendations = recommendations.slice(0, 3)
-  const otherRecommendations = recommendations.slice(3)
   return (
     <div className="fixed inset-x-0 bottom-0 bg-gradient-to-b from-muted/10 from-10% to-muted/30 to-50%">
       <ButtonScrollToBottom />
       <div className="mx-auto sm:max-w-2xl sm:px-4">
-        <div className="flex flex-col gap-4">
-          <div className="grid grid-cols-1 gap-2 items-center justify-items-stretch">
+        <div className="flex flex-col gap-1">
+          <div
+            className={`grid grid-cols-${
+              otherRecommendations?.length > 0 ? '3' : '1'
+            } gap-2 items-center justify-items-stretch`}
+          >
+            {/* Conditionally render the regenerate/stop button or speed dial based on isLoading and the presence of messages */}
             {isLoading ? (
               <Button
                 variant="outline"
                 onClick={() => stop()}
-                className="col-span-2"
+                className="col-span-1 justify-self-center"
               >
                 <IconStop className="mr-2" />
                 Stop
               </Button>
             ) : (
-              messages?.length >= 2 && (
-                <>
+              <>
+                {messages?.length >= 2 && (
                   <Button
                     variant="outline"
                     onClick={() => reload()}
-                    className="col-span-2"
+                    className={`${
+                      otherRecommendations?.length > 0
+                        ? 'col-span-2'
+                        : 'col-span-1 justify-self-center'
+                    }`}
                   >
                     <IconRefresh className="mr-2" />
                     Regenerate response
                   </Button>
-                  {/* Speed Dial Positioned Absolutely */}
-                  <div className="relative col-start-3 row-start-2 row-span-2 ">
+                )}
+
+                {topRecommendations?.map(rec => (
+                  <Button
+                    key={rec.id}
+                    variant="outline"
+                    onClick={async () => {
+                      handleContextButtonClick(rec.text)
+                      if (continueConversation) {
+                        continueConversation(rec.id)
+                      }
+                    }}
+                    className="my-2"
+                  >
+                    {rec.text}
+                  </Button>
+                ))}
+
+                {/* Speed Dial Positioned in the third column if there are additional recommendations */}
+                {otherRecommendations?.length > 0 && (
+                  <div className="relative col-start-3 justify-self-center">
                     <SpeedDial>
                       <SpeedDialHandler>
                         <IconButton size="lg" className="rounded-full">
-                          <IconPlus className="h-5 w-5 transition-transform group-hover:rotate-45 " />{' '}
-                          {/* Adjust as needed */}
+                          <IconPlus className="h-5 w-5 transition-transform group-hover:rotate-45" />
                         </IconButton>
                       </SpeedDialHandler>
                       <SpeedDialContent>
-                        {otherRecommendations.map((rec, index) => (
-                          // <SpeedDialAction key={index} className="relative">
-                          //   <IconMessage /> {/* Adjust as needed */}
-                          //   <Typography
-                          //     // variant="small"
-                          //     // color="blue-gray"
-                          //     className="absolute top-2/4 -left-2/4 -translate-y-2/4 -translate-x-3/4 font-normal"
-                          //     style={{ whiteSpace: 'nowrap' }}
-                          //   >
-                          //     {rec.substring(0, 100)}...
-                          //   </Typography>
-                          // </SpeedDialAction>
+                        {otherRecommendations.map(rec => (
                           <Button
-                            key={index}
+                            key={rec.id}
                             variant="outline"
-                            onClick={() => handleContextButtonClick(rec)}
-                            className={`col-span-2 `}
+                            onClick={async () => {
+                              handleContextButtonClick(rec.text)
+                              if (continueConversation) {
+                                continueConversation(rec.id)
+                              }
+                            }}
+                            className="col-span-3"
                           >
-                            {rec.substring(0, 100)}...
+                            {rec.text.substring(0, 100)}...
                           </Button>
                         ))}
                       </SpeedDialContent>
                     </SpeedDial>
                   </div>
-                </>
-              )
+                )}
+              </>
             )}
-            {/* Top Recommendations */}
-            {topRecommendations.map((rec, index) => (
-              <Button
-                key={index}
-                variant="outline"
-                onClick={() => handleContextButtonClick(rec)}
-                className={`col-span-2 `} // Make the first recommendation button larger if needed
-              >
-                {rec.substring(0, 100)}...
-              </Button>
-            ))}
           </div>
         </div>
 

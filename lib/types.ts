@@ -43,3 +43,8 @@ export interface GraphModalProps {
   onClose: () => void
   graphData: GraphData
 }
+
+export interface Recommendation {
+  id: number
+  text: string
+}

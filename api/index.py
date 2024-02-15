@@ -25,8 +25,9 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 kg_nodes_embedding = pd.read_parquet("api/ADInt_CUI_embeddings.parquet")
 print("kg_nodes_embedding loaded" + str(kg_nodes_embedding.shape))
 neo4j_url = os.getenv("NEO4J_URL")
-# print("OPENAI API Key:", os.getenv("OPENAI_API_KEY"))
-recommendation_space = []
+recommendation_space = {}
+recommendation_id_counter = 0  # Keep track of the next ID to assign
+
 
 @app.route("/api/python", methods=["GET"])
 def hello_world():
@@ -217,22 +218,47 @@ def visualization(node_list, node_id, rel_id, node_id_map, rel_id_map):
 
     return res, node_id, rel_id
 
+# def add_recommendation_space(entity_list):
+#     for entity in entity_list:
+#         cypher_statement = "MATCH path=(sub:Node{CUI:\"" + entity[0] + "\"})-[rel:Relation*1]-(obj:Node) RETURN path LIMIT 30"
+#         neighbor_list = summarize_neighbor_type(cypher_statement)
+#         for neighbor in neighbor_list:
+#             if [entity[1], neighbor] not in recommendation_space:
+#                 recommendation_space.append([entity[0], entity[1], neighbor])
+
 def add_recommendation_space(entity_list):
+    global recommendation_id_counter
     for entity in entity_list:
-        cypher_statement = "MATCH path=(sub:Node{CUI:\"" + entity[0] + "\"})-[rel:Relation*1]-(obj:Node) RETURN path LIMIT 30"
+        cypher_statement = f"MATCH path=(sub:Node{{CUI:\"{entity[0]}\"}})-[rel:Relation*1]-(obj:Node) RETURN path LIMIT 30"
         neighbor_list = summarize_neighbor_type(cypher_statement)
         for neighbor in neighbor_list:
-            if [entity[1], neighbor] not in recommendation_space:
-                recommendation_space.append([entity[0], entity[1], neighbor])
+            key = (entity[0], neighbor)  # Unique tuple to identify the recommendation
+            if key not in recommendation_space:
+                recommendation_space[key] = {
+                    "id": recommendation_id_counter,
+                    "entity": entity[1],
+                    "neighbor": neighbor
+                }
+                recommendation_id_counter += 1
 
+
+# def generate_recommendation():
+#     res = ""
+#     if len(recommendation_space) > 0:
+#         for recommendation_candidate in recommendation_space:
+#             res += recommendation_candidate[1] + " and " + recommendation_candidate[2] + ".\n"
+
+#     return res
 
 def generate_recommendation():
-    res = ""
-    if len(recommendation_space) > 0:
-        for recommendation_candidate in recommendation_space:
-            res += recommendation_candidate[1] + " and " + recommendation_candidate[2] + ".\n"
-
-    return res
+    recommendations = []
+    for key, value in recommendation_space.items():
+        recommendation_text = f"{value['entity']} and {value['neighbor']}."
+        recommendations.append({
+            "text": recommendation_text,
+            "id": value['id']
+        })
+    return recommendations
 
 def agent(kg_nodes_embedding, keywords_list_answer, keywords_list_question, recommand_id, input_type):
     node_id = 0
@@ -240,7 +266,7 @@ def agent(kg_nodes_embedding, keywords_list_answer, keywords_list_question, reco
     node_id_map = {}  # Maps CUI to Node_ID
     rel_id_map = {}  # Maps (Source_CUI, Target_CUI, Relation_Type) to Relation_ID
 
-    response_data = {"vis_res": [], "recommendation": ""}
+    response_data = {"vis_res": [], "recommendation": []}
 
     # Process for both new and continued conversations
     nodes_list_answer = match_KG_nodes(keywords_list_answer, kg_nodes_embedding)
@@ -249,22 +275,30 @@ def agent(kg_nodes_embedding, keywords_list_answer, keywords_list_question, reco
 
     if input_type == "new_conversation":
         nodes_list_question = match_KG_nodes(keywords_list_question, kg_nodes_embedding)
-        add_recommendation_space(nodes_list_question)  # Potentially updates the recommendation space
+        add_recommendation_space(nodes_list_question)  # Updates the recommendation space
+        recommendations = generate_recommendation()  # Generate recommendations with IDs
+        response_data["recommendation"] = recommendations
 
-    recommendation = generate_recommendation()  # Generate recommendation based on updated space
-    response_data["recommendation"] = recommendation
+    elif input_type == "continue_conversation" and recommand_id is not None:
+        # Convert recommendId to integer if it's passed as a string
+        recommendId = int(recommand_id)
+        # Process the selected recommendation
+        selected_recommendation = None
+        for key, value in recommendation_space.items():
+            if value['id'] == recommendId:
+                selected_recommendation = key
+                break
 
-    if input_type == "continue_conversation" and recommand_id is not None and recommand_id < len(recommendation_space):
-        selected_recommendation = recommendation_space.pop(recommand_id)
-        vis_res, node_id, rel_id = subgraph_type(selected_recommendation[0], selected_recommendation[2], node_id, rel_id, node_id_map, rel_id_map)
-        recommendation = generate_recommendation()
-
-        # Add visualizations and recommendations to the response
-        response_data.update({
-            "vis_res": vis_res,
-            "recommendation": recommendation
-        })
-
+        if selected_recommendation:
+            entity, neighbor = selected_recommendation
+            vis_res, node_id, rel_id = subgraph_type(entity, neighbor, node_id, rel_id, node_id_map, rel_id_map)
+            # Optionally, remove the selected recommendation
+            del recommendation_space[selected_recommendation]
+            recommendations = generate_recommendation()  # Regenerate recommendations
+            response_data.update({
+                "vis_res": vis_res,
+                "recommendation": recommendations
+            })
     return response_data
 
 

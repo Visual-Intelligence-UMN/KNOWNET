@@ -34,7 +34,7 @@ import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { toast } from 'react-hot-toast'
 import { usePathname, useRouter } from 'next/navigation'
-// import { GraphData } from '@/lib/types'
+import { Recommendation } from '@/lib/types'
 // import Flow from '@/components/flow' // Import the Flow component
 import DotsMobileStepper from '@/components/dotstepper'
 // import { v4 as uuidv4 } from 'uuid' // for generating unique IDs
@@ -43,23 +43,51 @@ import DotsMobileStepper from '@/components/dotstepper'
 
 const testBackendData = {
   data: {
-    recommendation:
-      ' coenzyme Q10 and Disorders.\n coenzyme Q10 and Genes & Molecular Sequences.\n coenzyme Q10 and Chemicals & Drugs.\n coenzyme Q10 and Physiology.\n coenzyme Q10 and Living Beings.\n coenzyme Q10 and Anatomy.\n coenzyme Q10 and Dietary Supplement.\n',
+    recommendation: [
+      {
+        id: 0,
+        text: 'coenzyme Q10 and Disorders.'
+      },
+      {
+        id: 1,
+        text: 'coenzyme Q10 and Genes & Molecular Sequences.'
+      },
+      {
+        id: 2,
+        text: 'coenzyme Q10 and Chemicals & Drugs.'
+      },
+      {
+        id: 3,
+        text: 'coenzyme Q10 and Physiology.'
+      },
+      {
+        id: 4,
+        text: 'coenzyme Q10 and Living Beings.'
+      },
+      {
+        id: 5,
+        text: 'coenzyme Q10 and Anatomy.'
+      },
+      {
+        id: 6,
+        text: 'coenzyme Q10 and Dietary Supplement.'
+      }
+    ],
     vis_res: [
       {
         edges: [
           {
             PubMed_ID: '23221577 | 31687097',
-            Relation_ID: 1,
-            Source: 1,
-            Target: 2,
+            Relation_ID: 0,
+            Source: 0,
+            Target: 1,
             Type: 'ASSOCIATED_WITH'
           },
           {
             PubMed_ID: '23221577',
-            Relation_ID: 2,
-            Source: 1,
-            Target: 2,
+            Relation_ID: 1,
+            Source: 0,
+            Target: 1,
             Type: 'AFFECTS'
           }
         ],
@@ -68,13 +96,37 @@ const testBackendData = {
             CUI: 'DC0056077',
             Label: 'Dietary Supplement',
             Name: 'coenzyme Q10',
-            Node_ID: 1
+            Node_ID: 0
           },
           {
             CUI: 'C0018802',
             Label: 'Disorders',
             Name: 'Congestive heart failure',
-            Node_ID: 2
+            Node_ID: 1
+          },
+          {
+            CUI: 'DC0056077',
+            Label: 'Dietary Supplement',
+            Name: 'coenzyme Q10',
+            Node_ID: 0
+          },
+          {
+            CUI: 'C0018802',
+            Label: 'Disorders',
+            Name: 'Congestive heart failure',
+            Node_ID: 1
+          },
+          {
+            CUI: 'DC0056077',
+            Label: 'Dietary Supplement',
+            Name: 'coenzyme Q10',
+            Node_ID: 0
+          },
+          {
+            CUI: 'C0018802',
+            Label: 'Disorders',
+            Name: 'Congestive heart failure',
+            Node_ID: 1
           }
         ]
       },
@@ -82,9 +134,9 @@ const testBackendData = {
         edges: [
           {
             PubMed_ID: '24593795',
-            Relation_ID: 1,
-            Source: 1,
-            Target: 3,
+            Relation_ID: 2,
+            Source: 0,
+            Target: 2,
             Type: 'TREATS'
           }
         ],
@@ -93,18 +145,23 @@ const testBackendData = {
             CUI: 'DC0056077',
             Label: 'Dietary Supplement',
             Name: 'coenzyme Q10',
-            Node_ID: 1
+            Node_ID: 0
           },
-          { CUI: 'C0011847', Label: 'Disorders', Name: 'Diabetes', Node_ID: 3 }
+          {
+            CUI: 'C0011847',
+            Label: 'Disorders',
+            Name: 'Diabetes',
+            Node_ID: 2
+          }
         ]
       },
       {
         edges: [
           {
             PubMed_ID: '22005267 | 26232096',
-            Relation_ID: 1,
-            Source: 4,
-            Target: 3,
+            Relation_ID: 3,
+            Source: 3,
+            Target: 2,
             Type: 'AFFECTS'
           }
         ],
@@ -113,9 +170,26 @@ const testBackendData = {
             CUI: 'C0920563',
             Label: 'Disorders',
             Name: 'Insulin Sensitivity',
-            Node_ID: 4
+            Node_ID: 3
           },
-          { CUI: 'C0011847', Label: 'Disorders', Name: 'Diabetes', Node_ID: 3 }
+          {
+            CUI: 'C0011847',
+            Label: 'Disorders',
+            Name: 'Diabetes',
+            Node_ID: 2
+          },
+          {
+            CUI: 'C0920563',
+            Label: 'Disorders',
+            Name: 'Insulin Sensitivity',
+            Node_ID: 3
+          },
+          {
+            CUI: 'C0011847',
+            Label: 'Disorders',
+            Name: 'Diabetes',
+            Node_ID: 2
+          }
         ]
       }
     ]
@@ -196,7 +270,10 @@ export function Chat({
   }
 
   // Helper function to convert backend data to React Flow nodes and edges
-  const convertDataToFlowElements = data => {
+  const convertDataToFlowElements = (
+    data: { vis_res: any[] },
+    currentStep: undefined
+  ) => {
     const nodes = []
     const edges = []
 
@@ -212,16 +289,18 @@ export function Chat({
           id: node.Node_ID.toString(),
           data: { label: node.Name },
           position: { x: Math.random() * 400, y: Math.random() * 400 }, // Random position, you might want to calculate this
-          type: 'default'
+          type: 'default',
+          step: currentStep // Assign the current step here
         })
       })
 
       graph.edges.forEach(edge => {
         edges.push({
-          id: `e${edge.Source}-${edge.Target}`,
+          id: `e${edge.Source}-${edge.Target}-${edge.Type}`,
           source: edge.Source.toString(),
           target: edge.Target.toString(),
-          label: edge.Type
+          label: edge.Type,
+          step: currentStep // Assign the current step here
         })
       })
     })
@@ -238,8 +317,10 @@ export function Chat({
 
   const appendDataToFlow = useCallback(
     newData => {
-      const { nodes: newNodes, edges: newEdges } =
-        convertDataToFlowElements(newData)
+      const { nodes: newNodes, edges: newEdges } = convertDataToFlowElements(
+        newData,
+        activeStep
+      )
 
       setNodes(currentNodes => {
         // Ensure no duplicate nodes by checking if the node already exists
@@ -269,12 +350,51 @@ export function Chat({
     [setNodes, setEdges]
   )
 
+  const continueConversation = async (recommendId: number) => {
+    setActiveStep(activeStep + 1)
+    const payload = {
+      input_type: 'continue_conversation',
+      userId: id, // Assuming 'id' is the user/session ID you're using
+      data: {
+        recommendId: recommendId,
+        keywords_list_answer: keywordsListAnswer,
+        keywords_list_question: keywordsListQuestion
+      }
+    }
+
+    try {
+      const response = await fetch('http://localhost:5328/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      })
+
+      if (!response.ok) throw new Error('Failed to fetch')
+
+      const data = await response.json()
+      setBackendData(data)
+      // Pass new recommendations back to the ChatPanel if needed
+    } catch (error) {
+      console.error('Error continuing conversation:', error)
+    }
+  }
+
   // Handler for dot stepper change, adjusted for dynamic steps
   const handleStepChange = useCallback((step: number) => {
     setActiveStep(step)
   }, [])
   useEffect(() => {
     console.log(`Current active step: ${activeStep}`)
+    console.log(
+      'Filtered Nodes:',
+      nodes.filter(node => node.step <= activeStep)
+    )
+    console.log(
+      'Filtered Edges:',
+      edges.filter(edge => edge.step <= activeStep)
+    )
   }, [activeStep])
   const proOptions = { hideAttribution: true }
   const onConnect: OnConnect = useCallback(
@@ -285,7 +405,7 @@ export function Chat({
   const fetchDataFromBackend = useCallback(async () => {
     const payload = {
       input_type: 'new_conversation',
-      userId: 'user123',
+      userId: id,
       data: {
         keywords_list_answer: keywordsListAnswer,
         keywords_list_question: keywordsListQuestion
@@ -311,9 +431,9 @@ export function Chat({
     } catch (error) {
       console.error('Failed to fetch data from backend:', error)
     }
-  }, [keywordsListAnswer, keywordsListQuestion])
+  }, [id, keywordsListAnswer, keywordsListQuestion])
 
-  const [backendData, setBackendData] = useState(null)
+  const [backendData, setBackendData] = useState<any>(null)
 
   useEffect(() => {
     if (backendData && backendData.data && backendData.data.vis_res) {
@@ -359,8 +479,8 @@ export function Chat({
                     }}
                   >
                     <ReactFlow
-                      nodes={nodes}
-                      edges={edges}
+                      nodes={nodes.filter(node => node.step <= activeStep)}
+                      edges={edges.filter(edge => edge.step <= activeStep)}
                       onNodesChange={onNodesChange}
                       onEdgesChange={onEdgesChange}
                       fitView
@@ -370,6 +490,7 @@ export function Chat({
                       {' '}
                       <Background color="#aaa" gap={16} />
                     </ReactFlow>
+
                     <div className="absolute bottom-0 right-0">
                       {' '}
                       {/* Position for Controls */}
@@ -394,7 +515,6 @@ export function Chat({
           <EmptyScreen setInput={setInput} />
         )}
       </div>
-
       <ChatPanel
         id={id}
         isLoading={isLoading}
@@ -404,7 +524,8 @@ export function Chat({
         messages={messages}
         input={input}
         setInput={setInput}
-        recommendation={backendData ? backendData.data.recommendation : ''}
+        recommendations={backendData ? backendData.data.recommendation : ''}
+        continueConversation={continueConversation}
         // recommendation={backendData.data.recommendation}
       />
 
