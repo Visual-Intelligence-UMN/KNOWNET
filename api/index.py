@@ -194,7 +194,7 @@ def subgraph_type(cui, target_type, node_id, rel_id, node_id_map, rel_id_map):
     res.append({"nodes": nodes, "edges": edges})
     return res, node_id, rel_id
 
-
+#TODO: Check recommendation visualization logic
 def visualization(node_list, node_id, rel_id, node_id_map, rel_id_map):
     res = []
     if len(node_list) == 1:

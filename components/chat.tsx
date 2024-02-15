@@ -222,6 +222,7 @@ export function Chat({
   const initialRender = useRef(true)
   const [previewTokenDialog, setPreviewTokenDialog] = useState(false)
   const [previewTokenInput, setPreviewTokenInput] = useState(previewToken ?? '')
+  const [isLoadingBackendData, setIsLoadingBackendData] = useState(false)
 
   const { messages, append, reload, stop, isLoading, input, setInput } =
     useChat({
@@ -351,6 +352,7 @@ export function Chat({
   )
 
   const continueConversation = async (recommendId: number) => {
+    setIsLoadingBackendData(true)
     setActiveStep(activeStep + 1)
     const payload = {
       input_type: 'continue_conversation',
@@ -378,6 +380,8 @@ export function Chat({
       // Pass new recommendations back to the ChatPanel if needed
     } catch (error) {
       console.error('Error continuing conversation:', error)
+    } finally {
+      setIsLoadingBackendData(false) // Set loading to false when the request is complete
     }
   }
 
@@ -403,6 +407,7 @@ export function Chat({
   )
 
   const fetchDataFromBackend = useCallback(async () => {
+    setIsLoadingBackendData(true) // Set loading to true when the request is made
     const payload = {
       input_type: 'new_conversation',
       userId: id,
@@ -430,6 +435,8 @@ export function Chat({
       // Here you would call the function that integrates the data into your flow, e.g., appendDataToFlow(data);
     } catch (error) {
       console.error('Failed to fetch data from backend:', error)
+    } finally {
+      setIsLoadingBackendData(false) // Set loading to false when the request is complete
     }
   }, [id, keywordsListAnswer, keywordsListQuestion])
 
@@ -478,18 +485,24 @@ export function Chat({
                       height: 'calc(40vh - 1rem)'
                     }}
                   >
-                    <ReactFlow
-                      nodes={nodes.filter(node => node.step <= activeStep)}
-                      edges={edges.filter(edge => edge.step <= activeStep)}
-                      onNodesChange={onNodesChange}
-                      onEdgesChange={onEdgesChange}
-                      fitView
-                      proOptions={proOptions}
-                      onConnect={onConnect}
-                    >
-                      {' '}
-                      <Background color="#aaa" gap={16} />
-                    </ReactFlow>
+                    {isLoadingBackendData ? (
+                      <div className="flex justify-center items-center h-full">
+                        {/* Replace with your preferred loader */}
+                        <div>Loading...</div>
+                      </div>
+                    ) : (
+                      <ReactFlow
+                        nodes={nodes.filter(node => node.step <= activeStep)}
+                        edges={edges.filter(edge => edge.step <= activeStep)}
+                        onNodesChange={onNodesChange}
+                        onEdgesChange={onEdgesChange}
+                        fitView
+                        proOptions={proOptions}
+                        onConnect={onConnect}
+                      >
+                        <Background color="#aaa" gap={16} />
+                      </ReactFlow>
+                    )}
 
                     <div className="absolute bottom-0 right-0">
                       {' '}
