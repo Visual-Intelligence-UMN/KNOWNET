@@ -41,3 +41,25 @@ export function formatDate(input: string | number | Date): string {
     year: 'numeric'
   })
 }
+
+export async function fetchBackendData(payload: any) {
+  try {
+    const response = await fetch('http://localhost:5328/api/chat', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    const data = await response.json()
+    return data
+  } catch (error) {
+    console.error('Failed to fetch data from backend:', error)
+    return null
+  }
+}

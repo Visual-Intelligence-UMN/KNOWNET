@@ -61,6 +61,8 @@ def post_chat_message():
         response = {
             "status": "success",
             "message": "Chat session retrieved/created successfully",
+            "keywords_list_answer": keywords_list_answer,
+            "keywords_list_question": keywords_list_question,
             "data": response_data
         }
 
@@ -266,7 +268,7 @@ def agent(kg_nodes_embedding, keywords_list_answer, keywords_list_question, reco
     node_id_map = {}  # Maps CUI to Node_ID
     rel_id_map = {}  # Maps (Source_CUI, Target_CUI, Relation_Type) to Relation_ID
 
-    response_data = {"vis_res": [], "recommendation": []}
+    response_data = {"vis_res": []}
 
     # Process for both new and continued conversations
     nodes_list_answer = match_KG_nodes(keywords_list_answer, kg_nodes_embedding)
@@ -276,8 +278,8 @@ def agent(kg_nodes_embedding, keywords_list_answer, keywords_list_question, reco
     if input_type == "new_conversation":
         nodes_list_question = match_KG_nodes(keywords_list_question, kg_nodes_embedding)
         add_recommendation_space(nodes_list_question)  # Updates the recommendation space
-        recommendations = generate_recommendation()  # Generate recommendations with IDs
-        response_data["recommendation"] = recommendations
+        recommendation = generate_recommendation()
+        response_data["recommendation"] = recommendation
 
     elif input_type == "continue_conversation" and recommand_id is not None:
         # Convert recommendId to integer if it's passed as a string
@@ -290,14 +292,14 @@ def agent(kg_nodes_embedding, keywords_list_answer, keywords_list_question, reco
                 break
 
         if selected_recommendation:
-            entity, neighbor = selected_recommendation
-            vis_res, node_id, rel_id = subgraph_type(entity, neighbor, node_id, rel_id, node_id_map, rel_id_map)
-            # Optionally, remove the selected recommendation
+            # entity, neighbor = selected_recommendation
+            # # generate nodes and edges from chatgpt entity and neighbor
+            # node_id, rel_id = subgraph_type(entity, neighbor, node_id, rel_id, node_id_map, rel_id_map)
+            # # Optionally, remove the selected recommendation
             del recommendation_space[selected_recommendation]
-            recommendations = generate_recommendation()  # Regenerate recommendations
+            recommendation = generate_recommendation()
             response_data.update({
-                "vis_res": vis_res,
-                "recommendation": recommendations
+                "recommendation": recommendation
             })
     return response_data
 

@@ -77,6 +77,9 @@ dependencies:
   geist:
     specifier: ^1.1.0
     version: 1.1.0(next@14.0.4-canary.17)
+  jotai:
+    specifier: ^2.6.4
+    version: 2.6.4(@types/react@18.2.38)(react@18.2.0)
   nanoid:
     specifier: ^5.0.3
     version: 5.0.3
@@ -4325,6 +4328,22 @@ packages:
 
   /jose@4.15.4:
     resolution: {integrity: sha512-W+oqK4H+r5sITxfxpSU+MMdr/YSWGvgZMQDIsNoBDGGy4i7GBPTtvFKibQzW06n3U3TqHjhvBJsirShsEJ6eeQ==}
+    dev: false
+
+  /jotai@2.6.4(@types/react@18.2.38)(react@18.2.0):
+    resolution: {integrity: sha512-RniwQPX4893YlNR1muOtyUGHYaTD1fhEN4qnOuZJSrDHj6xdEMrqlRSN/hCm2fshwk78ruecB/P2l+NCVWe6TQ==}
+    engines: {node: '>=12.20.0'}
+    peerDependencies:
+      '@types/react': '>=17.0.0'
+      react: '>=17.0.0'
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+      react:
+        optional: true
+    dependencies:
+      '@types/react': 18.2.38
+      react: 18.2.0
     dev: false
 
   /js-tokens@4.0.0:

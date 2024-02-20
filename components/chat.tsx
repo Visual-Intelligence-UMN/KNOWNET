@@ -15,7 +15,6 @@ import {
 import 'reactflow/dist/style.css'
 import React, { use, useCallback } from 'react'
 import { useChat, type Message } from 'ai/react'
-// import { GraphCard } from '@/components/ui/GraphCard'
 import { ChatList } from '@/components/chat-list'
 import { ChatPanel } from '@/components/chat-panel'
 import { EmptyScreen } from '@/components/empty-screen'
@@ -34,11 +33,11 @@ import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { toast } from 'react-hot-toast'
 import { usePathname, useRouter } from 'next/navigation'
-import { Recommendation } from '@/lib/types'
-// import Flow from '@/components/flow' // Import the Flow component
 import DotsMobileStepper from '@/components/dotstepper'
-// import { v4 as uuidv4 } from 'uuid' // for generating unique IDs
-
+import { Spinner } from '@material-tailwind/react'
+import { useAtom } from 'jotai'
+import { recommendationsAtom, backendDataAtom } from '@/lib/state'
+import { fetchBackendData } from '@/lib/utils'
 // const IS_PREVIEW = process.env.VERCEL_ENV === 'preview'
 
 const testBackendData = {
@@ -212,6 +211,8 @@ export function Chat({
   keywordsListQuestion,
   className
 }: ChatProps) {
+  const [recommendations, setRecommendations] = useAtom(recommendationsAtom)
+  const [backendData, setBackendData] = useAtom(backendDataAtom)
   const router = useRouter()
   const path = usePathname()
   const [previewToken, setPreviewToken] = useLocalStorage<string | null>(
@@ -252,7 +253,6 @@ export function Chat({
           )
           setActiveStep(messages.length / 2)
         }
-        fetchDataFromBackend()
       }
     })
 
@@ -364,25 +364,11 @@ export function Chat({
       }
     }
 
-    try {
-      const response = await fetch('http://localhost:5328/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      })
-
-      if (!response.ok) throw new Error('Failed to fetch')
-
-      const data = await response.json()
+    const data = await fetchBackendData(payload)
+    if (data) {
       setBackendData(data)
-      // Pass new recommendations back to the ChatPanel if needed
-    } catch (error) {
-      console.error('Error continuing conversation:', error)
-    } finally {
-      setIsLoadingBackendData(false) // Set loading to false when the request is complete
     }
+    setIsLoadingBackendData(false)
   }
 
   // Handler for dot stepper change, adjusted for dynamic steps
@@ -440,20 +426,26 @@ export function Chat({
     }
   }, [id, keywordsListAnswer, keywordsListQuestion])
 
-  const [backendData, setBackendData] = useState<any>(null)
-
   useEffect(() => {
     if (backendData && backendData.data && backendData.data.vis_res) {
       appendDataToFlow(backendData.data)
+      setRecommendations(backendData.data.recommendation)
       // appendDataToFlow(testBackendData.data)
     }
   }, [backendData, appendDataToFlow])
 
   useEffect(() => {
     if (keywordsListAnswer && keywordsListQuestion) {
-      fetchDataFromBackend()
+      if (recommendations.length === 0) {
+        fetchDataFromBackend()
+      }
     }
-  }, [keywordsListAnswer, keywordsListQuestion, fetchDataFromBackend])
+  }, [
+    keywordsListAnswer,
+    keywordsListQuestion,
+    fetchDataFromBackend,
+    recommendations
+  ])
 
   return (
     <>
@@ -486,27 +478,23 @@ export function Chat({
                     }}
                   >
                     {isLoadingBackendData ? (
-                      <div className="flex justify-center items-center h-full">
-                        {/* Replace with your preferred loader */}
-                        <div>Loading...</div>
+                      <div className="absolute inset-0 bg-white bg-opacity-50 flex justify-center items-center z-10">
+                        <Spinner color="blue" />
                       </div>
-                    ) : (
-                      <ReactFlow
-                        nodes={nodes.filter(node => node.step <= activeStep)}
-                        edges={edges.filter(edge => edge.step <= activeStep)}
-                        onNodesChange={onNodesChange}
-                        onEdgesChange={onEdgesChange}
-                        fitView
-                        proOptions={proOptions}
-                        onConnect={onConnect}
-                      >
-                        <Background color="#aaa" gap={16} />
-                      </ReactFlow>
-                    )}
+                    ) : null}
+                    <ReactFlow
+                      nodes={nodes.filter(node => node.step <= activeStep)}
+                      edges={edges.filter(edge => edge.step <= activeStep)}
+                      onNodesChange={onNodesChange}
+                      onEdgesChange={onEdgesChange}
+                      fitView
+                      proOptions={proOptions}
+                      onConnect={onConnect}
+                    >
+                      <Background color="#aaa" gap={16} />
+                    </ReactFlow>
 
                     <div className="absolute bottom-0 right-0">
-                      {' '}
-                      {/* Position for Controls */}
                       <Controls />
                     </div>
                   </div>
@@ -537,7 +525,6 @@ export function Chat({
         messages={messages}
         input={input}
         setInput={setInput}
-        recommendations={backendData ? backendData.data.recommendation : ''}
         continueConversation={continueConversation}
         // recommendation={backendData.data.recommendation}
       />

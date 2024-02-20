@@ -18,7 +18,10 @@ import {
   IconButton,
   Typography
 } from '@material-tailwind/react'
-import { Recommendation } from '@/lib/types'
+
+import { useAtom } from 'jotai'
+import { recommendationsAtom } from '@/lib/state'
+
 export interface ChatPanelProps
   extends Pick<
     UseChatHelpers,
@@ -32,7 +35,6 @@ export interface ChatPanelProps
   > {
   id?: string
   title?: string
-  recommendations?: Recommendation[]
   continueConversation?: (recommendId: number) => void
 }
 
@@ -46,9 +48,10 @@ export function ChatPanel({
   input,
   setInput,
   messages,
-  recommendations,
   continueConversation
 }: ChatPanelProps) {
+  const [recommendations, setRecommendations] = useAtom(recommendationsAtom)
+
   const topRecommendations = recommendations?.slice(0, 3) || []
   const otherRecommendations = recommendations?.slice(3) || []
 

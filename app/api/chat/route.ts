@@ -57,7 +57,7 @@ export async function POST(req: Request) {
         role: 'system',
         content: qaPrompt
       },
-      ...messages.map(message => ({
+      ...messages.map((message: { role: any; content: any }) => ({
         role: message.role,
         content: message.content
       }))

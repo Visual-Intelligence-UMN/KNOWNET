@@ -38,6 +38,7 @@
     "dagre": "^0.8.5",
     "focus-trap-react": "^10.2.3",
     "geist": "^1.1.0",
+    "jotai": "^2.6.4",
     "nanoid": "^5.0.3",
     "next": "14.0.4-canary.17",
     "next-auth": "5.0.0-beta.3",
