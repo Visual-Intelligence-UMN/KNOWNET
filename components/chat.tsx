@@ -36,8 +36,14 @@ import { usePathname, useRouter } from 'next/navigation'
 import DotsMobileStepper from '@/components/dotstepper'
 import { Spinner } from '@material-tailwind/react'
 import { useAtom } from 'jotai'
-import { recommendationsAtom, backendDataAtom } from '@/lib/state'
+import {
+  recommendationsAtom,
+  backendDataAtom,
+  keywordsListAnswerAtom,
+  keywordsListQuestionAtom
+} from '@/lib/state'
 import { fetchBackendData } from '@/lib/utils'
+
 // const IS_PREVIEW = process.env.VERCEL_ENV === 'preview'
 
 const testBackendData = {
@@ -213,6 +219,10 @@ export function Chat({
 }: ChatProps) {
   const [recommendations, setRecommendations] = useAtom(recommendationsAtom)
   const [backendData, setBackendData] = useAtom(backendDataAtom)
+  const [keywordsAnswer, setKeywordsAnswer] = useState(keywordsListAnswer)
+  const [keywordsQuestion, setKeywordsListQuestion] =
+    useState(keywordsListQuestion)
+
   const router = useRouter()
   const path = usePathname()
   const [previewToken, setPreviewToken] = useLocalStorage<string | null>(
@@ -224,7 +234,6 @@ export function Chat({
   const [previewTokenDialog, setPreviewTokenDialog] = useState(false)
   const [previewTokenInput, setPreviewTokenInput] = useState(previewToken ?? '')
   const [isLoadingBackendData, setIsLoadingBackendData] = useState(false)
-
   const { messages, append, reload, stop, isLoading, input, setInput } =
     useChat({
       initialMessages,
@@ -243,7 +252,7 @@ export function Chat({
           router.push(`/chat/${id}`, { shallow: true })
           router.refresh()
         }
-        // Add a new node and edge when a message is finished processing
+
         if (
           message.role === 'assistant' &&
           processedMessageIds.has(message.id) === false
@@ -253,6 +262,31 @@ export function Chat({
           )
           setActiveStep(messages.length / 2)
         }
+
+        console.log('Chat Full completion:', message) // Ensure this logs the expected completion
+
+        const parts = message.content.split(' || ')
+        const firstPart = parts[0]
+        const secondPart = parts[1] || ''
+        const thirdPart = parts[2] || ''
+
+        // Debugging the parts
+        console.log('Chat First Part:', firstPart)
+        console.log('Chat Second Part:', secondPart)
+        console.log('Chat Third Part:', thirdPart)
+
+        // Adjusting the regex pattern to be more flexible
+        const newkeywordsListAnswer =
+          secondPart.match(/\[(.*?)\]/)?.[1].split(' | ') || []
+        const newkeywordsListQuestion =
+          thirdPart.match(/\[(.*?)\]/)?.[1].split(' | ') || []
+        setKeywordsAnswer(newkeywordsListAnswer)
+        setKeywordsListQuestion(newkeywordsListQuestion)
+        // if (recommendations.length === 0) {
+        //   fetchDataFromBackend()
+        // }
+        // Update the flow data for the next step
+        setActiveStep(messages.length / 2)
       }
     })
 
@@ -271,38 +305,48 @@ export function Chat({
   }
 
   // Helper function to convert backend data to React Flow nodes and edges
-  const convertDataToFlowElements = (
-    data: { vis_res: any[] },
-    currentStep: undefined
-  ) => {
+  // Helper function to convert backend data to React Flow nodes and edges
+  const convertDataToFlowElements = (data, currentStep) => {
     const nodes = []
     const edges = []
+    const nodeIds = new Set()
+    const edgeIds = new Set()
 
     if (!data || !data.vis_res) {
       console.warn('Data is not in the expected format or is null:', data)
-      // Now returning already initialized, but empty arrays
       return { nodes, edges }
     }
 
-    data.vis_res.forEach((graph, index) => {
+    data.vis_res.forEach(graph => {
       graph.nodes.forEach(node => {
-        nodes.push({
-          id: node.Node_ID.toString(),
-          data: { label: node.Name },
-          position: { x: Math.random() * 400, y: Math.random() * 400 }, // Random position, you might want to calculate this
-          type: 'default',
-          step: currentStep // Assign the current step here
-        })
+        if (!nodeIds.has(node.Node_ID)) {
+          nodes.push({
+            id: node.Node_ID.toString(),
+            data: { label: node.Name },
+            position: { x: Math.random() * 400, y: Math.random() * 400 },
+            type: 'default',
+            step: currentStep
+          })
+          nodeIds.add(node.Node_ID)
+        }
       })
 
-      graph.edges.forEach(edge => {
-        edges.push({
-          id: `e${edge.Source}-${edge.Target}-${edge.Type}`,
-          source: edge.Source.toString(),
-          target: edge.Target.toString(),
-          label: edge.Type,
-          step: currentStep // Assign the current step here
-        })
+      graph.edges.forEach((edge, index) => {
+        const edgeId = `e${edge.Source}-${edge.Target}-${edge.Type}`
+        if (!edgeIds.has(edgeId)) {
+          edges.push({
+            id: edgeId,
+            source: edge.Source.toString(),
+            target: edge.Target.toString(),
+            label: edge.Type,
+            type: 'smoothstep',
+            style: {
+              stroke: `#${Math.floor(Math.random() * 16777215).toString(16)}`
+            },
+            step: currentStep
+          })
+          edgeIds.add(edgeId)
+        }
       })
     })
 
@@ -317,20 +361,20 @@ export function Chat({
   const [processedMessageIds, setProcessedMessageIds] = useState(new Set())
 
   const appendDataToFlow = useCallback(
-    newData => {
+    (newData, currentStep) => {
       const { nodes: newNodes, edges: newEdges } = convertDataToFlowElements(
         newData,
-        activeStep
+        currentStep
       )
 
       setNodes(currentNodes => {
-        // Ensure no duplicate nodes by checking if the node already exists
         const updatedNodes = [...currentNodes]
         newNodes.forEach(newNode => {
-          if (!currentNodes.find(node => node.id === newNode.id)) {
+          if (!updatedNodes.find(node => node.id === newNode.id)) {
             updatedNodes.push({
               ...newNode,
-              position: { x: Math.random() * 400, y: Math.random() * 400 }
+              position: { x: Math.random() * 400, y: Math.random() * 400 },
+              step: currentStep
             })
           }
         })
@@ -338,11 +382,10 @@ export function Chat({
       })
 
       setEdges(currentEdges => {
-        // Ensure no duplicate edges by checking if the edge already exists
         const updatedEdges = [...currentEdges]
         newEdges.forEach(newEdge => {
-          if (!currentEdges.find(edge => edge.id === newEdge.id)) {
-            updatedEdges.push(newEdge)
+          if (!updatedEdges.find(edge => edge.id === newEdge.id)) {
+            updatedEdges.push({ ...newEdge, step: currentStep })
           }
         })
         return updatedEdges
@@ -359,14 +402,15 @@ export function Chat({
       userId: id, // Assuming 'id' is the user/session ID you're using
       data: {
         recommendId: recommendId,
-        keywords_list_answer: keywordsListAnswer,
-        keywords_list_question: keywordsListQuestion
+        keywords_list_answer: keywordsAnswer,
+        keywords_list_question: keywordsQuestion
       }
     }
 
     const data = await fetchBackendData(payload)
     if (data) {
       setBackendData(data)
+      console.log('Continued Data:', data)
     }
     setIsLoadingBackendData(false)
   }
@@ -398,8 +442,8 @@ export function Chat({
       input_type: 'new_conversation',
       userId: id,
       data: {
-        keywords_list_answer: keywordsListAnswer,
-        keywords_list_question: keywordsListQuestion
+        keywords_list_answer: keywordsAnswer,
+        keywords_list_question: keywordsQuestion
       }
     }
 
@@ -418,34 +462,31 @@ export function Chat({
 
       const data = await response.json()
       setBackendData(data)
+
+      console.log('First Data:', data)
       // Here you would call the function that integrates the data into your flow, e.g., appendDataToFlow(data);
     } catch (error) {
       console.error('Failed to fetch data from backend:', error)
     } finally {
       setIsLoadingBackendData(false) // Set loading to false when the request is complete
     }
-  }, [id, keywordsListAnswer, keywordsListQuestion])
+  }, [id, keywordsAnswer, keywordsQuestion])
 
   useEffect(() => {
     if (backendData && backendData.data && backendData.data.vis_res) {
-      appendDataToFlow(backendData.data)
+      appendDataToFlow(backendData.data, activeStep)
       setRecommendations(backendData.data.recommendation)
       // appendDataToFlow(testBackendData.data)
     }
-  }, [backendData, appendDataToFlow])
+  }, [backendData, appendDataToFlow, setRecommendations])
 
   useEffect(() => {
-    if (keywordsListAnswer && keywordsListQuestion) {
+    if (keywordsAnswer && keywordsQuestion) {
       if (recommendations.length === 0) {
         fetchDataFromBackend()
       }
     }
-  }, [
-    keywordsListAnswer,
-    keywordsListQuestion,
-    fetchDataFromBackend,
-    recommendations
-  ])
+  }, [keywordsAnswer, keywordsQuestion])
 
   return (
     <>

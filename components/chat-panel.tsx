@@ -107,6 +107,7 @@ export function ChatPanel({
                     variant="outline"
                     onClick={async () => {
                       handleContextButtonClick(rec.text)
+
                       if (continueConversation) {
                         continueConversation(rec.id)
                       }
@@ -132,7 +133,7 @@ export function ChatPanel({
                             key={rec.id}
                             variant="outline"
                             onClick={async () => {
-                              handleContextButtonClick(rec.text)
+                              await handleContextButtonClick(rec.text)
                               if (continueConversation) {
                                 continueConversation(rec.id)
                               }

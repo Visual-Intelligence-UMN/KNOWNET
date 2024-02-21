@@ -2,14 +2,6 @@
 import React from 'react'
 import { Message } from 'ai'
 import { ChatMessage } from '@/components/chat-message'
-
-import {
-  Tabs,
-  TabsHeader,
-  TabsBody,
-  Tab,
-  TabPanel
-} from '@material-tailwind/react'
 import { useViewMode } from '@/components/ui/view-mode'
 
 export interface ChatListProps {

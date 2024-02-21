@@ -18,7 +18,7 @@ export interface GraphNode {
   id: string // Node ID is now a string
   label: string
   group: string
-  CUI?: string // include other properties like CUI from your API
+  CUI?: string
 }
 
 export interface GraphEdge {
