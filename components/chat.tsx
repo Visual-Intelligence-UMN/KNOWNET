@@ -46,163 +46,6 @@ import { fetchBackendData } from '@/lib/utils'
 
 // const IS_PREVIEW = process.env.VERCEL_ENV === 'preview'
 
-const testBackendData = {
-  data: {
-    recommendation: [
-      {
-        id: 0,
-        text: 'coenzyme Q10 and Disorders.'
-      },
-      {
-        id: 1,
-        text: 'coenzyme Q10 and Genes & Molecular Sequences.'
-      },
-      {
-        id: 2,
-        text: 'coenzyme Q10 and Chemicals & Drugs.'
-      },
-      {
-        id: 3,
-        text: 'coenzyme Q10 and Physiology.'
-      },
-      {
-        id: 4,
-        text: 'coenzyme Q10 and Living Beings.'
-      },
-      {
-        id: 5,
-        text: 'coenzyme Q10 and Anatomy.'
-      },
-      {
-        id: 6,
-        text: 'coenzyme Q10 and Dietary Supplement.'
-      }
-    ],
-    vis_res: [
-      {
-        edges: [
-          {
-            PubMed_ID: '23221577 | 31687097',
-            Relation_ID: 0,
-            Source: 0,
-            Target: 1,
-            Type: 'ASSOCIATED_WITH'
-          },
-          {
-            PubMed_ID: '23221577',
-            Relation_ID: 1,
-            Source: 0,
-            Target: 1,
-            Type: 'AFFECTS'
-          }
-        ],
-        nodes: [
-          {
-            CUI: 'DC0056077',
-            Label: 'Dietary Supplement',
-            Name: 'coenzyme Q10',
-            Node_ID: 0
-          },
-          {
-            CUI: 'C0018802',
-            Label: 'Disorders',
-            Name: 'Congestive heart failure',
-            Node_ID: 1
-          },
-          {
-            CUI: 'DC0056077',
-            Label: 'Dietary Supplement',
-            Name: 'coenzyme Q10',
-            Node_ID: 0
-          },
-          {
-            CUI: 'C0018802',
-            Label: 'Disorders',
-            Name: 'Congestive heart failure',
-            Node_ID: 1
-          },
-          {
-            CUI: 'DC0056077',
-            Label: 'Dietary Supplement',
-            Name: 'coenzyme Q10',
-            Node_ID: 0
-          },
-          {
-            CUI: 'C0018802',
-            Label: 'Disorders',
-            Name: 'Congestive heart failure',
-            Node_ID: 1
-          }
-        ]
-      },
-      {
-        edges: [
-          {
-            PubMed_ID: '24593795',
-            Relation_ID: 2,
-            Source: 0,
-            Target: 2,
-            Type: 'TREATS'
-          }
-        ],
-        nodes: [
-          {
-            CUI: 'DC0056077',
-            Label: 'Dietary Supplement',
-            Name: 'coenzyme Q10',
-            Node_ID: 0
-          },
-          {
-            CUI: 'C0011847',
-            Label: 'Disorders',
-            Name: 'Diabetes',
-            Node_ID: 2
-          }
-        ]
-      },
-      {
-        edges: [
-          {
-            PubMed_ID: '22005267 | 26232096',
-            Relation_ID: 3,
-            Source: 3,
-            Target: 2,
-            Type: 'AFFECTS'
-          }
-        ],
-        nodes: [
-          {
-            CUI: 'C0920563',
-            Label: 'Disorders',
-            Name: 'Insulin Sensitivity',
-            Node_ID: 3
-          },
-          {
-            CUI: 'C0011847',
-            Label: 'Disorders',
-            Name: 'Diabetes',
-            Node_ID: 2
-          },
-          {
-            CUI: 'C0920563',
-            Label: 'Disorders',
-            Name: 'Insulin Sensitivity',
-            Node_ID: 3
-          },
-          {
-            CUI: 'C0011847',
-            Label: 'Disorders',
-            Name: 'Diabetes',
-            Node_ID: 2
-          }
-        ]
-      }
-    ]
-  },
-  message: 'Chat session retrieved/created successfully',
-  status: 'success'
-}
-
 export interface ChatProps extends React.ComponentProps<'div'> {
   initialMessages?: Message[]
   id?: string
@@ -306,9 +149,26 @@ export function Chat({
 
   // Helper function to convert backend data to React Flow nodes and edges
   // Helper function to convert backend data to React Flow nodes and edges
-  const convertDataToFlowElements = (data, currentStep) => {
-    const nodes = []
-    const edges = []
+  const convertDataToFlowElements = (
+    data: { vis_res: any[] },
+    currentStep: any
+  ) => {
+    const nodes: {
+      id: any
+      data: { label: any }
+      position: { x: number; y: number }
+      type: string
+      step: any
+    }[] = []
+    const edges: {
+      id: string
+      source: any
+      target: any
+      label: any
+      type: string
+      style: { stroke: string }
+      step: any
+    }[] = []
     const nodeIds = new Set()
     const edgeIds = new Set()
 
@@ -318,7 +178,7 @@ export function Chat({
     }
 
     data.vis_res.forEach(graph => {
-      graph.nodes.forEach(node => {
+      graph.nodes.forEach((node: { Node_ID: string; Name: any }) => {
         if (!nodeIds.has(node.Node_ID)) {
           nodes.push({
             id: node.Node_ID.toString(),
@@ -331,23 +191,32 @@ export function Chat({
         }
       })
 
-      graph.edges.forEach((edge, index) => {
-        const edgeId = `e${edge.Source}-${edge.Target}-${edge.Type}`
-        if (!edgeIds.has(edgeId)) {
-          edges.push({
-            id: edgeId,
-            source: edge.Source.toString(),
-            target: edge.Target.toString(),
-            label: edge.Type,
-            type: 'smoothstep',
-            style: {
-              stroke: `#${Math.floor(Math.random() * 16777215).toString(16)}`
-            },
-            step: currentStep
-          })
-          edgeIds.add(edgeId)
+      graph.edges.forEach(
+        (
+          edge: {
+            Source: { toString: () => any }
+            Target: { toString: () => any }
+            Type: any
+          },
+          index: any
+        ) => {
+          const edgeId = `e${edge.Source}-${edge.Target}-${edge.Type}`
+          if (!edgeIds.has(edgeId)) {
+            edges.push({
+              id: edgeId,
+              source: edge.Source.toString(),
+              target: edge.Target.toString(),
+              label: edge.Type,
+              type: 'smoothstep',
+              style: {
+                stroke: `#${Math.floor(Math.random() * 16777215).toString(16)}`
+              },
+              step: currentStep
+            })
+            edgeIds.add(edgeId)
+          }
         }
-      })
+      )
     })
 
     return { nodes, edges }
@@ -361,7 +230,7 @@ export function Chat({
   const [processedMessageIds, setProcessedMessageIds] = useState(new Set())
 
   const appendDataToFlow = useCallback(
-    (newData, currentStep) => {
+    (newData: { vis_res: any[] }, currentStep: any) => {
       const { nodes: newNodes, edges: newEdges } = convertDataToFlowElements(
         newData,
         currentStep

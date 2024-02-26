@@ -67,12 +67,12 @@ export function ChatPanel({
   return (
     <div className="fixed inset-x-0 bottom-0 bg-gradient-to-b from-muted/10 from-10% to-muted/30 to-50%">
       <ButtonScrollToBottom />
-      <div className="mx-auto sm:max-w-2xl sm:px-4">
+      <div className="mx-auto sm:max-w-4xl sm:px-4">
         <div className="flex flex-col gap-1">
           <div
-            className={`grid grid-cols-${
+            className={`grid grid-col-${
               otherRecommendations?.length > 0 ? '3' : '1'
-            } gap-2 items-center justify-items-stretch`}
+            } gap-1 items-center justify-items-stretch`}
           >
             {/* Conditionally render the regenerate/stop button or speed dial based on isLoading and the presence of messages */}
             {isLoading ? (
@@ -92,7 +92,7 @@ export function ChatPanel({
                     onClick={() => reload()}
                     className={`${
                       otherRecommendations?.length > 0
-                        ? 'col-span-2'
+                        ? 'col-span-4'
                         : 'col-span-1 justify-self-center'
                     }`}
                   >
@@ -112,18 +112,21 @@ export function ChatPanel({
                         continueConversation(rec.id)
                       }
                     }}
-                    className="my-2"
+                    className="m-2"
+                    title={rec.text}
                   >
-                    {rec.text}
+                    <p className="py-3 px-2 text-[5px] sm:text-sm align-middle truncate">
+                      {rec.text}
+                    </p>
                   </Button>
                 ))}
 
                 {/* Speed Dial Positioned in the third column if there are additional recommendations */}
                 {otherRecommendations?.length > 0 && (
-                  <div className="relative col-start-3 justify-self-center">
+                  <div className="relative col-start-5 justify-self-center">
                     <SpeedDial>
                       <SpeedDialHandler>
-                        <IconButton size="lg" className="rounded-full">
+                        <IconButton size="lg" className="rounded-full ">
                           <IconPlus className="h-5 w-5 transition-transform group-hover:rotate-45" />
                         </IconButton>
                       </SpeedDialHandler>
@@ -138,9 +141,12 @@ export function ChatPanel({
                                 continueConversation(rec.id)
                               }
                             }}
-                            className="col-span-3"
+                            className="m-1 py-3 px-2 text-[5px] sm:text-sm align-middle"
+                            title={rec.text.substring(0, 100)}
                           >
-                            {rec.text.substring(0, 100)}...
+                            <span className="py-3 px-2 text-[5px] sm:text-sm align-middle">
+                              {rec.text.substring(0, 100)}...
+                            </span>
                           </Button>
                         ))}
                       </SpeedDialContent>

@@ -225,3 +225,160 @@ const nodeBank = [
     position: { x: 200, y: 300 }
   }
 ]
+
+const testBackendData = {
+  data: {
+    recommendation: [
+      {
+        id: 0,
+        text: 'coenzyme Q10 and Disorders.'
+      },
+      {
+        id: 1,
+        text: 'coenzyme Q10 and Genes & Molecular Sequences.'
+      },
+      {
+        id: 2,
+        text: 'coenzyme Q10 and Chemicals & Drugs.'
+      },
+      {
+        id: 3,
+        text: 'coenzyme Q10 and Physiology.'
+      },
+      {
+        id: 4,
+        text: 'coenzyme Q10 and Living Beings.'
+      },
+      {
+        id: 5,
+        text: 'coenzyme Q10 and Anatomy.'
+      },
+      {
+        id: 6,
+        text: 'coenzyme Q10 and Dietary Supplement.'
+      }
+    ],
+    vis_res: [
+      {
+        edges: [
+          {
+            PubMed_ID: '23221577 | 31687097',
+            Relation_ID: 0,
+            Source: 0,
+            Target: 1,
+            Type: 'ASSOCIATED_WITH'
+          },
+          {
+            PubMed_ID: '23221577',
+            Relation_ID: 1,
+            Source: 0,
+            Target: 1,
+            Type: 'AFFECTS'
+          }
+        ],
+        nodes: [
+          {
+            CUI: 'DC0056077',
+            Label: 'Dietary Supplement',
+            Name: 'coenzyme Q10',
+            Node_ID: 0
+          },
+          {
+            CUI: 'C0018802',
+            Label: 'Disorders',
+            Name: 'Congestive heart failure',
+            Node_ID: 1
+          },
+          {
+            CUI: 'DC0056077',
+            Label: 'Dietary Supplement',
+            Name: 'coenzyme Q10',
+            Node_ID: 0
+          },
+          {
+            CUI: 'C0018802',
+            Label: 'Disorders',
+            Name: 'Congestive heart failure',
+            Node_ID: 1
+          },
+          {
+            CUI: 'DC0056077',
+            Label: 'Dietary Supplement',
+            Name: 'coenzyme Q10',
+            Node_ID: 0
+          },
+          {
+            CUI: 'C0018802',
+            Label: 'Disorders',
+            Name: 'Congestive heart failure',
+            Node_ID: 1
+          }
+        ]
+      },
+      {
+        edges: [
+          {
+            PubMed_ID: '24593795',
+            Relation_ID: 2,
+            Source: 0,
+            Target: 2,
+            Type: 'TREATS'
+          }
+        ],
+        nodes: [
+          {
+            CUI: 'DC0056077',
+            Label: 'Dietary Supplement',
+            Name: 'coenzyme Q10',
+            Node_ID: 0
+          },
+          {
+            CUI: 'C0011847',
+            Label: 'Disorders',
+            Name: 'Diabetes',
+            Node_ID: 2
+          }
+        ]
+      },
+      {
+        edges: [
+          {
+            PubMed_ID: '22005267 | 26232096',
+            Relation_ID: 3,
+            Source: 3,
+            Target: 2,
+            Type: 'AFFECTS'
+          }
+        ],
+        nodes: [
+          {
+            CUI: 'C0920563',
+            Label: 'Disorders',
+            Name: 'Insulin Sensitivity',
+            Node_ID: 3
+          },
+          {
+            CUI: 'C0011847',
+            Label: 'Disorders',
+            Name: 'Diabetes',
+            Node_ID: 2
+          },
+          {
+            CUI: 'C0920563',
+            Label: 'Disorders',
+            Name: 'Insulin Sensitivity',
+            Node_ID: 3
+          },
+          {
+            CUI: 'C0011847',
+            Label: 'Disorders',
+            Name: 'Diabetes',
+            Node_ID: 2
+          }
+        ]
+      }
+    ]
+  },
+  message: 'Chat session retrieved/created successfully',
+  status: 'success'
+}
