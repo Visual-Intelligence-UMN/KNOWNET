@@ -43,15 +43,15 @@ export default async function ChatPage({ params }: ChatPageProps) {
     notFound()
   }
 
-  const keywordsListAnswer = chat.keywordsListAnswer
-  const keywordsListQuestion = chat.keywordsListQuestion
+  // const keywordsListAnswer = chat.keywordsListAnswer
+  // const keywordsListQuestion = chat.keywordsListQuestion
 
   return (
     <Chat
       id={chat.id}
       initialMessages={chat.messages}
-      keywordsListAnswer={keywordsListAnswer}
-      keywordsListQuestion={keywordsListQuestion}
+      // keywordsListAnswer={keywordsListAnswer}
+      // keywordsListQuestion={keywordsListQuestion}
     />
   )
 }

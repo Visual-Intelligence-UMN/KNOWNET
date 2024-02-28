@@ -1,5 +1,5 @@
 import { type UseChatHelpers } from 'ai/react'
-
+import React, { useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { PromptForm } from '@/components/prompt-form'
 import { ButtonScrollToBottom } from '@/components/button-scroll-to-bottom'
@@ -20,7 +20,11 @@ import {
 } from '@material-tailwind/react'
 
 import { useAtom } from 'jotai'
-import { recommendationsAtom } from '@/lib/state'
+import {
+  recommendationsAtom,
+  keywordsListAnswerAtom,
+  keywordsListQuestionAtom
+} from '@/lib/state'
 
 export interface ChatPanelProps
   extends Pick<
@@ -35,7 +39,11 @@ export interface ChatPanelProps
   > {
   id?: string
   title?: string
-  continueConversation?: (recommendId: number) => void
+  continueConversation?: (
+    recommendId: number,
+    keywordsAnswer: string[],
+    keywordsQuestion: string[]
+  ) => void
 }
 
 export function ChatPanel({
@@ -50,18 +58,46 @@ export function ChatPanel({
   messages,
   continueConversation
 }: ChatPanelProps) {
-  const [recommendations, setRecommendations] = useAtom(recommendationsAtom)
+  const [recommendations] = useAtom(recommendationsAtom)
+  const [keywordsListAnswer] = useAtom(keywordsListAnswerAtom)
+  const [keywordsListQuestion] = useAtom(keywordsListQuestionAtom)
 
   const topRecommendations = recommendations?.slice(0, 3) || []
   const otherRecommendations = recommendations?.slice(3) || []
+  const keywordsAnswerRef = useRef(keywordsListAnswer)
+  const keywordsQuestionRef = useRef(keywordsListQuestion)
+
+  // Update refs whenever the keywords state changes
+  useEffect(() => {
+    keywordsAnswerRef.current = keywordsListAnswer
+    keywordsQuestionRef.current = keywordsListQuestion
+  }, [keywordsListAnswer, keywordsListQuestion])
 
   // Function to handle specific context button click
-  const handleContextButtonClick = async (contextMessage: string) => {
+  const handleContextButtonClick = async (
+    contextMessage: string,
+    recommendId: number
+  ) => {
     await append({
       id,
       content: contextMessage,
       role: 'user'
     })
+
+    // Use the current value of the refs, which is always up-to-date
+    const currentKeywordsAnswer = keywordsAnswerRef.current
+    const currentKeywordsQuestion = keywordsQuestionRef.current
+
+    console.log('Current Keywords Answer:', currentKeywordsAnswer)
+    console.log('Current Keywords Question:', currentKeywordsQuestion)
+    // Use the most updated keywordsAnswer and keywordsQuestion for continueConversation
+    if (continueConversation) {
+      continueConversation(
+        recommendId,
+        currentKeywordsAnswer,
+        currentKeywordsQuestion
+      )
+    }
   }
   // Parse the recommendation string into actionable items
   return (
@@ -106,11 +142,7 @@ export function ChatPanel({
                     key={rec.id}
                     variant="outline"
                     onClick={async () => {
-                      handleContextButtonClick(rec.text)
-
-                      if (continueConversation) {
-                        continueConversation(rec.id)
-                      }
+                      handleContextButtonClick(rec.text, rec.id)
                     }}
                     className="m-2"
                     title={rec.text}
@@ -136,10 +168,7 @@ export function ChatPanel({
                             key={rec.id}
                             variant="outline"
                             onClick={async () => {
-                              await handleContextButtonClick(rec.text)
-                              if (continueConversation) {
-                                continueConversation(rec.id)
-                              }
+                              handleContextButtonClick(rec.text, rec.id)
                             }}
                             className="m-1 py-3 px-2 text-[5px] sm:text-sm align-middle"
                             title={rec.text.substring(0, 100)}

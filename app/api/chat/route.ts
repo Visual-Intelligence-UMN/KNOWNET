@@ -69,23 +69,21 @@ export async function POST(req: Request) {
   const stream = OpenAIStream(res, {
     async onCompletion(completion) {
       const fullResponse = completion
-      console.log('Full completion:', fullResponse) // Ensure this logs the expected completion
+      // console.log('Full completion:', fullResponse) // Ensure this logs the expected completion
 
       const parts = fullResponse.split(' || ')
       const firstPart = parts[0]
-      const secondPart = parts[1] || ''
-      const thirdPart = parts[2] || ''
+      // const secondPart = parts[1] || ''
+      // const thirdPart = parts[2] || ''
 
       // Debugging the parts
-      console.log('First Part:', firstPart)
-      console.log('Second Part:', secondPart)
-      console.log('Third Part:', thirdPart)
+      // console.log('First Part:', firstPart)
+      // console.log('Second Part:', secondPart)
+      // console.log('Third Part:', thirdPart)
 
       // Adjusting the regex pattern to be more flexible
-      const keywordsListAnswer =
-        secondPart.match(/\[(.*?)\]/)?.[1].split(' | ') || []
-      const keywordsListQuestion =
-        thirdPart.match(/\[(.*?)\]/)?.[1].split(' | ') || []
+      // const keywordsListAnswer =  secondPart.match(/\[(.*?)\]/)?.[1].split(' | ') || []
+      // const keywordsListQuestion = thirdPart.match(/\[(.*?)\]/)?.[1].split(' | ') || []
 
       // console.log('Keywords List Answer:', keywordsListAnswer)
       // console.log('Keywords List Question:', keywordsListQuestion)
@@ -107,9 +105,9 @@ export async function POST(req: Request) {
             content: firstPart,
             role: 'assistant'
           }
-        ],
-        keywordsListAnswer,
-        keywordsListQuestion
+        ]
+        // keywordsListAnswer,
+        // keywordsListQuestion
       }
       await kv.hmset(`chat:${id}`, payload)
       await kv.zadd(`user:chat:${userId}`, {

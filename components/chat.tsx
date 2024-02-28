@@ -55,16 +55,16 @@ export interface ChatProps extends React.ComponentProps<'div'> {
 
 export function Chat({
   id,
-  initialMessages,
-  keywordsListAnswer,
-  keywordsListQuestion,
-  className
-}: ChatProps) {
+  initialMessages // keywordsListAnswer,
+  // className
+} // keywordsListQuestion,
+: ChatProps) {
   const [recommendations, setRecommendations] = useAtom(recommendationsAtom)
   const [backendData, setBackendData] = useAtom(backendDataAtom)
-  const [keywordsAnswer, setKeywordsAnswer] = useState(keywordsListAnswer)
-  const [keywordsQuestion, setKeywordsListQuestion] =
-    useState(keywordsListQuestion)
+  const [keywordsAnswer, setKeywordsAnswer] = useAtom(keywordsListAnswerAtom)
+  const [keywordsQuestion, setKeywordsListQuestion] = useAtom(
+    keywordsListQuestionAtom
+  )
 
   const router = useRouter()
   const path = usePathname()
@@ -90,12 +90,11 @@ export function Chat({
           toast.error(response.statusText)
         }
       },
-      onFinish: message => {
+      onFinish(message) {
         if (!path.includes('chat')) {
           router.push(`/chat/${id}`, { shallow: true })
           router.refresh()
         }
-
         if (
           message.role === 'assistant' &&
           processedMessageIds.has(message.id) === false
@@ -125,11 +124,14 @@ export function Chat({
           thirdPart.match(/\[(.*?)\]/)?.[1].split(' | ') || []
         setKeywordsAnswer(newkeywordsListAnswer)
         setKeywordsListQuestion(newkeywordsListQuestion)
-        // if (recommendations.length === 0) {
-        //   fetchDataFromBackend()
-        // }
-        // Update the flow data for the next step
+
+        console.log('set Chat Keywords List Answer:', keywordsAnswer)
+        console.log('set Chat Keywords List Question:', keywordsQuestion)
+        if (recommendations.length === 0) {
+          firstConversation(newkeywordsListAnswer, newkeywordsListQuestion)
+        }
         setActiveStep(messages.length / 2)
+        router.refresh()
       }
     })
 
@@ -147,7 +149,6 @@ export function Chat({
     setPreviewTokenDialog(false)
   }
 
-  // Helper function to convert backend data to React Flow nodes and edges
   // Helper function to convert backend data to React Flow nodes and edges
   const convertDataToFlowElements = (
     data: { vis_res: any[] },
@@ -263,12 +264,16 @@ export function Chat({
     [setNodes, setEdges]
   )
 
-  const continueConversation = async (recommendId: number) => {
+  const continueConversation = async (
+    recommendId: number,
+    keywordsAnswer: string[],
+    keywordsQuestion: string[]
+  ) => {
     setIsLoadingBackendData(true)
     setActiveStep(activeStep + 1)
     const payload = {
       input_type: 'continue_conversation',
-      userId: id, // Assuming 'id' is the user/session ID you're using
+      userId: id,
       data: {
         recommendId: recommendId,
         keywords_list_answer: keywordsAnswer,
@@ -305,8 +310,12 @@ export function Chat({
     [setEdges]
   )
 
-  const fetchDataFromBackend = useCallback(async () => {
+  const firstConversation = async (
+    keywordsAnswer: string[],
+    keywordsQuestion: string[]
+  ) => {
     setIsLoadingBackendData(true) // Set loading to true when the request is made
+    setActiveStep(activeStep + 1)
     const payload = {
       input_type: 'new_conversation',
       userId: id,
@@ -316,30 +325,13 @@ export function Chat({
       }
     }
 
-    try {
-      const response = await fetch('http://localhost:5328/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      })
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-
-      const data = await response.json()
+    const data = await fetchBackendData(payload)
+    if (data) {
       setBackendData(data)
-
       console.log('First Data:', data)
-      // Here you would call the function that integrates the data into your flow, e.g., appendDataToFlow(data);
-    } catch (error) {
-      console.error('Failed to fetch data from backend:', error)
-    } finally {
-      setIsLoadingBackendData(false) // Set loading to false when the request is complete
     }
-  }, [id, keywordsAnswer, keywordsQuestion])
+    setIsLoadingBackendData(false) // Set loading to false when the request is complete
+  }
 
   useEffect(() => {
     if (backendData && backendData.data && backendData.data.vis_res) {
@@ -347,14 +339,12 @@ export function Chat({
       setRecommendations(backendData.data.recommendation)
       // appendDataToFlow(testBackendData.data)
     }
-  }, [backendData, appendDataToFlow, setRecommendations])
+  }, [backendData, appendDataToFlow, setRecommendations, activeStep])
 
   useEffect(() => {
-    if (keywordsAnswer && keywordsQuestion) {
-      if (recommendations.length === 0) {
-        fetchDataFromBackend()
-      }
-    }
+    // Perform actions based on updated keywordsAnswer and keywordsQuestion
+    console.log('Keywords Answer Updated:', keywordsAnswer)
+    console.log('Keywords Question Updated:', keywordsQuestion)
   }, [keywordsAnswer, keywordsQuestion])
 
   return (
@@ -435,6 +425,7 @@ export function Chat({
         messages={messages}
         input={input}
         setInput={setInput}
+        firstConversation={firstConversation}
         continueConversation={continueConversation}
         // recommendation={backendData.data.recommendation}
       />
