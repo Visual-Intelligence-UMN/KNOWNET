@@ -124,7 +124,7 @@ export function ChatPanel({
               <>
                 {messages?.length >= 2 && (
                   <Button
-                    variant="outline"
+                    variant="default"
                     onClick={() => reload()}
                     className={`${
                       otherRecommendations?.length > 0

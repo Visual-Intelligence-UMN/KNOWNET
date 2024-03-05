@@ -43,9 +43,37 @@ import {
   keywordsListQuestionAtom
 } from '@/lib/state'
 import { fetchBackendData } from '@/lib/utils'
-
+import dagre from 'dagre'
 // const IS_PREVIEW = process.env.VERCEL_ENV === 'preview'
 
+// Initialize dagre graph for layout calculations
+const dagreGraph = new dagre.graphlib.Graph()
+dagreGraph.setDefaultEdgeLabel(() => ({}))
+const nodeWidth = 172
+const nodeHeight = 36
+
+// Function to apply dagre layout to nodes and edges
+const getLayoutedElements = (nodes, edges, direction = 'TB') => {
+  const isHorizontal = direction === 'LR'
+  dagreGraph.setGraph({ rankdir: direction })
+  nodes.forEach(node => {
+    dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight })
+  })
+  edges.forEach(edge => {
+    dagreGraph.setEdge(edge.source, edge.target)
+  })
+  dagre.layout(dagreGraph)
+  nodes.forEach(node => {
+    const nodeWithPosition = dagreGraph.node(node.id)
+    node.targetPosition = isHorizontal ? 'left' : 'top'
+    node.sourcePosition = isHorizontal ? 'right' : 'bottom'
+    node.position = {
+      x: nodeWithPosition.x - nodeWidth / 2,
+      y: nodeWithPosition.y - nodeHeight / 2
+    }
+  })
+  return { nodes, edges }
+}
 export interface ChatProps extends React.ComponentProps<'div'> {
   initialMessages?: Message[]
   id?: string
@@ -150,6 +178,7 @@ export function Chat({
   }
 
   // Helper function to convert backend data to React Flow nodes and edges
+
   const convertDataToFlowElements = (
     data: { vis_res: any[] },
     currentStep: any
@@ -226,6 +255,26 @@ export function Chat({
   // Use the generated nodes and edges as initial states
   const [nodes, setNodes, onNodesChange] = useNodesState([])
   const [edges, setEdges, onEdgesChange] = useEdgesState([])
+  const [layoutDirection, setLayoutDirection] = useState('TB') // Default to top-bottom
+  // Function to update the layout of the graph
+  const updateLayout = useCallback(
+    (direction = layoutDirection) => {
+      const { nodes: layoutedNodes, edges: layoutedEdges } =
+        getLayoutedElements(nodes, edges, direction)
+      setNodes(layoutedNodes)
+      setEdges(layoutedEdges)
+    },
+    [nodes, edges, setNodes, setEdges, layoutDirection]
+  )
+
+  // Example integration: Call updateLayout when a new message is added
+  // This is a simplified example. You'll need to adjust it based on your actual message handling logic.
+  useEffect(() => {
+    // Assuming you have a mechanism to detect when new messages are added
+    // and those messages are converted to nodes and edges accordingly
+    updateLayout()
+  }, [nodes, edges, updateLayout])
+
   const [activeStep, setActiveStep] = useState(0)
 
   const [processedMessageIds, setProcessedMessageIds] = useState(new Set())
@@ -382,6 +431,7 @@ export function Chat({
                         <Spinner color="blue" />
                       </div>
                     ) : null}
+
                     <ReactFlow
                       nodes={nodes.filter(node => node.step <= activeStep)}
                       edges={edges.filter(edge => edge.step <= activeStep)}
@@ -393,7 +443,26 @@ export function Chat({
                     >
                       <Background color="#aaa" gap={16} />
                     </ReactFlow>
-
+                    <div className="m-2 flex justify-between">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setLayoutDirection('TB')
+                          updateLayout('TB')
+                        }}
+                      >
+                        Top-Bottom Layout
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setLayoutDirection('LR')
+                          updateLayout('LR')
+                        }}
+                      >
+                        Left-Right Layout
+                      </Button>
+                    </div>
                     <div className="absolute bottom-0 right-0">
                       <Controls />
                     </div>
