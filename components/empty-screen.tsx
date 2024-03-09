@@ -19,7 +19,10 @@ const exampleMessages = [
   }
 ]
 
-export function EmptyScreen({ setInput }: Pick<UseChatHelpers, 'setInput'>) {
+export interface props extends Pick<UseChatHelpers, 'setInput'| 'append'>{id:string}
+
+export function EmptyScreen({ setInput, append, id }: props)
+   {
   return (
     <div className="mx-auto max-w-2xl px-4">
       <div className="rounded-lg border bg-background p-8">
@@ -39,7 +42,13 @@ export function EmptyScreen({ setInput }: Pick<UseChatHelpers, 'setInput'>) {
               key={index}
               variant="link"
               className="h-auto p-0 text-base"
-              onClick={() => setInput(message.message)}
+              // onClick={() => setInput(message.message)}
+              onClick={async() => await append({
+                  id,
+                  content: message.message,
+                  role: 'user'
+                })
+              }
             >
               <IconArrowRight className="mr-2 text-muted-foreground" />
               {message.heading}

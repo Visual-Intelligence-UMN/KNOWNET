@@ -480,12 +480,7 @@ export function Chat({
                 <ChatScrollAnchor trackVisibility={isLoading} />
               </div>
             </div>
-          </>
-        ) : (
-          <EmptyScreen setInput={setInput} />
-        )}
-      </div>
-      <ChatPanel
+            <ChatPanel
         id={id}
         isLoading={isLoading}
         stop={stop}
@@ -498,6 +493,12 @@ export function Chat({
         continueConversation={continueConversation}
         // recommendation={backendData.data.recommendation}
       />
+          </>
+        ) : (
+          <EmptyScreen setInput={setInput} id={id} append={append} />
+        )}
+      </div>
+     
 
       <Dialog open={previewTokenDialog} onOpenChange={setPreviewTokenDialog}>
         <DialogContent>

@@ -34,7 +34,7 @@ export default function DotsMobileStepper({
         {Array.from({ length: steps }, (_, index) => (
           <Step
             key={index}
-            className="size-6 flex items-center justify-center rounded-full bg-gray-300 text-gray-600 cursor-pointer"
+            className="size-4 flex items-center justify-center rounded-full bg-gray-300 text-gray-600 cursor-pointer"
             onClick={() => handleBack()}
             style={{ padding: '4px' }}
           >
