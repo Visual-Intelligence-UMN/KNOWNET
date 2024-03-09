@@ -398,7 +398,7 @@ export function Chat({
 
   return (
     <>
-      <div className="mx-auto max-w-4xl  rounded-lg border bg-background p-4 ">
+      <div className=" max-w-[100vw]  rounded-lg border bg-background p-4 ">
         {messages.length ? (
           <>
             {/* DotsMobileStepper positioned here */}
@@ -412,7 +412,7 @@ export function Chat({
             />
 
             <div className="md:flex pt-4 md:pt-10">
-              <div className="md:w-1/2 top-10 space-y-1 pr-4">
+              <div className="md:w-2/3 top-10 space-y-1 pr-4">
                 {' '}
                 {/* Adjust the padding-right (pr-4) as needed */}
                 {/* <div className="top-4 h-[calc(40vh-1rem)]">
@@ -423,7 +423,7 @@ export function Chat({
                     className="sticky top-3 left-10 pb-10 border rounded-md shadow-md bg-white dark:bg-gray-800"
                     style={{
                       width: 'calc(100% - 2rem)',
-                      height: 'calc(40vh - 1rem)'
+                      height: 'calc(60vh - 1rem)'
                     }}
                   >
                     {isLoadingBackendData ? (
@@ -471,7 +471,7 @@ export function Chat({
               </div>
 
               {/* Right column for ChatList */}
-              <div className="md:w-1/2 grow overflow-auto">
+              <div className="md:w-1/3 grow overflow-auto">
                 <ChatList
                   messages={messages}
                   activeStep={activeStep}

@@ -34,7 +34,7 @@ export default function DotsMobileStepper({
         {Array.from({ length: steps }, (_, index) => (
           <Step
             key={index}
-            className="h-6 w-6 flex items-center justify-center rounded-full bg-gray-300 text-gray-600 cursor-pointer"
+            className="size-6 flex items-center justify-center rounded-full bg-gray-300 text-gray-600 cursor-pointer"
             onClick={() => handleBack()}
             style={{ padding: '4px' }}
           >
@@ -46,7 +46,7 @@ export default function DotsMobileStepper({
   }
 
   return (
-    <div className="pt-16 px-5">
+    <div className="pt-3 px-5">
       <div className="flex justify-between items-center">
         <Button
           variant="outline"

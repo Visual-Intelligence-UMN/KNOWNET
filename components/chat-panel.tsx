@@ -102,8 +102,8 @@ export function ChatPanel({
   // Parse the recommendation string into actionable items
   return (
     <div className="fixed inset-x-0 bottom-0 bg-gradient-to-b from-muted/10 from-10% to-muted/30 to-50%">
-      <ButtonScrollToBottom />
-      <div className="mx-auto sm:max-w-4xl sm:px-4">
+      {/* <ButtonScrollToBottom /> */}
+      <div className="mx-auto sm:max-w-\[90vw\] sm:px-4">
         <div className="flex flex-col gap-1">
           <div
             className={`grid grid-col-${
@@ -128,15 +128,16 @@ export function ChatPanel({
                     onClick={() => reload()}
                     className={`${
                       otherRecommendations?.length > 0
-                        ? 'col-span-4'
+                        ? 'col-span-1'
                         : 'col-span-1 justify-self-center'
                     }`}
                   >
                     <IconRefresh className="mr-2" />
-                    Regenerate response
+                    Regenerate
                   </Button>
                 )}
-
+                
+                <br/>
                 {topRecommendations?.map(rec => (
                   <Button
                     key={rec.id}
@@ -159,7 +160,7 @@ export function ChatPanel({
                     <SpeedDial>
                       <SpeedDialHandler>
                         <IconButton size="lg" className="rounded-full ">
-                          <IconPlus className="h-5 w-5 transition-transform group-hover:rotate-45" />
+                          <IconPlus className="size-5 transition-transform group-hover:rotate-45" />
                         </IconButton>
                       </SpeedDialHandler>
                       <SpeedDialContent>
