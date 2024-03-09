@@ -409,6 +409,7 @@ export function Chat({
                 handleStepChange(Math.min(activeStep + 1, nodes.length - 1))
               }
               handleBack={() => handleStepChange(Math.max(activeStep - 1, 0))}
+              jumpToStep={handleStepChange}
             />
 
             <div className="md:flex pt-4 md:pt-10">
@@ -423,7 +424,7 @@ export function Chat({
                     className="sticky top-3 left-10 pb-10 border rounded-md shadow-md bg-white dark:bg-gray-800"
                     style={{
                       width: 'calc(100% - 2rem)',
-                      height: 'calc(60vh - 1rem)'
+                      height: 'calc(65vh - 1rem)'
                     }}
                   >
                     {isLoadingBackendData ? (

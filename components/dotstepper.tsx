@@ -8,13 +8,15 @@ type DotsMobileStepperProps = {
   activeStep: number
   handleNext: () => void
   handleBack: () => void
+  jumpToStep: (step: number) => void
 }
 
 export default function DotsMobileStepper({
   steps,
   activeStep,
   handleNext,
-  handleBack
+  handleBack,
+  jumpToStep
 }: DotsMobileStepperProps) {
   if (steps === 1) {
     return null
@@ -34,9 +36,10 @@ export default function DotsMobileStepper({
         {Array.from({ length: steps }, (_, index) => (
           <Step
             key={index}
-            className="size-4 flex items-center justify-center rounded-full bg-gray-300 text-gray-600 cursor-pointer"
-            onClick={() => handleBack()}
-            style={{ padding: '4px' }}
+            className="size-3 flex items-center justify-center rounded-full bg-gray-300 text-gray-600 cursor-pointer"
+            // onClick={() => handleBack()}
+            onClick={() => jumpToStep(index)}
+            style={{ padding: '2px' }}
           >
             {index + 1}
           </Step>
