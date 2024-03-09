@@ -518,13 +518,12 @@ export function Chat({
               messages={messages}
               input={input}
               setInput={setInput}
-              firstConversation={firstConversation}
               continueConversation={continueConversation}
               // recommendation={backendData.data.recommendation}
             />
           </>
         ) : (
-          <EmptyScreen setInput={setInput} id={id} append={append} />
+          <EmptyScreen setInput={setInput} id={id!} append={append} />
         )}
       </div>
      

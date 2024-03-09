@@ -105,22 +105,22 @@ export function ChatPanel({
       onClick={async () => {
         handleContextButtonClick(rec.text, rec.id)
       }}
-      className="m-2 col"
+      className="m-2"
       title={rec.text}
     >
-      <p className="py-3 px-2 text-[5px] sm:text-sm align-middle truncate">
+      <p className="py-3 px-2 text-[5px] sm:text-sm">
         {rec.text}
       </p>
     </Button>
   ))
 
   const HideRecommendations = !isLoading && otherRecommendations?.length > 0 && (
-    <div className="relative col-start-5 justify-self-center">
+    // <div className="relative col-start-5 justify-self-center">
       <SpeedDial>
         <SpeedDialHandler>
-          <IconButton size="lg" className="rounded-full ">
-            <IconPlus className="size-5 transition-transform group-hover:rotate-45" />
-          </IconButton>
+          <Button variant="outline"  className="m-2">
+            More ...
+          </Button>
         </SpeedDialHandler>
         <SpeedDialContent>
           {otherRecommendations.map(rec => (
@@ -140,7 +140,7 @@ export function ChatPanel({
           ))}
         </SpeedDialContent>
       </SpeedDial>
-    </div>
+    // </div>
   )
 
 
@@ -153,7 +153,7 @@ export function ChatPanel({
 
         <div className="mt-2 space-y-1 border-t bg-background px-4 py-2 shadow-lg sm:rounded-t-xl sm:border md:py-2">
           <div
-            className={`grid grid-col-4 gap-1 items-center justify-items-stretch`}
+            className={`grid grid-cols-4 gap-1`}
           >
             {ShowRecommendations}
             {/* Speed Dial Positioned in the third column if there are additional recommendations */}
