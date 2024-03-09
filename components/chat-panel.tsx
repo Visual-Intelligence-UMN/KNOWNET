@@ -4,8 +4,6 @@ import { Button } from '@/components/ui/button'
 import { PromptForm } from '@/components/prompt-form'
 import { ButtonScrollToBottom } from '@/components/button-scroll-to-bottom'
 import {
-  IconRefresh,
-  IconStop,
   IconPlus,
   IconMessage
 } from '@/components/ui/icons'
@@ -99,96 +97,69 @@ export function ChatPanel({
       )
     }
   }
+
+  const ShowRecommendations = !isLoading && topRecommendations?.map(rec => (
+    <Button
+      key={rec.id}
+      variant="outline"
+      onClick={async () => {
+        handleContextButtonClick(rec.text, rec.id)
+      }}
+      className="m-2 col"
+      title={rec.text}
+    >
+      <p className="py-3 px-2 text-[5px] sm:text-sm align-middle truncate">
+        {rec.text}
+      </p>
+    </Button>
+  ))
+
+  const HideRecommendations = !isLoading && otherRecommendations?.length > 0 && (
+    <div className="relative col-start-5 justify-self-center">
+      <SpeedDial>
+        <SpeedDialHandler>
+          <IconButton size="lg" className="rounded-full ">
+            <IconPlus className="size-5 transition-transform group-hover:rotate-45" />
+          </IconButton>
+        </SpeedDialHandler>
+        <SpeedDialContent>
+          {otherRecommendations.map(rec => (
+            <Button
+              key={rec.id}
+              variant="outline"
+              onClick={async () => {
+                handleContextButtonClick(rec.text, rec.id)
+              }}
+              className="m-1 py-3 px-2 text-[5px] sm:text-sm align-middle"
+              title={rec.text.substring(0, 100)}
+            >
+              <span className="py-3 px-2 text-[5px] sm:text-sm align-middle">
+                {rec.text.substring(0, 100)}...
+              </span>
+            </Button>
+          ))}
+        </SpeedDialContent>
+      </SpeedDial>
+    </div>
+  )
+
+
   // Parse the recommendation string into actionable items
   return (
     <div className="fixed inset-x-0 bottom-0 bg-gradient-to-b from-muted/10 from-10% to-muted/30 to-50%">
       {/* <ButtonScrollToBottom /> */}
+      {/* {StopRegenerateButton} */}
       <div className="mx-auto sm:max-w-\[90vw\] sm:px-4">
-        <div className="flex flex-col gap-1">
+
+        <div className="mt-2 space-y-1 border-t bg-background px-4 py-2 shadow-lg sm:rounded-t-xl sm:border md:py-2">
           <div
-            className={`grid grid-col-${
-              otherRecommendations?.length > 0 ? '3' : '1'
-            } gap-1 items-center justify-items-stretch`}
+            className={`grid grid-col-4 gap-1 items-center justify-items-stretch`}
           >
-            {/* Conditionally render the regenerate/stop button or speed dial based on isLoading and the presence of messages */}
-            {isLoading ? (
-              <Button
-                variant="outline"
-                onClick={() => stop()}
-                className="col-span-1 justify-self-center"
-              >
-                <IconStop className="mr-2" />
-                Stop
-              </Button>
-            ) : (
-              <>
-                {messages?.length >= 2 && (
-                  <Button
-                    variant="default"
-                    onClick={() => reload()}
-                    className={`${
-                      otherRecommendations?.length > 0
-                        ? 'col-span-1'
-                        : 'col-span-1 justify-self-center'
-                    }`}
-                  >
-                    <IconRefresh className="mr-2" />
-                    Regenerate
-                  </Button>
-                )}
-                
-                <br/>
-                {topRecommendations?.map(rec => (
-                  <Button
-                    key={rec.id}
-                    variant="outline"
-                    onClick={async () => {
-                      handleContextButtonClick(rec.text, rec.id)
-                    }}
-                    className="m-2"
-                    title={rec.text}
-                  >
-                    <p className="py-3 px-2 text-[5px] sm:text-sm align-middle truncate">
-                      {rec.text}
-                    </p>
-                  </Button>
-                ))}
-
-                {/* Speed Dial Positioned in the third column if there are additional recommendations */}
-                {otherRecommendations?.length > 0 && (
-                  <div className="relative col-start-5 justify-self-center">
-                    <SpeedDial>
-                      <SpeedDialHandler>
-                        <IconButton size="lg" className="rounded-full ">
-                          <IconPlus className="size-5 transition-transform group-hover:rotate-45" />
-                        </IconButton>
-                      </SpeedDialHandler>
-                      <SpeedDialContent>
-                        {otherRecommendations.map(rec => (
-                          <Button
-                            key={rec.id}
-                            variant="outline"
-                            onClick={async () => {
-                              handleContextButtonClick(rec.text, rec.id)
-                            }}
-                            className="m-1 py-3 px-2 text-[5px] sm:text-sm align-middle"
-                            title={rec.text.substring(0, 100)}
-                          >
-                            <span className="py-3 px-2 text-[5px] sm:text-sm align-middle">
-                              {rec.text.substring(0, 100)}...
-                            </span>
-                          </Button>
-                        ))}
-                      </SpeedDialContent>
-                    </SpeedDial>
-                  </div>
-                )}
-              </>
-            )}
+            {ShowRecommendations}
+            {/* Speed Dial Positioned in the third column if there are additional recommendations */}
+            {HideRecommendations}
           </div>
-        </div>
 
-        <div className="mt-4 space-y-4 border-t bg-background px-4 py-2 shadow-lg sm:rounded-t-xl sm:border md:py-4">
           <PromptForm
             onSubmit={async value => {
               await append({

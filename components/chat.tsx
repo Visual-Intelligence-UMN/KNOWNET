@@ -15,6 +15,10 @@ import {
 import 'reactflow/dist/style.css'
 import React, { use, useCallback } from 'react'
 import { useChat, type Message } from 'ai/react'
+import {
+  IconRefresh,
+  IconStop,
+} from '@/components/ui/icons'
 import { ChatList } from '@/components/chat-list'
 import { ChatPanel } from '@/components/chat-panel'
 import { EmptyScreen } from '@/components/empty-screen'
@@ -396,6 +400,24 @@ export function Chat({
     console.log('Keywords Question Updated:', keywordsQuestion)
   }, [keywordsAnswer, keywordsQuestion])
 
+
+  const StopRegenerateButton = isLoading ? 
+    <Button
+      variant="outline"
+      onClick={() => stop()}
+      className='absolute right-6  z-10'
+    >
+      <IconStop className="mr-2" /> Stop
+    </Button> : 
+    <Button
+      variant="outline"
+      onClick={() => reload()}
+      // className="justify-self-center"
+      className='absolute right-6 z-10 '
+    >
+      <IconRefresh className="mr-2" /> Regenerate
+    </Button>
+
   return (
     <>
       <div className=" max-w-[100vw]  rounded-lg border bg-background p-4 ">
@@ -413,6 +435,9 @@ export function Chat({
             />
 
             <div className="md:flex pt-4 md:pt-10">
+              {/* {%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%} */}
+              {/* left column for visualization */}
+              {/* {%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%} */}
               <div className="md:w-2/3 top-10 space-y-1 pr-4">
                 {' '}
                 {/* Adjust the padding-right (pr-4) as needed */}
@@ -478,22 +503,25 @@ export function Chat({
                   activeStep={activeStep}
                   setActiveStep={handleStepChange}
                 />
+                {StopRegenerateButton}
                 <ChatScrollAnchor trackVisibility={isLoading} />
+                
               </div>
             </div>
+
             <ChatPanel
-        id={id}
-        isLoading={isLoading}
-        stop={stop}
-        append={append}
-        reload={reload}
-        messages={messages}
-        input={input}
-        setInput={setInput}
-        firstConversation={firstConversation}
-        continueConversation={continueConversation}
-        // recommendation={backendData.data.recommendation}
-      />
+              id={id}
+              isLoading={isLoading}
+              stop={stop}
+              append={append}
+              reload={reload}
+              messages={messages}
+              input={input}
+              setInput={setInput}
+              firstConversation={firstConversation}
+              continueConversation={continueConversation}
+              // recommendation={backendData.data.recommendation}
+            />
           </>
         ) : (
           <EmptyScreen setInput={setInput} id={id} append={append} />
