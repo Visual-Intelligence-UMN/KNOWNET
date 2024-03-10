@@ -452,7 +452,7 @@ export function Chat({
                       height: 'calc(65vh - 1rem)'
                     }}
                   >
-                    {isLoadingBackendData ? (
+                    {(isLoadingBackendData || isLoading) ? (
                       <div className="absolute inset-0 bg-white bg-opacity-50 flex justify-center items-center z-10">
                         <Spinner color="blue" />
                       </div>
