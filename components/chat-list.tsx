@@ -1,5 +1,5 @@
 'use client'
-import React from 'react'
+import React, { use, useCallback, useEffect } from 'react'
 import { Message } from 'ai'
 import { ChatMessage } from '@/components/chat-message'
 import { useViewMode } from '@/components/ui/view-mode'
@@ -7,6 +7,7 @@ import { useViewMode } from '@/components/ui/view-mode'
 export interface ChatListProps {
   messages: Message[]
   activeStep: number
+  
 }
 
 export function ChatList({
