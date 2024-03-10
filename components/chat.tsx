@@ -91,6 +91,7 @@ export function Chat({
   // className
 } // keywordsListQuestion,
 : ChatProps) {
+  var reloadFlag = useRef(false) // This is a flag to check if the reload button has been clicked. Not use state as it will not trigger a re-render
   const [recommendations, setRecommendations] = useAtom(recommendationsAtom)
   const [backendData, setBackendData] = useAtom(backendDataAtom)
   const [keywordsAnswer, setKeywordsAnswer] = useAtom(keywordsListAnswerAtom)
@@ -121,7 +122,11 @@ export function Chat({
         if (response.status === 401) {
           toast.error(response.statusText)
         }
-        setActiveStep(activeStep + 1)
+        if (reloadFlag.current) {
+          reloadFlag.current = false
+        } else {
+          setActiveStep(activeStep + 1)
+        }
       },
       onFinish(message) {
         if (!path.includes('chat')) {
@@ -135,7 +140,7 @@ export function Chat({
           setProcessedMessageIds(
             prevIds => new Set([...Array.from(prevIds), message.id])
           )
-          setActiveStep(messages.length / 2)
+          // setActiveStep(messages.length / 2)
         }
 
         console.log('Chat Full completion:', message) // Ensure this logs the expected completion
@@ -411,7 +416,7 @@ export function Chat({
     </Button> : 
     <Button
       variant="outline"
-      onClick={() => reload()}
+      onClick={() => {reloadFlag.current = true;reload(); }}
       // className="justify-self-center"
       className='absolute right-6 z-10 '
     >
