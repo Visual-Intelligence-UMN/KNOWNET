@@ -91,6 +91,7 @@ export function Chat({
   // className
 } // keywordsListQuestion,
 : ChatProps) {
+  var reloadFlag = useRef(false) // This is a flag to check if the reload button has been clicked. Not use state as it will not trigger a re-render
   const [recommendations, setRecommendations] = useAtom(recommendationsAtom)
   const [backendData, setBackendData] = useAtom(backendDataAtom)
   const [keywordsAnswer, setKeywordsAnswer] = useAtom(keywordsListAnswerAtom)
@@ -109,7 +110,7 @@ export function Chat({
   const [previewTokenDialog, setPreviewTokenDialog] = useState(false)
   const [previewTokenInput, setPreviewTokenInput] = useState(previewToken ?? '')
   const [isLoadingBackendData, setIsLoadingBackendData] = useState(false)
-  const { messages, append, reload, stop, isLoading, input, setInput } =
+  const { messages, append, reload, stop, isLoading, input, setInput, setMessages } =
     useChat({
       initialMessages,
       id,
@@ -120,6 +121,12 @@ export function Chat({
       onResponse(response) {
         if (response.status === 401) {
           toast.error(response.statusText)
+        }
+        if (reloadFlag.current) {
+          reloadFlag.current = false
+        } else if (messages.length !== 0) 
+        {
+          setActiveStep(activeStep + 1)
         }
       },
       onFinish(message) {
@@ -134,7 +141,6 @@ export function Chat({
           setProcessedMessageIds(
             prevIds => new Set([...Array.from(prevIds), message.id])
           )
-          setActiveStep(messages.length / 2)
         }
 
         console.log('Chat Full completion:', message) // Ensure this logs the expected completion
@@ -162,7 +168,6 @@ export function Chat({
         if (recommendations.length === 0) {
           firstConversation(newkeywordsListAnswer, newkeywordsListQuestion)
         }
-        setActiveStep(messages.length / 2)
         router.refresh()
       }
     })
@@ -174,6 +179,15 @@ export function Chat({
       initialRender.current = false
     }
   }, [])
+
+
+  useEffect(() => {
+    if (messages.length > 0) {
+    const newMessages = messages
+    newMessages[messages.length - 1]['content'] = messages[messages.length - 1]['content'].split('||')[0]
+    setMessages(newMessages)
+  }
+}, [isLoading])
 
   const handleSaveToken = () => {
     setPreviewToken(previewTokenInput)
@@ -200,7 +214,8 @@ export function Chat({
       target: any
       label: any
       type: string
-      style: { stroke: string }
+      style: { stroke: string },
+      papers : {[key: string]: string[]} // key is the edge relation, value is the url link
       step: any
     }[] = []
     const nodeIds = new Set()
@@ -230,17 +245,20 @@ export function Chat({
           edge: {
             Source: { toString: () => any }
             Target: { toString: () => any }
+            PubMed_ID: string
             Type: any
           },
           index: any
         ) => {
-          const edgeId = `e${edge.Source}-${edge.Target}-${edge.Type}`
+          // const edgeId = `e${edge.Source}-${edge.Target}-${edge.Type}`
+          const edgeId = `e${edge.Source}-${edge.Target}`
           if (!edgeIds.has(edgeId)) {
             edges.push({
               id: edgeId,
               source: edge.Source.toString(),
               target: edge.Target.toString(),
-              label: edge.Type,
+              label: edge.Type, // use the first edge type as label
+              papers: { [edge.Type]: [edge.PubMed_ID]},
               type: 'smoothstep',
               style: {
                 stroke: `#${Math.floor(Math.random() * 16777215).toString(16)}`
@@ -248,6 +266,13 @@ export function Chat({
               step: currentStep
             })
             edgeIds.add(edgeId)
+          }else {
+            var existEdge = edges.find(e=>e.id === edgeId)
+            if (existEdge!['papers'][edge.Type] ){
+              existEdge!['papers'][edge.Type].push(edge.PubMed_ID)
+            }else {
+              existEdge!['papers'][edge.Type] = [edge.PubMed_ID]
+            }
           }
         }
       )
@@ -346,6 +371,7 @@ export function Chat({
   const handleStepChange = useCallback((step: number) => {
     setActiveStep(step)
   }, [])
+
   useEffect(() => {
     console.log(`Current active step: ${activeStep}`)
     console.log(
@@ -357,6 +383,7 @@ export function Chat({
       edges.filter(edge => edge.step <= activeStep)
     )
   }, [activeStep])
+
   const proOptions = { hideAttribution: true }
   const onConnect: OnConnect = useCallback(
     params => setEdges(eds => addEdge(params, eds)),
@@ -368,7 +395,7 @@ export function Chat({
     keywordsQuestion: string[]
   ) => {
     setIsLoadingBackendData(true) // Set loading to true when the request is made
-    setActiveStep(activeStep + 1)
+    // setActiveStep(activeStep + 1)
     const payload = {
       input_type: 'new_conversation',
       userId: id,
@@ -411,7 +438,7 @@ export function Chat({
     </Button> : 
     <Button
       variant="outline"
-      onClick={() => reload()}
+      onClick={() => {reloadFlag.current = true;reload(); }}
       // className="justify-self-center"
       className='absolute right-6 z-10 '
     >
@@ -425,6 +452,7 @@ export function Chat({
           <>
             {/* DotsMobileStepper positioned here */}
             <DotsMobileStepper
+              messages={messages}
               steps={messages.length / 2}
               activeStep={activeStep}
               handleNext={() =>
@@ -452,11 +480,11 @@ export function Chat({
                       height: 'calc(65vh - 1rem)'
                     }}
                   >
-                    {isLoadingBackendData ? (
+                    { (isLoadingBackendData || isLoading ) ?? (
                       <div className="absolute inset-0 bg-white bg-opacity-50 flex justify-center items-center z-10">
                         <Spinner color="blue" />
                       </div>
-                    ) : null}
+                    )} 
 
                     <ReactFlow
                       nodes={nodes.filter(node => node.step <= activeStep)}
@@ -469,6 +497,7 @@ export function Chat({
                     >
                       <Background color="#aaa" gap={16} />
                     </ReactFlow>
+                    
                     <div className="m-2 flex justify-between">
                       <Button
                         variant="outline"
@@ -501,7 +530,6 @@ export function Chat({
                 <ChatList
                   messages={messages}
                   activeStep={activeStep}
-                  setActiveStep={handleStepChange}
                 />
                 {StopRegenerateButton}
                 <ChatScrollAnchor trackVisibility={isLoading} />
@@ -511,7 +539,8 @@ export function Chat({
 
             <ChatPanel
               id={id}
-              isLoading={isLoading}
+              isLoading={isLoading || isLoadingBackendData}
+              activeStep={activeStep}
               stop={stop}
               append={append}
               reload={reload}
