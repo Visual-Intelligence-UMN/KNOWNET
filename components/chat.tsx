@@ -310,7 +310,7 @@ export function Chat({
   const updateLayout = useCallback(
     (direction = layoutDirection) => {
       const { nodes: layoutedNodes, edges: layoutedEdges } =
-        getLayoutedElements(nodes, edges,  activeStep, direction)
+        getLayoutedElements(nodes, edges,  direction)
       setNodes(layoutedNodes)
       setEdges(layoutedEdges)
     },
