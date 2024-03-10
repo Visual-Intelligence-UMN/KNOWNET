@@ -285,6 +285,7 @@ export function Chat({
   const [nodes, setNodes, onNodesChange] = useNodesState([])
   const [edges, setEdges, onEdgesChange] = useEdgesState([])
   const [layoutDirection, setLayoutDirection] = useState('TB') // Default to top-bottom
+
   // Function to update the layout of the graph
   const updateLayout = useCallback(
     (direction = layoutDirection) => {
@@ -302,7 +303,7 @@ export function Chat({
     // Assuming you have a mechanism to detect when new messages are added
     // and those messages are converted to nodes and edges accordingly
     updateLayout()
-  }, [nodes, edges, updateLayout])
+  }, [isLoadingBackendData])
 
   const [activeStep, setActiveStep] = useState(0)
 
@@ -480,7 +481,7 @@ export function Chat({
                       height: 'calc(65vh - 1rem)'
                     }}
                   >
-                    { (isLoadingBackendData || isLoading ) ?? (
+                    { (isLoadingBackendData || isLoading ) && (
                       <div className="absolute inset-0 bg-white bg-opacity-50 flex justify-center items-center z-10">
                         <Spinner color="blue" />
                       </div>
