@@ -124,7 +124,8 @@ export function Chat({
         }
         if (reloadFlag.current) {
           reloadFlag.current = false
-        } else {
+        } else if (messages.length !== 0) 
+        {
           setActiveStep(activeStep + 1)
         }
       },
@@ -140,7 +141,6 @@ export function Chat({
           setProcessedMessageIds(
             prevIds => new Set([...Array.from(prevIds), message.id])
           )
-          // setActiveStep(messages.length / 2)
         }
 
         console.log('Chat Full completion:', message) // Ensure this logs the expected completion
@@ -373,7 +373,7 @@ export function Chat({
     keywordsQuestion: string[]
   ) => {
     setIsLoadingBackendData(true) // Set loading to true when the request is made
-    setActiveStep(activeStep + 1)
+    // setActiveStep(activeStep + 1)
     const payload = {
       input_type: 'new_conversation',
       userId: id,
@@ -506,7 +506,6 @@ export function Chat({
                 <ChatList
                   messages={messages}
                   activeStep={activeStep}
-                  setActiveStep={handleStepChange}
                 />
                 {StopRegenerateButton}
                 <ChatScrollAnchor trackVisibility={isLoading} />

@@ -7,13 +7,11 @@ import { useViewMode } from '@/components/ui/view-mode'
 export interface ChatListProps {
   messages: Message[]
   activeStep: number
-  setActiveStep: (step: number) => void
 }
 
 export function ChatList({
   messages,
   activeStep,
-  setActiveStep
 }: ChatListProps) {
   const { isPaneView } = useViewMode()
 
