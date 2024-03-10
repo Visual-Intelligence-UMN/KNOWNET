@@ -48,6 +48,8 @@ import {
 } from '@/lib/state'
 import { fetchBackendData } from '@/lib/utils'
 import dagre from 'dagre'
+
+import "./reactflow_custom.css"
 // const IS_PREVIEW = process.env.VERCEL_ENV === 'preview'
 
 // Initialize dagre graph for layout calculations
@@ -67,6 +69,7 @@ const getLayoutedElements = (nodes, edges, direction = 'TB') => {
     dagreGraph.setEdge(edge.source, edge.target)
   })
   dagre.layout(dagreGraph)
+
   nodes.forEach(node => {
     const nodeWithPosition = dagreGraph.node(node.id)
     node.targetPosition = isHorizontal ? 'left' : 'top'
@@ -76,8 +79,22 @@ const getLayoutedElements = (nodes, edges, direction = 'TB') => {
       y: nodeWithPosition.y - nodeHeight / 2
     }
   })
+
   return { nodes, edges }
 }
+
+
+const updateStyle = (nodes, edges, activeStep: number) => {
+  nodes.forEach(node => {
+    node.style = node.step === activeStep ? { opacity: 1 } : { opacity: 0.6 }
+  })
+  edges.forEach(edge => {
+    edge.style = edge.step === activeStep ? { opacity: 1 } : { opacity: 0.6 }
+  })
+  return { nodes, edges }
+}
+
+
 export interface ChatProps extends React.ComponentProps<'div'> {
   initialMessages?: Message[]
   id?: string
@@ -206,6 +223,7 @@ export function Chat({
       data: { label: any }
       position: { x: number; y: number }
       type: string
+      style: React.CSSProperties
       step: any
     }[] = []
     const edges: {
@@ -214,7 +232,7 @@ export function Chat({
       target: any
       label: any
       type: string
-      style: { stroke: string },
+      style: React.CSSProperties
       papers : {[key: string]: string[]} // key is the edge relation, value is the url link
       step: any
     }[] = []
@@ -234,7 +252,8 @@ export function Chat({
             data: { label: node.Name },
             position: { x: Math.random() * 400, y: Math.random() * 400 },
             type: 'default',
-            step: currentStep
+            style: { opacity: 1 },
+            step: currentStep,
           })
           nodeIds.add(node.Node_ID)
         }
@@ -260,10 +279,8 @@ export function Chat({
               label: edge.Type, // use the first edge type as label
               papers: { [edge.Type]: [edge.PubMed_ID]},
               type: 'smoothstep',
-              style: {
-                stroke: `#${Math.floor(Math.random() * 16777215).toString(16)}`
-              },
-              step: currentStep
+              step: currentStep,
+              style: { opacity: 1 },
             })
             edgeIds.add(edgeId)
           }else {
@@ -285,12 +302,15 @@ export function Chat({
   const [nodes, setNodes, onNodesChange] = useNodesState([])
   const [edges, setEdges, onEdgesChange] = useEdgesState([])
   const [layoutDirection, setLayoutDirection] = useState('TB') // Default to top-bottom
+  const [activeStep, setActiveStep] = useState(0)
+
+  const [processedMessageIds, setProcessedMessageIds] = useState(new Set())
 
   // Function to update the layout of the graph
   const updateLayout = useCallback(
     (direction = layoutDirection) => {
       const { nodes: layoutedNodes, edges: layoutedEdges } =
-        getLayoutedElements(nodes, edges, direction)
+        getLayoutedElements(nodes, edges,  activeStep, direction)
       setNodes(layoutedNodes)
       setEdges(layoutedEdges)
     },
@@ -305,9 +325,19 @@ export function Chat({
     updateLayout()
   }, [nodes.length])
 
-  const [activeStep, setActiveStep] = useState(0)
+  useEffect(() => {
+    const { nodes: layoutedNodes, edges: layoutedEdges } = updateStyle(
+      nodes,
+      edges,
+      activeStep
+    )
+    setNodes(layoutedNodes)
+    setEdges(layoutedEdges)
+  },
+    [activeStep]
+  )
 
-  const [processedMessageIds, setProcessedMessageIds] = useState(new Set())
+  
 
   const appendDataToFlow = useCallback(
     (newData: { vis_res: any[] }, currentStep: any) => {
