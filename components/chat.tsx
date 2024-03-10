@@ -110,7 +110,7 @@ export function Chat({
   const [previewTokenDialog, setPreviewTokenDialog] = useState(false)
   const [previewTokenInput, setPreviewTokenInput] = useState(previewToken ?? '')
   const [isLoadingBackendData, setIsLoadingBackendData] = useState(false)
-  const { messages, append, reload, stop, isLoading, input, setInput } =
+  const { messages, append, reload, stop, isLoading, input, setInput, setMessages } =
     useChat({
       initialMessages,
       id,
@@ -179,6 +179,13 @@ export function Chat({
       initialRender.current = false
     }
   }, [])
+
+
+  useEffect(() => {
+    const newMessages = messages
+    newMessages[messages.length - 1]['content'] = messages[messages.length - 1]['content'].split('||')[0]
+    setMessages(newMessages)
+}, [isLoading])
 
   const handleSaveToken = () => {
     setPreviewToken(previewTokenInput)
