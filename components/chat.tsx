@@ -214,7 +214,8 @@ export function Chat({
       target: any
       label: any
       type: string
-      style: { stroke: string }
+      style: { stroke: string },
+      papers : {[key: string]: string[]} // key is the edge relation, value is the url link
       step: any
     }[] = []
     const nodeIds = new Set()
@@ -244,17 +245,20 @@ export function Chat({
           edge: {
             Source: { toString: () => any }
             Target: { toString: () => any }
+            PubMed_ID: string
             Type: any
           },
           index: any
         ) => {
-          const edgeId = `e${edge.Source}-${edge.Target}-${edge.Type}`
+          // const edgeId = `e${edge.Source}-${edge.Target}-${edge.Type}`
+          const edgeId = `e${edge.Source}-${edge.Target}`
           if (!edgeIds.has(edgeId)) {
             edges.push({
               id: edgeId,
               source: edge.Source.toString(),
               target: edge.Target.toString(),
-              label: edge.Type,
+              label: edge.Type, // use the first edge type as label
+              papers: { [edge.Type]: [edge.PubMed_ID]},
               type: 'smoothstep',
               style: {
                 stroke: `#${Math.floor(Math.random() * 16777215).toString(16)}`
@@ -262,6 +266,13 @@ export function Chat({
               step: currentStep
             })
             edgeIds.add(edgeId)
+          }else {
+            var existEdge = edges.find(e=>e.id === edgeId)
+            if (existEdge!['papers'][edge.Type] ){
+              existEdge!['papers'][edge.Type].push(edge.PubMed_ID)
+            }else {
+              existEdge!['papers'][edge.Type] = [edge.PubMed_ID]
+            }
           }
         }
       )
@@ -274,6 +285,7 @@ export function Chat({
   const [nodes, setNodes, onNodesChange] = useNodesState([])
   const [edges, setEdges, onEdgesChange] = useEdgesState([])
   const [layoutDirection, setLayoutDirection] = useState('TB') // Default to top-bottom
+
   // Function to update the layout of the graph
   const updateLayout = useCallback(
     (direction = layoutDirection) => {
@@ -360,6 +372,7 @@ export function Chat({
   const handleStepChange = useCallback((step: number) => {
     setActiveStep(step)
   }, [])
+
   useEffect(() => {
     console.log(`Current active step: ${activeStep}`)
     console.log(
@@ -371,6 +384,7 @@ export function Chat({
       edges.filter(edge => edge.step <= activeStep)
     )
   }, [activeStep])
+
   const proOptions = { hideAttribution: true }
   const onConnect: OnConnect = useCallback(
     params => setEdges(eds => addEdge(params, eds)),
@@ -484,6 +498,7 @@ export function Chat({
                     >
                       <Background color="#aaa" gap={16} />
                     </ReactFlow>
+                    
                     <div className="m-2 flex justify-between">
                       <Button
                         variant="outline"
