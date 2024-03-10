@@ -121,6 +121,7 @@ export function Chat({
         if (response.status === 401) {
           toast.error(response.statusText)
         }
+        setActiveStep(activeStep + 1)
       },
       onFinish(message) {
         if (!path.includes('chat')) {
@@ -162,7 +163,6 @@ export function Chat({
         if (recommendations.length === 0) {
           firstConversation(newkeywordsListAnswer, newkeywordsListQuestion)
         }
-        setActiveStep(messages.length / 2)
         router.refresh()
       }
     })
@@ -511,7 +511,7 @@ export function Chat({
 
             <ChatPanel
               id={id}
-              isLoading={isLoading}
+              isLoading={isLoading || isLoadingBackendData}
               stop={stop}
               append={append}
               reload={reload}

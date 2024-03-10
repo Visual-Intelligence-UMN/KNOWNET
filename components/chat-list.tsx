@@ -17,11 +17,6 @@ export function ChatList({
 }: ChatListProps) {
   const { isPaneView } = useViewMode()
 
-  const messagePairs: [Message, Message?][] = []
-  for (let i = 0; i < messages.length; i += 2) {
-    messagePairs.push([messages[i], messages[i + 1]])
-  }
-
   if (!messages.length) {
     return null
   }
@@ -30,12 +25,10 @@ export function ChatList({
     <div className="relative mx-auto px-14">
       {isPaneView ? (
         <>
-          {' '}
-          {messagePairs[activeStep]?.map(
-            (message, index) =>
-              message && <ChatMessage key={index} message={message} />
-          )}
-        </>
+        {messages.slice(activeStep*2, activeStep*2+2).map((message, index) => (
+          <ChatMessage key={index} message={message} />
+        ))}
+      </>
       ) : (
         <>
           {messages.map((message, index) => (
