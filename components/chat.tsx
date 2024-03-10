@@ -191,6 +191,14 @@ export function Chat({
       }
     })
 
+
+  const withFetchBackendData = async (payload:any) => {
+    setIsLoadingBackendData(true)
+    const data = await fetchBackendData(payload)
+    setIsLoadingBackendData(false)
+    return data
+  }
+
   useEffect(() => {
     if (initialRender.current) {
       const tokenSet = localStorage.getItem('has-token-been-set') === 'true'
@@ -383,7 +391,6 @@ export function Chat({
     keywordsAnswer: string[],
     keywordsQuestion: string[]
   ) => {
-    setIsLoadingBackendData(true)
     setActiveStep(activeStep + 1)
     const payload = {
       input_type: 'continue_conversation',
@@ -395,12 +402,11 @@ export function Chat({
       }
     }
 
-    const data = await fetchBackendData(payload)
+    const data = await withFetchBackendData(payload)
     if (data) {
       setBackendData(data)
       console.log('Continued Data:', data)
     }
-    setIsLoadingBackendData(false)
   }
 
   // Handler for dot stepper change, adjusted for dynamic steps
@@ -430,7 +436,6 @@ export function Chat({
     keywordsAnswer: string[],
     keywordsQuestion: string[]
   ) => {
-    setIsLoadingBackendData(true) // Set loading to true when the request is made
     // setActiveStep(activeStep + 1)
     const payload = {
       input_type: 'new_conversation',
@@ -441,12 +446,11 @@ export function Chat({
       }
     }
 
-    const data = await fetchBackendData(payload)
+    const data = await withFetchBackendData(payload)
     if (data) {
       setBackendData(data)
       console.log('First Data:', data)
     }
-    setIsLoadingBackendData(false) // Set loading to false when the request is complete
   }
 
   useEffect(() => {
