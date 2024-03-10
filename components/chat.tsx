@@ -4,6 +4,7 @@ import {
   Edge,
   Node,
   Position,
+  EdgeTypes,
   ReactFlowProvider,
   addEdge,
   useNodesState,
@@ -50,6 +51,7 @@ import { fetchBackendData } from '@/lib/utils'
 import dagre from 'dagre'
 
 import "./reactflow_custom.css"
+import CustomEdge from './customEdge'
 // const IS_PREVIEW = process.env.VERCEL_ENV === 'preview'
 
 // Initialize dagre graph for layout calculations
@@ -89,7 +91,7 @@ const updateStyle = (nodes, edges, activeStep: number) => {
     node.style = node.step === activeStep ? { opacity: 1 } : { opacity: 0.6 }
   })
   edges.forEach(edge => {
-    edge.style = edge.step === activeStep ? { opacity: 1 } : { opacity: 0.6 }
+    edge.style = edge.step === activeStep ? { opacity: 1 } : { opacity: 0.4 }
   })
   return { nodes, edges }
 }
@@ -233,7 +235,9 @@ export function Chat({
       label: any
       type: string
       style: React.CSSProperties
-      papers : {[key: string]: string[]} // key is the edge relation, value is the url link
+      data : {
+        'papers':{[key: string]: string[]} 
+      }// key is the edge relation, value is the url link
       step: any
     }[] = []
     const nodeIds = new Set()
@@ -277,18 +281,19 @@ export function Chat({
               source: edge.Source.toString(),
               target: edge.Target.toString(),
               label: edge.Type, // use the first edge type as label
-              papers: { [edge.Type]: [edge.PubMed_ID]},
-              type: 'smoothstep',
+              data: {papers: { [edge.Type]: [edge.PubMed_ID]}},
+              // type: 'smoothstep',
+              type: 'custom',
               step: currentStep,
               style: { opacity: 1 },
             })
             edgeIds.add(edgeId)
           }else {
             var existEdge = edges.find(e=>e.id === edgeId)
-            if (existEdge!['papers'][edge.Type] ){
-              existEdge!['papers'][edge.Type].push(edge.PubMed_ID)
+            if (existEdge!['data']['papers'][edge.Type] ){
+              existEdge!['data']['papers'][edge.Type].push(edge.PubMed_ID)
             }else {
-              existEdge!['papers'][edge.Type] = [edge.PubMed_ID]
+              existEdge!['data']['papers'][edge.Type] = [edge.PubMed_ID]
             }
           }
         }
@@ -310,7 +315,7 @@ export function Chat({
   const updateLayout = useCallback(
     (direction = layoutDirection) => {
       const { nodes: layoutedNodes, edges: layoutedEdges } =
-        getLayoutedElements(nodes, edges,  direction)
+        getLayoutedElements(nodes, edges, direction)
       setNodes(layoutedNodes)
       setEdges(layoutedEdges)
     },
@@ -476,6 +481,10 @@ export function Chat({
       <IconRefresh className="mr-2" /> Regenerate
     </Button>
 
+  const customEdgeTypes: EdgeTypes = {
+    custom: CustomEdge
+  }
+
   return (
     <>
       <div className=" max-w-[100vw]  rounded-lg border bg-background p-4 ">
@@ -525,6 +534,7 @@ export function Chat({
                       fitView
                       proOptions={proOptions}
                       onConnect={onConnect}
+                      edgeTypes={customEdgeTypes}
                     >
                       <Background color="#aaa" gap={16} />
                     </ReactFlow>
