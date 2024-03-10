@@ -182,9 +182,11 @@ export function Chat({
 
 
   useEffect(() => {
+    if (messages.length > 0) {
     const newMessages = messages
     newMessages[messages.length - 1]['content'] = messages[messages.length - 1]['content'].split('||')[0]
     setMessages(newMessages)
+  }
 }, [isLoading])
 
   const handleSaveToken = () => {
