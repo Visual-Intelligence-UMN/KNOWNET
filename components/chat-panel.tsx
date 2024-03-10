@@ -37,6 +37,7 @@ export interface ChatPanelProps
   > {
   id?: string
   title?: string
+  activeStep: number
   continueConversation?: (
     recommendId: number,
     keywordsAnswer: string[],
@@ -53,6 +54,7 @@ export function ChatPanel({
   reload,
   input,
   setInput,
+  activeStep,
   messages,
   continueConversation
 }: ChatPanelProps) {
@@ -98,7 +100,9 @@ export function ChatPanel({
     }
   }
 
-  const ShowRecommendations = !isLoading && topRecommendations?.map(rec => (
+  const isRecomendationsHiding = isLoading || activeStep < messages.length / 2 - 1
+
+  const TopRecommendations = (!isRecomendationsHiding ) && topRecommendations?.map(rec => (
     <Button
       key={rec.id}
       variant="outline"
@@ -114,7 +118,7 @@ export function ChatPanel({
     </Button>
   ))
 
-  const HideRecommendations = !isLoading && otherRecommendations?.length > 0 && (
+  const MoreRecommendations = !isRecomendationsHiding && otherRecommendations?.length > 0 && (
     // <div className="relative col-start-5 justify-self-center">
       <SpeedDial>
         <SpeedDialHandler>
@@ -155,9 +159,9 @@ export function ChatPanel({
           <div
             className={`grid grid-cols-4 gap-1`}
           >
-            {ShowRecommendations}
+            {TopRecommendations}
             {/* Speed Dial Positioned in the third column if there are additional recommendations */}
-            {HideRecommendations}
+            {MoreRecommendations}
           </div>
 
           <PromptForm

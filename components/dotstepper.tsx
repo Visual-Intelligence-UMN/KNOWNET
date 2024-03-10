@@ -1,9 +1,11 @@
 'use client'
 import React from 'react'
-import { Stepper, Step } from '@material-tailwind/react'
+import { Stepper, Step, Tooltip } from '@material-tailwind/react'
 import { Button } from '@/components/ui/button'
+import {type Message } from 'ai/react'
 
 type DotsMobileStepperProps = {
+  messages: Message[]
   steps: number
   activeStep: number
   handleNext: () => void
@@ -12,15 +14,14 @@ type DotsMobileStepperProps = {
 }
 
 export default function DotsMobileStepper({
+  messages,
   steps,
   activeStep,
   handleNext,
   handleBack,
   jumpToStep
 }: DotsMobileStepperProps) {
-  if (steps === 1) {
-    return null
-  }
+
   const isLastStep = activeStep === steps - 1
   const isFirstStep = activeStep === 0
 
@@ -34,15 +35,17 @@ export default function DotsMobileStepper({
     return (
       <Stepper activeStep={activeStep}>
         {Array.from({ length: steps }, (_, index) => (
-          <Step
-            key={index}
-            className="size-3 flex items-center justify-center rounded-full bg-gray-300 text-gray-600 cursor-pointer"
-            // onClick={() => handleBack()}
-            onClick={() => jumpToStep(index)}
-            style={{ padding: '2px' }}
-          >
-            {index + 1}
-          </Step>
+          <Tooltip key={index} content={messages[index*2]['content']}>
+            <Step
+              key={index}
+              className={`size-3 flex items-center justify-center rounded-full ${index<=activeStep ? 'bg-black text-white':'bg-gray-300 text-gray-600'} cursor-pointer`}
+              // onClick={() => handleBack()}
+              onClick={() => jumpToStep(index)}
+              style={{ padding: '2px' }}
+            >
+              {index + 1}
+            </Step>
+          </Tooltip>
         ))}
       </Stepper>
     )
