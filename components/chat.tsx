@@ -303,7 +303,7 @@ export function Chat({
     // Assuming you have a mechanism to detect when new messages are added
     // and those messages are converted to nodes and edges accordingly
     updateLayout()
-  }, [nodes, edges, updateLayout])
+  }, [nodes.length])
 
   const [activeStep, setActiveStep] = useState(0)
 
