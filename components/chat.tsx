@@ -439,6 +439,7 @@ export function Chat({
           <>
             {/* DotsMobileStepper positioned here */}
             <DotsMobileStepper
+              messages={messages}
               steps={messages.length / 2}
               activeStep={activeStep}
               handleNext={() =>
