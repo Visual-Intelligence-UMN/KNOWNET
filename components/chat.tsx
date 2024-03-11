@@ -11,15 +11,13 @@ import {
   useEdgesState,
   OnConnect,
   Background,
-  Controls
+  Controls,
+  ReactFlowInstance
 } from 'reactflow'
 import 'reactflow/dist/style.css'
 import React, { use, useCallback } from 'react'
 import { useChat, type Message } from 'ai/react'
-import {
-  IconRefresh,
-  IconStop,
-} from '@/components/ui/icons'
+import { IconRefresh, IconStop } from '@/components/ui/icons'
 import { ChatList } from '@/components/chat-list'
 import { ChatPanel } from '@/components/chat-panel'
 import { EmptyScreen } from '@/components/empty-screen'
@@ -33,7 +31,7 @@ import {
   DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { toast } from 'react-hot-toast'
@@ -50,7 +48,7 @@ import {
 import { fetchBackendData } from '@/lib/utils'
 import dagre from 'dagre'
 
-import "./reactflow_custom.css"
+import './reactflow_custom.css'
 import CustomEdge from './customEdge'
 // const IS_PREVIEW = process.env.VERCEL_ENV === 'preview'
 
@@ -72,20 +70,41 @@ const getLayoutedElements = (nodes, edges, direction = 'TB') => {
   })
   dagre.layout(dagreGraph)
 
+  const { minX, minY, maxX, maxY } = nodes.reduce(
+    (acc, node) => {
+      const nodeWithPosition = dagreGraph.node(node.id)
+      const nodeMinX = nodeWithPosition.x - nodeWidth / 2
+      const nodeMinY = nodeWithPosition.y - nodeHeight / 2
+      const nodeMaxX = nodeWithPosition.x + nodeWidth / 2
+      const nodeMaxY = nodeWithPosition.y + nodeHeight / 2
+      return {
+        minX: Math.min(acc.minX, nodeMinX),
+        minY: Math.min(acc.minY, nodeMinY),
+        maxX: Math.max(acc.maxX, nodeMaxX),
+        maxY: Math.max(acc.maxY, nodeMaxY)
+      }
+    },
+    { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity }
+  )
+
+  const graphWidth = maxX - minX + nodeWidth
+  const graphHeight = maxY - minY + nodeHeight
+
+  const offsetX = (window.innerWidth - graphWidth) / 2
+  const offsetY = (window.innerHeight - graphHeight) / 2
+
   nodes.forEach(node => {
     const nodeWithPosition = dagreGraph.node(node.id)
     node.targetPosition = isHorizontal ? 'left' : 'top'
     node.sourcePosition = isHorizontal ? 'right' : 'bottom'
     node.position = {
-      x: nodeWithPosition.x - nodeWidth / 2,
-      y: nodeWithPosition.y - nodeHeight / 2
+      x: nodeWithPosition.x - nodeWidth / 2 - offsetX,
+      y: nodeWithPosition.y - nodeHeight / 2 - offsetY
     }
   })
 
   return { nodes, edges }
 }
-
-
 const updateStyle = (nodes, edges, activeStep: number) => {
   nodes.forEach(node => {
     node.style = node.step === activeStep ? { opacity: 1 } : { opacity: 0.6 }
@@ -95,7 +114,6 @@ const updateStyle = (nodes, edges, activeStep: number) => {
   })
   return { nodes, edges }
 }
-
 
 export interface ChatProps extends React.ComponentProps<'div'> {
   initialMessages?: Message[]
@@ -107,8 +125,8 @@ export interface ChatProps extends React.ComponentProps<'div'> {
 export function Chat({
   id,
   initialMessages // keywordsListAnswer,
-  // className
-} // keywordsListQuestion,
+  // keywordsListQuestion,
+} // className
 : ChatProps) {
   var reloadFlag = useRef(false) // This is a flag to check if the reload button has been clicked. Not use state as it will not trigger a re-render
   const [recommendations, setRecommendations] = useAtom(recommendationsAtom)
@@ -125,74 +143,83 @@ export function Chat({
     null
   )
 
+  const [reactFlowInstance, setReactFlowInstance] =
+    useState<ReactFlowInstance | null>(null)
+
   const initialRender = useRef(true)
   const [previewTokenDialog, setPreviewTokenDialog] = useState(false)
   const [previewTokenInput, setPreviewTokenInput] = useState(previewToken ?? '')
   const [isLoadingBackendData, setIsLoadingBackendData] = useState(false)
-  const { messages, append, reload, stop, isLoading, input, setInput, setMessages } =
-    useChat({
-      initialMessages,
+  const {
+    messages,
+    append,
+    reload,
+    stop,
+    isLoading,
+    input,
+    setInput,
+    setMessages
+  } = useChat({
+    initialMessages,
+    id,
+    body: {
       id,
-      body: {
-        id,
-        previewToken
-      },
-      onResponse(response) {
-        if (response.status === 401) {
-          toast.error(response.statusText)
-        }
-        if (reloadFlag.current) {
-          reloadFlag.current = false
-        } else if (messages.length !== 0) 
-        {
-          setActiveStep(activeStep + 1)
-        }
-      },
-      onFinish(message) {
-        if (!path.includes('chat')) {
-          router.push(`/chat/${id}`, { shallow: true })
-          router.refresh()
-        }
-        if (
-          message.role === 'assistant' &&
-          processedMessageIds.has(message.id) === false
-        ) {
-          setProcessedMessageIds(
-            prevIds => new Set([...Array.from(prevIds), message.id])
-          )
-        }
-
-        console.log('Chat Full completion:', message) // Ensure this logs the expected completion
-
-        const parts = message.content.split(' || ')
-        const firstPart = parts[0]
-        const secondPart = parts[1] || ''
-        const thirdPart = parts[2] || ''
-
-        // Debugging the parts
-        console.log('Chat First Part:', firstPart)
-        console.log('Chat Second Part:', secondPart)
-        console.log('Chat Third Part:', thirdPart)
-
-        // Adjusting the regex pattern to be more flexible
-        const newkeywordsListAnswer =
-          secondPart.match(/\[(.*?)\]/)?.[1].split(' | ') || []
-        const newkeywordsListQuestion =
-          thirdPart.match(/\[(.*?)\]/)?.[1].split(' | ') || []
-        setKeywordsAnswer(newkeywordsListAnswer)
-        setKeywordsListQuestion(newkeywordsListQuestion)
-
-        console.log('set Chat Keywords List Answer:', keywordsAnswer)
-        console.log('set Chat Keywords List Question:', keywordsQuestion)
-        if (recommendations.length === 0) {
-          firstConversation(newkeywordsListAnswer, newkeywordsListQuestion)
-        }
+      previewToken
+    },
+    onResponse(response) {
+      if (response.status === 401) {
+        toast.error(response.statusText)
+      }
+      if (reloadFlag.current) {
+        reloadFlag.current = false
+      } else if (messages.length !== 0) {
+        setActiveStep(activeStep + 1)
+      }
+    },
+    onFinish(message) {
+      if (!path.includes('chat')) {
+        router.push(`/chat/${id}`, { shallow: true })
         router.refresh()
       }
-    })
+      if (
+        message.role === 'assistant' &&
+        processedMessageIds.has(message.id) === false
+      ) {
+        setProcessedMessageIds(
+          prevIds => new Set([...Array.from(prevIds), message.id])
+        )
+      }
 
+      console.log('Chat Full completion:', message) // Ensure this logs the expected completion
 
-  const withFetchBackendData = async (payload:any) => {
+      const parts = message.content.split(' || ')
+      const firstPart = parts[0]
+      const secondPart = parts[1] || ''
+      const thirdPart = parts[2] || ''
+
+      // Debugging the parts
+      console.log('Chat First Part:', firstPart)
+      console.log('Chat Second Part:', secondPart)
+      console.log('Chat Third Part:', thirdPart)
+
+      // Adjusting the regex pattern to be more flexible
+      const newkeywordsListAnswer =
+        secondPart.match(/\[(.*?)\]/)?.[1].split(' | ') || []
+      const newkeywordsListQuestion =
+        thirdPart.match(/\[(.*?)\]/)?.[1].split(' | ') || []
+      setKeywordsAnswer(newkeywordsListAnswer)
+      setKeywordsListQuestion(newkeywordsListQuestion)
+
+      console.log('set Chat Keywords List Answer:', keywordsAnswer)
+      console.log('set Chat Keywords List Question:', keywordsQuestion)
+      if (recommendations.length === 0) {
+        firstConversation(newkeywordsListAnswer, newkeywordsListQuestion)
+      }
+      router.refresh()
+    }
+  })
+
+  const withFetchBackendData = async (payload: any) => {
     setIsLoadingBackendData(true)
     const data = await fetchBackendData(payload)
     setIsLoadingBackendData(false)
@@ -207,14 +234,14 @@ export function Chat({
     }
   }, [])
 
-
   useEffect(() => {
     if (messages.length > 0) {
-    const newMessages = messages
-    newMessages[messages.length - 1]['content'] = messages[messages.length - 1]['content'].split('||')[0]
-    setMessages(newMessages)
-  }
-}, [isLoading])
+      const newMessages = messages
+      newMessages[messages.length - 1]['content'] =
+        messages[messages.length - 1]['content'].split('||')[0]
+      setMessages(newMessages)
+    }
+  }, [isLoading])
 
   const handleSaveToken = () => {
     setPreviewToken(previewTokenInput)
@@ -243,9 +270,9 @@ export function Chat({
       label: any
       type: string
       style: React.CSSProperties
-      data : {
-        'papers':{[key: string]: string[]} 
-      }// key is the edge relation, value is the url link
+      data: {
+        papers: { [key: string]: string[] }
+      } // key is the edge relation, value is the url link
       step: any
     }[] = []
     const nodeIds = new Set()
@@ -265,7 +292,7 @@ export function Chat({
             position: { x: Math.random() * 400, y: Math.random() * 400 },
             type: 'default',
             style: { opacity: 1 },
-            step: currentStep,
+            step: currentStep
           })
           nodeIds.add(node.Node_ID)
         }
@@ -289,18 +316,18 @@ export function Chat({
               source: edge.Source.toString(),
               target: edge.Target.toString(),
               label: edge.Type, // use the first edge type as label
-              data: {papers: { [edge.Type]: [edge.PubMed_ID]}},
+              data: { papers: { [edge.Type]: [edge.PubMed_ID] } },
               // type: 'smoothstep',
               type: 'custom',
               step: currentStep,
-              style: { opacity: 1 },
+              style: { opacity: 1 }
             })
             edgeIds.add(edgeId)
-          }else {
-            var existEdge = edges.find(e=>e.id === edgeId)
-            if (existEdge!['data']['papers'][edge.Type] ){
+          } else {
+            var existEdge = edges.find(e => e.id === edgeId)
+            if (existEdge!['data']['papers'][edge.Type]) {
               existEdge!['data']['papers'][edge.Type].push(edge.PubMed_ID)
-            }else {
+            } else {
               existEdge!['data']['papers'][edge.Type] = [edge.PubMed_ID]
             }
           }
@@ -326,8 +353,15 @@ export function Chat({
         getLayoutedElements(nodes, edges, direction)
       setNodes(layoutedNodes)
       setEdges(layoutedEdges)
+
+      if (reactFlowInstance) {
+        console.log('reactFlowInstance is being reflowed')
+        setTimeout(() => reactFlowInstance.fitView(), 0)
+      } else {
+        console.log('reactFlowInstance is null')
+      }
     },
-    [nodes, edges, setNodes, setEdges, layoutDirection]
+    [nodes, edges, setNodes, setEdges, layoutDirection, reactFlowInstance]
   )
 
   // Example integration: Call updateLayout when a new message is added
@@ -346,11 +380,7 @@ export function Chat({
     )
     setNodes(layoutedNodes)
     setEdges(layoutedEdges)
-  },
-    [activeStep]
-  )
-
-  
+  }, [activeStep])
 
   const appendDataToFlow = useCallback(
     (newData: { vis_res: any[] }, currentStep: any) => {
@@ -467,27 +497,47 @@ export function Chat({
     console.log('Keywords Question Updated:', keywordsQuestion)
   }, [keywordsAnswer, keywordsQuestion])
 
-
-  const StopRegenerateButton = isLoading ? 
+  const StopRegenerateButton = isLoading ? (
     <Button
       variant="outline"
       onClick={() => stop()}
-      className='absolute right-6  z-10'
+      className="absolute right-6  z-10"
     >
       <IconStop className="mr-2" /> Stop
-    </Button> : 
+    </Button>
+  ) : (
     <Button
       variant="outline"
-      onClick={() => {reloadFlag.current = true;reload(); }}
+      onClick={() => {
+        reloadFlag.current = true
+        reload()
+      }}
       // className="justify-self-center"
-      className='absolute right-6 z-10 '
+      className="absolute right-6 z-10 "
     >
       <IconRefresh className="mr-2" /> Regenerate
     </Button>
+  )
 
-  const customEdgeTypes: EdgeTypes = {
-    custom: CustomEdge
-  }
+  const customEdgeTypes = useMemo(
+    () => ({
+      custom: CustomEdge
+    }),
+    []
+  )
+
+  useEffect(() => {
+    const handleResize = () => {
+      updateLayout()
+    }
+
+    window.addEventListener('resize', handleResize)
+
+    // This effect's cleanup function
+    return () => {
+      window.removeEventListener('resize', handleResize)
+    }
+  }, [updateLayout])
 
   return (
     <>
@@ -524,11 +574,11 @@ export function Chat({
                       height: 'calc(65vh - 1rem)'
                     }}
                   >
-                    { (isLoadingBackendData || isLoading ) && (
+                    {(isLoadingBackendData || isLoading) && (
                       <div className="absolute inset-0 bg-white bg-opacity-50 flex justify-center items-center z-10">
                         <Spinner color="blue" />
                       </div>
-                    )} 
+                    )}
 
                     <ReactFlow
                       nodes={nodes.filter(node => node.step <= activeStep)}
@@ -539,10 +589,11 @@ export function Chat({
                       proOptions={proOptions}
                       onConnect={onConnect}
                       edgeTypes={customEdgeTypes}
+                      onInit={setReactFlowInstance}
                     >
                       <Background color="#aaa" gap={16} />
                     </ReactFlow>
-                    
+
                     <div className="m-2 flex justify-between">
                       <Button
                         variant="outline"
@@ -572,13 +623,9 @@ export function Chat({
 
               {/* Right column for ChatList */}
               <div className="md:w-1/3 grow overflow-auto">
-                <ChatList
-                  messages={messages}
-                  activeStep={activeStep}
-                />
+                <ChatList messages={messages} activeStep={activeStep} />
                 {StopRegenerateButton}
                 <ChatScrollAnchor trackVisibility={isLoading} />
-                
               </div>
             </div>
 
@@ -600,7 +647,6 @@ export function Chat({
           <EmptyScreen setInput={setInput} id={id!} append={append} />
         )}
       </div>
-     
 
       <Dialog open={previewTokenDialog} onOpenChange={setPreviewTokenDialog}>
         <DialogContent>
