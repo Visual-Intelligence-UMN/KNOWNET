@@ -11,10 +11,11 @@ import {
   useEdgesState,
   OnConnect,
   Background,
-  Controls
+  Controls,
+  useReactFlow
 } from 'reactflow'
 import 'reactflow/dist/style.css'
-import React, { use, useCallback } from 'react'
+import React, { use, useCallback, useMemo } from 'react'
 import { useChat, type Message } from 'ai/react'
 import { IconRefresh, IconStop } from '@/components/ui/icons'
 import { ChatList } from '@/components/chat-list'
@@ -46,9 +47,10 @@ import {
 } from '@/lib/state'
 import { fetchBackendData } from '@/lib/utils'
 import dagre from 'dagre'
-
-import './reactflow_custom.css'
+import FlowComponent from './flow-component'
+// import './reactflow_custom.css'
 import CustomEdge from './customEdge'
+
 // const IS_PREVIEW = process.env.VERCEL_ENV === 'preview'
 
 // Initialize dagre graph for layout calculations
@@ -109,8 +111,8 @@ export interface ChatProps extends React.ComponentProps<'div'> {
 export function Chat({
   id,
   initialMessages // keywordsListAnswer,
-  // keywordsListQuestion,
-} // className
+  // className
+} // keywordsListQuestion,
 : ChatProps) {
   var reloadFlag = useRef(false) // This is a flag to check if the reload button has been clicked. Not use state as it will not trigger a re-render
   const [recommendations, setRecommendations] = useAtom(recommendationsAtom)
@@ -268,7 +270,11 @@ export function Chat({
       'Dietary Supplement': '#FFD700', // Gold
       Disorders: '#FF1493', // Deep Pink
       Drug: '#00BFFF', // Deep Sky Blue
-      'Genes & Molecular Sequences': '#32CD32' // Lime Green
+      'Genes & Molecular Sequences': '#32CD32', // Lime Green
+      Anatomy: '#FF4500', // Orange Red
+      'Living Beings': '#EE82EE', // Violet
+      Physiology: '#1E90FF', // Dodger Blue
+      'Chemicals & Drugs': '#0000FF' // Medium Blue
       // Add more label types and colors as needed
     }
 
@@ -502,16 +508,11 @@ export function Chat({
         reloadFlag.current = true
         reload()
       }}
-      // className="justify-self-center"
       className="absolute right-6 z-10 "
     >
       <IconRefresh className="mr-2" /> Regenerate
     </Button>
   )
-
-  const customEdgeTypes: EdgeTypes = {
-    custom: CustomEdge
-  }
 
   return (
     <>
@@ -535,62 +536,22 @@ export function Chat({
               {/* left column for visualization */}
               {/* {%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%} */}
               <div className="md:w-2/3 top-10 space-y-1 pr-4">
-                {' '}
-                {/* Adjust the padding-right (pr-4) as needed */}
-                {/* <div className="top-4 h-[calc(40vh-1rem)]">
-                <GraphCard graphData={graphData} />
-              </div> */}
                 <ReactFlowProvider>
-                  <div
-                    className="sticky top-3 left-10 pb-10 border rounded-md shadow-md bg-white dark:bg-gray-800"
-                    style={{
-                      width: 'calc(100% - 2rem)',
-                      height: 'calc(65vh - 1rem)'
+                  <FlowComponent
+                    {...{
+                      nodes,
+                      edges,
+                      onNodesChange,
+                      onEdgesChange,
+                      activeStep,
+                      proOptions,
+                      onConnect,
+                      isLoadingBackendData,
+                      isLoading,
+                      updateLayout,
+                      setLayoutDirection
                     }}
-                  >
-                    {(isLoadingBackendData || isLoading) && (
-                      <div className="absolute inset-0 bg-white bg-opacity-50 flex justify-center items-center z-10">
-                        <Spinner color="blue" />
-                      </div>
-                    )}
-
-                    <ReactFlow
-                      nodes={nodes.filter(node => node.step <= activeStep)}
-                      edges={edges.filter(edge => edge.step <= activeStep)}
-                      onNodesChange={onNodesChange}
-                      onEdgesChange={onEdgesChange}
-                      fitView
-                      proOptions={proOptions}
-                      onConnect={onConnect}
-                      edgeTypes={customEdgeTypes}
-                    >
-                      <Background color="#aaa" gap={16} />
-                    </ReactFlow>
-
-                    <div className="m-2 flex justify-between">
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          setLayoutDirection('TB')
-                          updateLayout('TB')
-                        }}
-                      >
-                        Top-Bottom Layout
-                      </Button>
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          setLayoutDirection('LR')
-                          updateLayout('LR')
-                        }}
-                      >
-                        Left-Right Layout
-                      </Button>
-                    </div>
-                    <div className="absolute bottom-0 right-0">
-                      <Controls />
-                    </div>
-                  </div>
+                  />
                 </ReactFlowProvider>
               </div>
 
@@ -613,7 +574,6 @@ export function Chat({
               input={input}
               setInput={setInput}
               continueConversation={continueConversation}
-              // recommendation={backendData.data.recommendation}
             />
           </>
         ) : (
