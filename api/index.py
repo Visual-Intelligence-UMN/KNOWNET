@@ -254,7 +254,7 @@ def add_recommendation_space(entity_list):
 def generate_recommendation():
     recommendations = []
     for key, value in recommendation_space.items():
-        recommendation_text = f"{value['entity']} and {value['neighbor']}."
+        recommendation_text = f"{value['entity']} and {value['neighbor']}"
         recommendations.append({
             "text": recommendation_text,
             "id": value['id']
