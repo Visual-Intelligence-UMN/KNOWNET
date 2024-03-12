@@ -15,7 +15,7 @@ import {
   ReactFlowInstance
 } from 'reactflow'
 import 'reactflow/dist/style.css'
-import React, { use, useCallback } from 'react'
+import React, { use, useCallback, useMemo } from 'react'
 import { useChat, type Message } from 'ai/react'
 import { IconRefresh, IconStop } from '@/components/ui/icons'
 import { ChatList } from '@/components/chat-list'
@@ -47,9 +47,10 @@ import {
 } from '@/lib/state'
 import { fetchBackendData } from '@/lib/utils'
 import dagre from 'dagre'
-
-import './reactflow_custom.css'
+import FlowComponent from './flow-component'
+// import './reactflow_custom.css'
 import CustomEdge from './customEdge'
+
 // const IS_PREVIEW = process.env.VERCEL_ENV === 'preview'
 
 // Initialize dagre graph for layout calculations
@@ -105,13 +106,21 @@ const getLayoutedElements = (nodes, edges, direction = 'TB') => {
 
   return { nodes, edges }
 }
+
 const updateStyle = (nodes, edges, activeStep: number) => {
   nodes.forEach(node => {
-    node.style = node.step === activeStep ? { opacity: 1 } : { opacity: 0.6 }
+    const currentOpacity = node.step === activeStep ? 1 : 0.6
+    // Update only the opacity, preserving other style properties including background color
+    node.style = { ...node.style, opacity: currentOpacity }
   })
+
   edges.forEach(edge => {
-    edge.style = edge.step === activeStep ? { opacity: 1 } : { opacity: 0.4 }
+    edge.style = {
+      ...edge.style,
+      opacity: edge.step === activeStep ? 1 : 0.4
+    }
   })
+
   return { nodes, edges }
 }
 
@@ -125,8 +134,8 @@ export interface ChatProps extends React.ComponentProps<'div'> {
 export function Chat({
   id,
   initialMessages // keywordsListAnswer,
-  // keywordsListQuestion,
-} // className
+  // className
+} // keywordsListQuestion,
 : ChatProps) {
   var reloadFlag = useRef(false) // This is a flag to check if the reload button has been clicked. Not use state as it will not trigger a re-render
   const [recommendations, setRecommendations] = useAtom(recommendationsAtom)
@@ -258,6 +267,7 @@ export function Chat({
     const nodes: {
       id: any
       data: { label: any }
+      label: any
       position: { x: number; y: number }
       type: string
       style: React.CSSProperties
@@ -282,21 +292,40 @@ export function Chat({
       console.warn('Data is not in the expected format or is null:', data)
       return { nodes, edges }
     }
+    const labelColorMapping: { [key: string]: string } = {
+      'Dietary Supplement': '#FFD700', // Gold
+      Disorders: '#FF1493', // Deep Pink
+      Drug: '#00BFFF', // Deep Sky Blue
+      'Genes & Molecular Sequences': '#32CD32', // Lime Green
+      Anatomy: '#FF4500', // Orange Red
+      'Living Beings': '#EE82EE', // Violet
+      Physiology: '#1E90FF', // Dodger Blue
+      'Chemicals & Drugs': '#0000FF' // Medium Blue
+      // Add more label types and colors as needed
+    }
 
     data.vis_res.forEach(graph => {
-      graph.nodes.forEach((node: { Node_ID: string; Name: any }) => {
-        if (!nodeIds.has(node.Node_ID)) {
-          nodes.push({
-            id: node.Node_ID.toString(),
-            data: { label: node.Name },
-            position: { x: Math.random() * 400, y: Math.random() * 400 },
-            type: 'default',
-            style: { opacity: 1 },
-            step: currentStep
-          })
-          nodeIds.add(node.Node_ID)
+      graph.nodes.forEach(
+        (node: { Node_ID: string; Name: any; Label: string }) => {
+          if (!nodeIds.has(node.Node_ID)) {
+            const nodeColor = labelColorMapping[node.Label] || '#ffffff' // White as default color
+            nodes.push({
+              id: node.Node_ID.toString(),
+              data: { label: node.Name },
+              position: { x: Math.random() * 400, y: Math.random() * 400 },
+              type: 'default',
+              label: node.Label,
+              style: {
+                opacity: 1,
+                background: nodeColor,
+                border: '1px solid #222'
+              },
+              step: currentStep
+            })
+            nodeIds.add(node.Node_ID)
+          }
         }
-      })
+      )
 
       graph.edges.forEach(
         (
@@ -454,6 +483,8 @@ export function Chat({
   }, [activeStep])
 
   const proOptions = { hideAttribution: true }
+  const onInit = setReactFlowInstance
+
   const onConnect: OnConnect = useCallback(
     params => setEdges(eds => addEdge(params, eds)),
     [setEdges]
@@ -509,7 +540,6 @@ export function Chat({
         reloadFlag.current = true
         reload()
       }}
-      // className="justify-self-center"
       className="absolute right-6 z-10 "
     >
       <IconRefresh className="mr-2" /> Regenerate
@@ -558,63 +588,23 @@ export function Chat({
               {/* left column for visualization */}
               {/* {%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%} */}
               <div className="md:w-2/3 top-10 space-y-1 pr-4">
-                {' '}
-                {/* Adjust the padding-right (pr-4) as needed */}
-                {/* <div className="top-4 h-[calc(40vh-1rem)]">
-                <GraphCard graphData={graphData} />
-              </div> */}
                 <ReactFlowProvider>
-                  <div
-                    className="sticky top-3 left-10 pb-10 border rounded-md shadow-md bg-white dark:bg-gray-800"
-                    style={{
-                      width: 'calc(100% - 2rem)',
-                      height: 'calc(65vh - 1rem)'
+                  <FlowComponent
+                    {...{
+                      nodes,
+                      edges,
+                      onNodesChange,
+                      onEdgesChange,
+                      activeStep,
+                      proOptions,
+                      onConnect,
+                      onInit,
+                      isLoadingBackendData,
+                      isLoading,
+                      updateLayout,
+                      setLayoutDirection
                     }}
-                  >
-                    {(isLoadingBackendData || isLoading) && (
-                      <div className="absolute inset-0 bg-white bg-opacity-50 flex justify-center items-center z-10">
-                        <Spinner color="blue" />
-                      </div>
-                    )}
-
-                    <ReactFlow
-                      nodes={nodes.filter(node => node.step <= activeStep)}
-                      edges={edges.filter(edge => edge.step <= activeStep)}
-                      onNodesChange={onNodesChange}
-                      onEdgesChange={onEdgesChange}
-                      fitView
-                      proOptions={proOptions}
-                      onConnect={onConnect}
-                      edgeTypes={customEdgeTypes}
-                      onInit={setReactFlowInstance}
-                    >
-                      <Background color="#aaa" gap={16} />
-                    </ReactFlow>
-
-                    <div className="m-2 flex justify-between">
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          setLayoutDirection('TB')
-                          updateLayout('TB')
-                        }}
-                      >
-                        Top-Bottom Layout
-                      </Button>
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          setLayoutDirection('LR')
-                          updateLayout('LR')
-                        }}
-                      >
-                        Left-Right Layout
-                      </Button>
-                    </div>
-                    <div className="absolute bottom-0 right-0">
-                      <Controls />
-                    </div>
-                  </div>
+                  />
                 </ReactFlowProvider>
               </div>
 
@@ -637,7 +627,6 @@ export function Chat({
               input={input}
               setInput={setInput}
               continueConversation={continueConversation}
-              // recommendation={backendData.data.recommendation}
             />
           </>
         ) : (
