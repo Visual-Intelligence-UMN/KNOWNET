@@ -1,5 +1,5 @@
 // Import necessary React and React Flow components at the beginning of your file
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   ReactFlow,
   Edge,
@@ -18,6 +18,8 @@ import 'reactflow/dist/style.css'
 import CustomEdge from './customEdge' // Ensure this path is correct
 import { Button } from './ui/button'
 import { Spinner } from '@material-tailwind/react'
+import { Progress } from '@material-tailwind/react'
+import { useAtom } from 'jotai'
 
 // FlowComponent separated from Chat function
 // Define custom edge types including your CustomEdge
@@ -38,7 +40,8 @@ const FlowComponent = ({
   isLoading,
   setLayoutDirection,
   updateLayout,
-  setClickedNode
+  setClickedNode,
+  recommendations
 }: {
   nodes: any
   edges: any
@@ -53,8 +56,11 @@ const FlowComponent = ({
   setLayoutDirection: any
   updateLayout: any
   setClickedNode: any
+  recommendations: any
 }) => {
   const reactFlowInstance = useReactFlow()
+  const [progress, setProgress] = useState(0)
+  const [totalRecommendations, setTotalRecommendations] = useState(0)
 
   useEffect(() => {
     // Function to adjust view
@@ -94,6 +100,17 @@ const FlowComponent = ({
     console.log('Clicked Node:', null)
   }
 
+  useEffect(() => {
+    if (recommendations.length > totalRecommendations) {
+      setTotalRecommendations(recommendations.length)
+    }
+    const exploredRecommendations =
+      totalRecommendations - recommendations.length
+    const progressPercentage =
+      (exploredRecommendations / totalRecommendations) * 100
+    setProgress(progressPercentage)
+  }, [recommendations, totalRecommendations])
+
   return (
     <div
       className="sticky top-3 left-10 pb-10 border rounded-md shadow-md bg-white dark:bg-gray-800"
@@ -122,7 +139,7 @@ const FlowComponent = ({
       >
         <Background color="#aaa" gap={16} />
       </ReactFlow>
-      <div className="m-2 flex justify-between">
+      <div className="m-2 gap-3 flex justify-between items-center">
         <Button
           variant="outline"
           onClick={() => {
@@ -132,6 +149,27 @@ const FlowComponent = ({
         >
           Top-Bottom Layout
         </Button>
+        {totalRecommendations > 0 && (
+          <div className="w-1/3 justify-between">
+            {/* <Typography color="blue-gray" variant="h6">
+              {' '}
+              Recommendations explored
+            </Typography>
+            <Typography color="blue-gray" variant="h6">
+              {progress.toFixed(0)}
+            </Typography> */}
+
+            {/* <span>Knowledge graph explored %</span> */}
+            <Progress
+              value={Number(progress.toFixed(0))}
+              color="green"
+              variant="filled"
+              size="md"
+              // label="Completed"
+              className="border border-gray-900/10 bg-gray-900/5 p-0.5 rounded-md"
+            />
+          </div>
+        )}
         <Button
           variant="outline"
           onClick={() => {

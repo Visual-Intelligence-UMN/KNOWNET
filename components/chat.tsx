@@ -53,7 +53,6 @@ import dagre from 'dagre'
 import FlowComponent from './flow-component'
 // import './reactflow_custom.css'
 import CustomEdge from './customEdge'
-
 // const IS_PREVIEW = process.env.VERCEL_ENV === 'preview'
 
 // Initialize dagre graph for layout calculations
@@ -134,12 +133,7 @@ export interface ChatProps extends React.ComponentProps<'div'> {
   keywordsListQuestion?: string[]
 }
 
-export function Chat({
-  id,
-  initialMessages // keywordsListAnswer,
-  // keywordsListQuestion,
-} // className
-: ChatProps) {
+export function Chat({ id, initialMessages }: ChatProps) {
   var reloadFlag = useRef(false) // This is a flag to check if the reload button has been clicked. Not use state as it will not trigger a re-render
   const [recommendations, setRecommendations] = useAtom(recommendationsAtom)
   const [backendData, setBackendData] = useAtom(backendDataAtom)
@@ -611,7 +605,8 @@ export function Chat({
                       isLoading,
                       updateLayout,
                       setLayoutDirection,
-                      setClickedNode
+                      setClickedNode,
+                      recommendations
                     }}
                   />
                 </ReactFlowProvider>

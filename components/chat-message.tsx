@@ -48,6 +48,7 @@ const tailwindColorMapping = {
   'Activities & Behaviors': 'text-gray-600 bg-gray-200',
   'Concepts & Ideas': 'text-blue-600 bg-blue-200',
   Device: 'text-orange-600 bg-orange-200',
+  Objects: 'text-red-600 bg-red-200',
   Object: 'text-red-600 bg-red-200',
   Organization: 'text-cyan-600 bg-cyan-200',
   Phenomenon: 'text-green-600 bg-green-200'
