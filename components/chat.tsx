@@ -15,7 +15,14 @@ import {
   ReactFlowInstance
 } from 'reactflow'
 import 'reactflow/dist/style.css'
-import React, { use, useCallback, useMemo } from 'react'
+import React, {
+  use,
+  useCallback,
+  useMemo,
+  useState,
+  useEffect,
+  useRef
+} from 'react'
 import { useChat, type Message } from 'ai/react'
 import { IconRefresh, IconStop } from '@/components/ui/icons'
 import { ChatList } from '@/components/chat-list'
@@ -31,7 +38,6 @@ import {
   DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog'
-import { useState, useEffect, useMemo, useRef } from 'react'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { toast } from 'react-hot-toast'
@@ -134,8 +140,8 @@ export interface ChatProps extends React.ComponentProps<'div'> {
 export function Chat({
   id,
   initialMessages // keywordsListAnswer,
-  // className
-} // keywordsListQuestion,
+  // keywordsListQuestion,
+} // className
 : ChatProps) {
   var reloadFlag = useRef(false) // This is a flag to check if the reload button has been clicked. Not use state as it will not trigger a re-render
   const [recommendations, setRecommendations] = useAtom(recommendationsAtom)
@@ -158,7 +164,7 @@ export function Chat({
   const initialRender = useRef(true)
   const [previewTokenDialog, setPreviewTokenDialog] = useState(false)
   const [previewTokenInput, setPreviewTokenInput] = useState(previewToken ?? '')
-  const [isLoadingBackendData, setIsLoadingBackendData] = useState(false)
+  const [isLoadingBackendData, setIsLoadingBackendData] = useState(true)
   const {
     messages,
     append,
@@ -231,7 +237,6 @@ export function Chat({
   const withFetchBackendData = async (payload: any) => {
     setIsLoadingBackendData(true)
     const data = await fetchBackendData(payload)
-    setIsLoadingBackendData(false)
     return data
   }
 
@@ -293,14 +298,21 @@ export function Chat({
       return { nodes, edges }
     }
     const labelColorMapping: { [key: string]: string } = {
-      'Dietary Supplement': '#FFD700', // Gold
-      Disorders: '#FF1493', // Deep Pink
-      Drug: '#00BFFF', // Deep Sky Blue
-      'Genes & Molecular Sequences': '#32CD32', // Lime Green
-      Anatomy: '#FF4500', // Orange Red
-      'Living Beings': '#EE82EE', // Violet
-      Physiology: '#1E90FF', // Dodger Blue
-      'Chemicals & Drugs': '#0000FF' // Medium Blue
+      'Dietary Supplement': '#4e79a7', // Blue
+      Disorders: '#f28e2c', // Orange
+      Drug: '#e15759', // Red
+      'Genes & Molecular Sequences': '#76b7b2', // Cyan
+      Anatomy: '#59a14f', // Green
+      'Living Beings': '#edc949', // Yellow
+      Physiology: '#af7aa1', // Purple
+      'Chemicals & Drugs': '#ff9da7', // Pink
+      Procedures: '#9c755f', // Brown
+      'Activities & Behaviors': '#bab0ab', // Gray
+      'Concepts & Ideas': '#4e79a7', // Blue
+      Device: '#f28e2c', // Orange
+      Object: '#e15759', // Red
+      Organization: '#76b7b2', // Cyan
+      Phenomenon: '#59a14f' // Green
       // Add more label types and colors as needed
     }
 
@@ -363,7 +375,7 @@ export function Chat({
         }
       )
     })
-
+    setIsLoadingBackendData(false)
     return { nodes, edges }
   }
 
@@ -390,11 +402,7 @@ export function Chat({
     [nodes, edges, setNodes, setEdges, layoutDirection, reactFlowInstance]
   )
 
-  // Example integration: Call updateLayout when a new message is added
-  // This is a simplified example. You'll need to adjust it based on your actual message handling logic.
   useEffect(() => {
-    // Assuming you have a mechanism to detect when new messages are added
-    // and those messages are converted to nodes and edges accordingly
     updateLayout()
   }, [nodes.length])
 
@@ -515,6 +523,7 @@ export function Chat({
     if (backendData && backendData.data && backendData.data.vis_res) {
       appendDataToFlow(backendData.data, activeStep)
       setRecommendations(backendData.data.recommendation)
+
       // appendDataToFlow(testBackendData.data)
     }
   }, [backendData, appendDataToFlow, setRecommendations, activeStep])
@@ -529,7 +538,7 @@ export function Chat({
     <Button
       variant="outline"
       onClick={() => stop()}
-      className="absolute right-6  z-10"
+      className="absolute right-6 z-10"
     >
       <IconStop className="mr-2" /> Stop
     </Button>
@@ -565,6 +574,8 @@ export function Chat({
       window.removeEventListener('resize', handleResize)
     }
   }, [updateLayout])
+
+  const [clickedNode, setClickedNode] = useState(null)
 
   return (
     <>
@@ -602,7 +613,8 @@ export function Chat({
                       isLoadingBackendData,
                       isLoading,
                       updateLayout,
-                      setLayoutDirection
+                      setLayoutDirection,
+                      setClickedNode
                     }}
                   />
                 </ReactFlowProvider>
@@ -610,7 +622,11 @@ export function Chat({
 
               {/* Right column for ChatList */}
               <div className="md:w-1/3 grow overflow-auto">
-                <ChatList messages={messages} activeStep={activeStep} />
+                <ChatList
+                  messages={messages}
+                  activeStep={activeStep}
+                  clickedNode={clickedNode}
+                />
                 {StopRegenerateButton}
                 <ChatScrollAnchor trackVisibility={isLoading} />
               </div>

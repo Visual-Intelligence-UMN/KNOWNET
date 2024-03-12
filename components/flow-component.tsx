@@ -37,7 +37,8 @@ const FlowComponent = ({
   isLoadingBackendData,
   isLoading,
   setLayoutDirection,
-  updateLayout
+  updateLayout,
+  setClickedNode
 }: {
   nodes: any
   edges: any
@@ -51,6 +52,7 @@ const FlowComponent = ({
   isLoading: any
   setLayoutDirection: any
   updateLayout: any
+  setClickedNode: any
 }) => {
   const reactFlowInstance = useReactFlow()
 
@@ -80,6 +82,18 @@ const FlowComponent = ({
     adjustView()
   }, [nodes, reactFlowInstance])
 
+  const handleonNodeClick = (event: any, node: any) => {
+    // Set hovered node id in a state that's accessible by the chat component
+    setClickedNode(node)
+    console.log('Clicked Node:', node)
+  }
+
+  const handleonNodeDoubleClick = () => {
+    // Clear hovered node id
+    setClickedNode(null)
+    console.log('Clicked Node:', null)
+  }
+
   return (
     <div
       className="sticky top-3 left-10 pb-10 border rounded-md shadow-md bg-white dark:bg-gray-800"
@@ -88,7 +102,7 @@ const FlowComponent = ({
         height: 'calc(65vh - 1rem)'
       }}
     >
-      {isLoadingBackendData && (
+      {(isLoadingBackendData || isLoading) && (
         <div className="absolute inset-0 bg-white bg-opacity-50 flex justify-center items-center z-10">
           <Spinner color="blue" />
         </div>
@@ -103,6 +117,8 @@ const FlowComponent = ({
         onConnect={onConnect}
         onInit={onInit}
         edgeTypes={edgeTypes}
+        onNodeClick={handleonNodeClick}
+        onNodeDoubleClick={handleonNodeDoubleClick}
       >
         <Background color="#aaa" gap={16} />
       </ReactFlow>
