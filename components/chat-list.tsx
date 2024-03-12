@@ -34,7 +34,11 @@ export function ChatList({ messages, activeStep, clickedNode }: ChatListProps) {
       ) : (
         <>
           {messages.map((message, index) => (
-            <ChatMessage key={index} message={message} />
+            <ChatMessage
+              key={index}
+              message={message}
+              clickedNode={clickedNode}
+            />
           ))}
         </>
       )}

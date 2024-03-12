@@ -66,11 +66,14 @@ export function ChatMessage({
   ) {
     if (!highlightTerm || !category) return content // Skip if no term or category
 
-    const highlightRegex = new RegExp(`(${highlightTerm})`, 'gi')
+    // This is a simple approach and might need further refinement for more complex variations
+    const adjustedHighlightTerm = highlightTerm.replace(/s$/, 's?')
+    const highlightRegex = new RegExp(`(${adjustedHighlightTerm})`, 'gi')
 
     // Use Tailwind classes for styling
     const tailwindClasses =
-      tailwindColorMapping[category] || 'text-gray-600 bg-gray-100' // Default styling
+      tailwindColorMapping[category as keyof typeof tailwindColorMapping] ||
+      'text-gray-600 bg-gray-100' // Default styling
 
     return content.replace(
       highlightRegex,
@@ -114,7 +117,7 @@ export function ChatMessage({
         <MemoizedReactMarkdown
           className="prose break-words dark:prose-invert prose-p:leading-relaxed prose-pre:p-0"
           remarkPlugins={[remarkGfm, remarkMath]}
-          rehypePlugins={[rehypeRaw]}
+          rehypePlugins={[rehypeRaw as any]}
           components={{
             p({ children }) {
               return <p className="mb-2 last:mb-0">{children}</p>

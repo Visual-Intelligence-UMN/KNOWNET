@@ -10,8 +10,6 @@ import {
   useNodesState,
   useEdgesState,
   OnConnect,
-  Background,
-  Controls,
   ReactFlowInstance
 } from 'reactflow'
 import 'reactflow/dist/style.css'
@@ -43,7 +41,6 @@ import { Input } from './ui/input'
 import { toast } from 'react-hot-toast'
 import { usePathname, useRouter } from 'next/navigation'
 import DotsMobileStepper from '@/components/dotstepper'
-import { Spinner } from '@material-tailwind/react'
 import { useAtom } from 'jotai'
 import {
   recommendationsAtom,
@@ -66,7 +63,7 @@ const nodeWidth = 172
 const nodeHeight = 36
 
 // Function to apply dagre layout to nodes and edges
-const getLayoutedElements = (nodes, edges, direction = 'TB') => {
+const getLayoutedElements = (nodes: any[], edges: any[], direction = 'TB') => {
   const isHorizontal = direction === 'LR'
   dagreGraph.setGraph({ rankdir: direction })
   nodes.forEach(node => {
@@ -113,7 +110,7 @@ const getLayoutedElements = (nodes, edges, direction = 'TB') => {
   return { nodes, edges }
 }
 
-const updateStyle = (nodes, edges, activeStep: number) => {
+const updateStyle = (nodes: any[], edges: any[], activeStep: number) => {
   nodes.forEach(node => {
     const currentOpacity = node.step === activeStep ? 1 : 0.6
     // Update only the opacity, preserving other style properties including background color
