@@ -3,10 +3,7 @@ import React, { useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { PromptForm } from '@/components/prompt-form'
 import { ButtonScrollToBottom } from '@/components/button-scroll-to-bottom'
-import {
-  IconPlus,
-  IconMessage
-} from '@/components/ui/icons'
+import { IconPlus, IconMessage } from '@/components/ui/icons'
 import { FooterText } from '@/components/footer'
 import {
   SpeedDial,
@@ -80,7 +77,10 @@ export function ChatPanel({
   ) => {
     await append({
       id,
-      content: contextMessage,
+      content:
+        'Can you tell me more about ' +
+        contextMessage +
+        ' related to my previous question?',
       role: 'user'
     })
 
@@ -100,29 +100,31 @@ export function ChatPanel({
     }
   }
 
-  const isRecomendationsHiding = isLoading || activeStep < messages.length / 2 - 1
+  const isRecomendationsHiding =
+    isLoading || activeStep < messages.length / 2 - 1
 
-  const TopRecommendations = (!isRecomendationsHiding ) && topRecommendations?.map(rec => (
-    <Button
-      key={rec.id}
-      variant="outline"
-      onClick={async () => {
-        handleContextButtonClick(rec.text, rec.id)
-      }}
-      className="m-2"
-      title={rec.text}
-    >
-      <p className="py-3 px-2 text-[5px] sm:text-sm">
-        {rec.text}
-      </p>
-    </Button>
-  ))
+  const TopRecommendations =
+    !isRecomendationsHiding &&
+    topRecommendations?.map(rec => (
+      <Button
+        key={rec.id}
+        variant="outline"
+        onClick={async () => {
+          handleContextButtonClick(rec.text, rec.id)
+        }}
+        className="m-2"
+        title={rec.text}
+      >
+        <p className="py-3 px-2 text-[5px] sm:text-sm">{rec.text}</p>
+      </Button>
+    ))
 
-  const MoreRecommendations = !isRecomendationsHiding && otherRecommendations?.length > 0 && (
-    // <div className="relative col-start-5 justify-self-center">
+  const MoreRecommendations = !isRecomendationsHiding &&
+    otherRecommendations?.length > 0 && (
+      // <div className="relative col-start-5 justify-self-center">
       <SpeedDial>
         <SpeedDialHandler>
-          <Button variant="outline"  className="m-2">
+          <Button variant="outline" className="m-2">
             More ...
           </Button>
         </SpeedDialHandler>
@@ -144,9 +146,8 @@ export function ChatPanel({
           ))}
         </SpeedDialContent>
       </SpeedDial>
-    // </div>
-  )
-
+      // </div>
+    )
 
   // Parse the recommendation string into actionable items
   return (
@@ -154,11 +155,8 @@ export function ChatPanel({
       {/* <ButtonScrollToBottom /> */}
       {/* {StopRegenerateButton} */}
       <div className="mx-auto sm:max-w-\[90vw\] sm:px-4">
-
         <div className="mt-2 space-y-1 border-t bg-background px-4 py-2 shadow-lg sm:rounded-t-xl sm:border md:py-2">
-          <div
-            className={`grid grid-cols-4 gap-1`}
-          >
+          <div className={`grid grid-cols-4 gap-1`}>
             {TopRecommendations}
             {/* Speed Dial Positioned in the third column if there are additional recommendations */}
             {MoreRecommendations}
