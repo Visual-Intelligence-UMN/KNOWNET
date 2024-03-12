@@ -12,7 +12,7 @@ import {
   OnConnect,
   Background,
   Controls,
-  useReactFlow
+  ReactFlowInstance
 } from 'reactflow'
 import 'reactflow/dist/style.css'
 import React, { use, useCallback, useMemo } from 'react'
@@ -31,7 +31,7 @@ import {
   DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { toast } from 'react-hot-toast'
@@ -71,13 +71,36 @@ const getLayoutedElements = (nodes, edges, direction = 'TB') => {
   })
   dagre.layout(dagreGraph)
 
+  const { minX, minY, maxX, maxY } = nodes.reduce(
+    (acc, node) => {
+      const nodeWithPosition = dagreGraph.node(node.id)
+      const nodeMinX = nodeWithPosition.x - nodeWidth / 2
+      const nodeMinY = nodeWithPosition.y - nodeHeight / 2
+      const nodeMaxX = nodeWithPosition.x + nodeWidth / 2
+      const nodeMaxY = nodeWithPosition.y + nodeHeight / 2
+      return {
+        minX: Math.min(acc.minX, nodeMinX),
+        minY: Math.min(acc.minY, nodeMinY),
+        maxX: Math.max(acc.maxX, nodeMaxX),
+        maxY: Math.max(acc.maxY, nodeMaxY)
+      }
+    },
+    { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity }
+  )
+
+  const graphWidth = maxX - minX + nodeWidth
+  const graphHeight = maxY - minY + nodeHeight
+
+  const offsetX = (window.innerWidth - graphWidth) / 2
+  const offsetY = (window.innerHeight - graphHeight) / 2
+
   nodes.forEach(node => {
     const nodeWithPosition = dagreGraph.node(node.id)
     node.targetPosition = isHorizontal ? 'left' : 'top'
     node.sourcePosition = isHorizontal ? 'right' : 'bottom'
     node.position = {
-      x: nodeWithPosition.x - nodeWidth / 2,
-      y: nodeWithPosition.y - nodeHeight / 2
+      x: nodeWithPosition.x - nodeWidth / 2 - offsetX,
+      y: nodeWithPosition.y - nodeHeight / 2 - offsetY
     }
   })
 
@@ -128,6 +151,9 @@ export function Chat({
     'ai-token',
     null
   )
+
+  const [reactFlowInstance, setReactFlowInstance] =
+    useState<ReactFlowInstance | null>(null)
 
   const initialRender = useRef(true)
   const [previewTokenDialog, setPreviewTokenDialog] = useState(false)
@@ -356,8 +382,12 @@ export function Chat({
         getLayoutedElements(nodes, edges, direction)
       setNodes(layoutedNodes)
       setEdges(layoutedEdges)
+
+      if (reactFlowInstance) {
+        setTimeout(() => reactFlowInstance.fitView(), 0)
+      }
     },
-    [nodes, edges, setNodes, setEdges, layoutDirection]
+    [nodes, edges, setNodes, setEdges, layoutDirection, reactFlowInstance]
   )
 
   // Example integration: Call updateLayout when a new message is added
@@ -453,6 +483,8 @@ export function Chat({
   }, [activeStep])
 
   const proOptions = { hideAttribution: true }
+  const onInit = setReactFlowInstance
+
   const onConnect: OnConnect = useCallback(
     params => setEdges(eds => addEdge(params, eds)),
     [setEdges]
@@ -514,6 +546,26 @@ export function Chat({
     </Button>
   )
 
+  const customEdgeTypes = useMemo(
+    () => ({
+      custom: CustomEdge
+    }),
+    []
+  )
+
+  useEffect(() => {
+    const handleResize = () => {
+      updateLayout()
+    }
+
+    window.addEventListener('resize', handleResize)
+
+    // This effect's cleanup function
+    return () => {
+      window.removeEventListener('resize', handleResize)
+    }
+  }, [updateLayout])
+
   return (
     <>
       <div className=" max-w-[100vw]  rounded-lg border bg-background p-4 ">
@@ -546,6 +598,7 @@ export function Chat({
                       activeStep,
                       proOptions,
                       onConnect,
+                      onInit,
                       isLoadingBackendData,
                       isLoading,
                       updateLayout,
