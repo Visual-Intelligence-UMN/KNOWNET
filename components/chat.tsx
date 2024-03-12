@@ -15,7 +15,14 @@ import {
   ReactFlowInstance
 } from 'reactflow'
 import 'reactflow/dist/style.css'
-import React, { use, useCallback, useMemo } from 'react'
+import React, {
+  use,
+  useCallback,
+  useMemo,
+  useState,
+  useEffect,
+  useRef
+} from 'react'
 import { useChat, type Message } from 'ai/react'
 import { IconRefresh, IconStop } from '@/components/ui/icons'
 import { ChatList } from '@/components/chat-list'
@@ -31,7 +38,6 @@ import {
   DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog'
-import { useState, useEffect, useMemo, useRef } from 'react'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { toast } from 'react-hot-toast'
@@ -231,7 +237,6 @@ export function Chat({
   const withFetchBackendData = async (payload: any) => {
     setIsLoadingBackendData(true)
     const data = await fetchBackendData(payload)
-    setIsLoadingBackendData(false)
     return data
   }
 
@@ -370,7 +375,7 @@ export function Chat({
         }
       )
     })
-
+    setIsLoadingBackendData(false)
     return { nodes, edges }
   }
 
@@ -397,11 +402,7 @@ export function Chat({
     [nodes, edges, setNodes, setEdges, layoutDirection, reactFlowInstance]
   )
 
-  // Example integration: Call updateLayout when a new message is added
-  // This is a simplified example. You'll need to adjust it based on your actual message handling logic.
   useEffect(() => {
-    // Assuming you have a mechanism to detect when new messages are added
-    // and those messages are converted to nodes and edges accordingly
     updateLayout()
   }, [nodes.length])
 
@@ -515,7 +516,6 @@ export function Chat({
     if (data) {
       setBackendData(data)
       console.log('First Data:', data)
-      setIsLoadingBackendData(false)
     }
   }
 
@@ -523,6 +523,7 @@ export function Chat({
     if (backendData && backendData.data && backendData.data.vis_res) {
       appendDataToFlow(backendData.data, activeStep)
       setRecommendations(backendData.data.recommendation)
+
       // appendDataToFlow(testBackendData.data)
     }
   }, [backendData, appendDataToFlow, setRecommendations, activeStep])
@@ -537,7 +538,7 @@ export function Chat({
     <Button
       variant="outline"
       onClick={() => stop()}
-      className="absolute right-6  z-10"
+      className="absolute right-6 z-10"
     >
       <IconStop className="mr-2" /> Stop
     </Button>
