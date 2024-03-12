@@ -32,6 +32,7 @@ const FlowComponent = ({
   onEdgesChange,
   proOptions,
   onConnect,
+  onInit,
   activeStep,
   isLoadingBackendData,
   isLoading,
@@ -44,6 +45,7 @@ const FlowComponent = ({
   onEdgesChange: any
   proOptions: any
   onConnect: any
+  onInit: any
   activeStep: any
   isLoadingBackendData: any
   isLoading: any
@@ -99,6 +101,7 @@ const FlowComponent = ({
         fitView
         proOptions={proOptions}
         onConnect={onConnect}
+        onInit={onInit}
         edgeTypes={edgeTypes}
       >
         <Background color="#aaa" gap={16} />
