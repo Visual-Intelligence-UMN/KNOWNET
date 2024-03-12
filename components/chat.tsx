@@ -355,10 +355,7 @@ export function Chat({
       setEdges(layoutedEdges)
 
       if (reactFlowInstance) {
-        console.log('reactFlowInstance is being reflowed')
         setTimeout(() => reactFlowInstance.fitView(), 0)
-      } else {
-        console.log('reactFlowInstance is null')
       }
     },
     [nodes, edges, setNodes, setEdges, layoutDirection, reactFlowInstance]
