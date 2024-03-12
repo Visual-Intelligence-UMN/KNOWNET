@@ -134,8 +134,8 @@ export interface ChatProps extends React.ComponentProps<'div'> {
 export function Chat({
   id,
   initialMessages // keywordsListAnswer,
-  // className
-} // keywordsListQuestion,
+  // keywordsListQuestion,
+} // className
 : ChatProps) {
   var reloadFlag = useRef(false) // This is a flag to check if the reload button has been clicked. Not use state as it will not trigger a re-render
   const [recommendations, setRecommendations] = useAtom(recommendationsAtom)
@@ -158,7 +158,7 @@ export function Chat({
   const initialRender = useRef(true)
   const [previewTokenDialog, setPreviewTokenDialog] = useState(false)
   const [previewTokenInput, setPreviewTokenInput] = useState(previewToken ?? '')
-  const [isLoadingBackendData, setIsLoadingBackendData] = useState(false)
+  const [isLoadingBackendData, setIsLoadingBackendData] = useState(true)
   const {
     messages,
     append,
@@ -293,14 +293,21 @@ export function Chat({
       return { nodes, edges }
     }
     const labelColorMapping: { [key: string]: string } = {
-      'Dietary Supplement': '#FFD700', // Gold
-      Disorders: '#FF1493', // Deep Pink
-      Drug: '#00BFFF', // Deep Sky Blue
-      'Genes & Molecular Sequences': '#32CD32', // Lime Green
-      Anatomy: '#FF4500', // Orange Red
-      'Living Beings': '#EE82EE', // Violet
-      Physiology: '#1E90FF', // Dodger Blue
-      'Chemicals & Drugs': '#0000FF' // Medium Blue
+      'Dietary Supplement': '#4e79a7', // Blue
+      Disorders: '#f28e2c', // Orange
+      Drug: '#e15759', // Red
+      'Genes & Molecular Sequences': '#76b7b2', // Cyan
+      Anatomy: '#59a14f', // Green
+      'Living Beings': '#edc949', // Yellow
+      Physiology: '#af7aa1', // Purple
+      'Chemicals & Drugs': '#ff9da7', // Pink
+      Procedures: '#9c755f', // Brown
+      'Activities & Behaviors': '#bab0ab', // Gray
+      'Concepts & Ideas': '#4e79a7', // Blue
+      Device: '#f28e2c', // Orange
+      Object: '#e15759', // Red
+      Organization: '#76b7b2', // Cyan
+      Phenomenon: '#59a14f' // Green
       // Add more label types and colors as needed
     }
 
@@ -508,6 +515,7 @@ export function Chat({
     if (data) {
       setBackendData(data)
       console.log('First Data:', data)
+      setIsLoadingBackendData(false)
     }
   }
 
@@ -566,6 +574,8 @@ export function Chat({
     }
   }, [updateLayout])
 
+  const [clickedNode, setClickedNode] = useState(null)
+
   return (
     <>
       <div className=" max-w-[100vw]  rounded-lg border bg-background p-4 ">
@@ -602,7 +612,8 @@ export function Chat({
                       isLoadingBackendData,
                       isLoading,
                       updateLayout,
-                      setLayoutDirection
+                      setLayoutDirection,
+                      setClickedNode
                     }}
                   />
                 </ReactFlowProvider>
@@ -610,7 +621,11 @@ export function Chat({
 
               {/* Right column for ChatList */}
               <div className="md:w-1/3 grow overflow-auto">
-                <ChatList messages={messages} activeStep={activeStep} />
+                <ChatList
+                  messages={messages}
+                  activeStep={activeStep}
+                  clickedNode={clickedNode}
+                />
                 {StopRegenerateButton}
                 <ChatScrollAnchor trackVisibility={isLoading} />
               </div>

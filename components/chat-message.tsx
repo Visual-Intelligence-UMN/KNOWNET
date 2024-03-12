@@ -10,12 +10,49 @@ import { CodeBlock } from '@/components/ui/codeblock'
 import { MemoizedReactMarkdown } from '@/components/markdown'
 import { IconOpenAI, IconUser } from '@/components/ui/icons'
 import { ChatMessageActions } from '@/components/chat-message-actions'
+import { useMemo } from 'react'
 
 export interface ChatMessageProps {
   message: Message
+  clickedNode?: any
 }
 
-export function ChatMessage({ message, ...props }: ChatMessageProps) {
+export function ChatMessage({
+  message,
+  clickedNode,
+  ...props
+}: ChatMessageProps) {
+  const labelColorMapping: { [key: string]: string } = {
+    'Dietary Supplement': '#4e79a7', // Blue
+    Disorders: '#f28e2c', // Orange
+    Drug: '#e15759', // Red
+    'Genes & Molecular Sequences': '#76b7b2', // Cyan
+    Anatomy: '#59a14f', // Green
+    'Living Beings': '#edc949', // Yellow
+    Physiology: '#af7aa1', // Purple
+    'Chemicals & Drugs': '#ff9da7', // Pink
+    Procedures: '#9c755f', // Brown
+    'Activities & Behaviors': '#bab0ab', // Gray
+    'Concepts & Ideas': '#4e79a7', // Blue
+    Device: '#f28e2c', // Orange
+    Object: '#e15759', // Red
+    Organization: '#76b7b2', // Cyan
+    Phenomenon: '#59a14f' // Green
+    // Add more label types and colors as needed
+  }
+  // Determine if the message is related to the hovered node
+  const highlightMatchedWords = (text, clickedNode, labelColorMapping) => {
+    if (!clickedNode) return text
+
+    // Use clickedNode.data.label for matching in the text
+    const regex = new RegExp(`\\b(${clickedNode.data.label})\\b`, 'gi')
+    return text.replace(regex, matched => {
+      // Use clickedNode.label to fetch the corresponding color
+      const color = labelColorMapping[clickedNode.label] || '#000'
+      return `<span style="color: ${color};">${matched}</span>`
+    })
+  }
+
   return (
     <div
       className={cn('group relative mb-4 flex items-start md:-ml-12')}
@@ -44,38 +81,48 @@ export function ChatMessage({ message, ...props }: ChatMessageProps) {
           remarkPlugins={[remarkGfm, remarkMath]}
           components={{
             p({ children }) {
-              return <p className="mb-2 last:mb-0">{children}</p>
-            },
-            code({ node, inline, className, children, ...props }) {
-              if (children.length) {
-                if (children[0] == '▍') {
-                  return (
-                    <span className="mt-1 cursor-default animate-pulse">▍</span>
-                  )
-                }
-
-                children[0] = (children[0] as string).replace('`▍`', '▍')
-              }
-
-              const match = /language-(\w+)/.exec(className || '')
-
-              if (inline) {
-                return (
-                  <code className={className} {...props}>
-                    {children}
-                  </code>
-                )
-              }
+              const highlightedText = highlightMatchedWords(
+                children,
+                clickedNode,
+                labelColorMapping
+              )
 
               return (
-                <CodeBlock
-                  key={Math.random()}
-                  language={(match && match[1]) || ''}
-                  value={String(children).replace(/\n$/, '')}
-                  {...props}
+                <p
+                  className="mb-2 last:mb-0"
+                  dangerouslySetInnerHTML={{ __html: highlightedText }}
                 />
               )
             }
+            // code({ node, inline, className, children, ...props }) {
+            //   if (children.length) {
+            //     if (children[0] == '▍') {
+            //       return (
+            //         <span className="mt-1 cursor-default animate-pulse">▍</span>
+            //       )
+            //     }
+
+            //     children[0] = (children[0] as string).replace('`▍`', '▍')
+            //   }
+
+            //   const match = /language-(\w+)/.exec(className || '')
+
+            //   if (inline) {
+            //     return (
+            //       <code className={className} {...props}>
+            //         {children}
+            //       </code>
+            //     )
+            //   }
+
+            //   return (
+            //     <CodeBlock
+            //       key={Math.random()}
+            //       language={(match && match[1]) || ''}
+            //       value={String(children).replace(/\n$/, '')}
+            //       {...props}
+            //     />
+            //   )
           }}
         >
           {message.content}
