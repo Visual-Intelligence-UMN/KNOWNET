@@ -51,8 +51,8 @@ import {
 import { fetchBackendData } from '@/lib/utils'
 import dagre from 'dagre'
 import FlowComponent from './flow-component'
-// import './reactflow_custom.css'
 import CustomEdge from './customEdge'
+import { CustomGraphNode } from '@/lib/types'
 // const IS_PREVIEW = process.env.VERCEL_ENV === 'preview'
 
 // Initialize dagre graph for layout calculations
@@ -62,7 +62,11 @@ const nodeWidth = 172
 const nodeHeight = 36
 
 // Function to apply dagre layout to nodes and edges
-const getLayoutedElements = (nodes: any[], edges: any[], direction = 'TB') => {
+const getLayoutedElements = (
+  nodes: CustomGraphNode[],
+  edges: any[],
+  direction = 'TB'
+) => {
   const isHorizontal = direction === 'LR'
   dagreGraph.setGraph({ rankdir: direction })
   nodes.forEach(node => {
@@ -98,8 +102,8 @@ const getLayoutedElements = (nodes: any[], edges: any[], direction = 'TB') => {
 
   nodes.forEach(node => {
     const nodeWithPosition = dagreGraph.node(node.id)
-    node.targetPosition = isHorizontal ? 'left' : 'top'
-    node.sourcePosition = isHorizontal ? 'right' : 'bottom'
+    node.targetPosition = isHorizontal ? Position.Left : Position.Top
+    node.sourcePosition = isHorizontal ? Position.Right : Position.Bottom
     node.position = {
       x: nodeWithPosition.x - nodeWidth / 2 - offsetX,
       y: nodeWithPosition.y - nodeHeight / 2 - offsetY
@@ -267,7 +271,7 @@ export function Chat({ id, initialMessages }: ChatProps) {
       position: { x: number; y: number }
       type: string
       style: React.CSSProperties
-      step: any
+      step: number
     }[] = []
     const edges: {
       id: string
@@ -279,7 +283,7 @@ export function Chat({ id, initialMessages }: ChatProps) {
       data: {
         papers: { [key: string]: string[] }
       } // key is the edge relation, value is the url link
-      step: any
+      step: number
     }[] = []
     const nodeIds = new Set()
     const edgeIds = new Set()
@@ -337,6 +341,7 @@ export function Chat({ id, initialMessages }: ChatProps) {
             Target: { toString: () => any }
             PubMed_ID: string
             Type: any
+            step: any
           },
           index: any
         ) => {
@@ -382,7 +387,7 @@ export function Chat({ id, initialMessages }: ChatProps) {
   const updateLayout = useCallback(
     (direction = layoutDirection) => {
       const { nodes: layoutedNodes, edges: layoutedEdges } =
-        getLayoutedElements(nodes, edges, direction)
+        getLayoutedElements(nodes as CustomGraphNode[], edges, direction)
       setNodes(layoutedNodes)
       setEdges(layoutedEdges)
 
@@ -469,17 +474,17 @@ export function Chat({ id, initialMessages }: ChatProps) {
     setActiveStep(step)
   }, [])
 
-  useEffect(() => {
-    console.log(`Current active step: ${activeStep}`)
-    console.log(
-      'Filtered Nodes:',
-      nodes.filter(node => node.step <= activeStep)
-    )
-    console.log(
-      'Filtered Edges:',
-      edges.filter(edge => edge.step <= activeStep)
-    )
-  }, [activeStep])
+  // useEffect(() => {
+  //   console.log(`Current active step: ${activeStep}`)
+  //   console.log(
+  //     'Filtered Nodes:',
+  //     nodes.filter(node => node.step <= activeStep)
+  //   )
+  //   console.log(
+  //     'Filtered Edges:',
+  //     edges.filter(edge => edge.step <= activeStep)
+  //   )
+  // }, [activeStep])
 
   const proOptions = { hideAttribution: true }
   const onInit = setReactFlowInstance
