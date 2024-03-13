@@ -1,5 +1,6 @@
 import { type Message } from 'ai'
 
+import { Node as ReactFlowNode } from 'reactflow'
 export interface Chat extends Record<string, any> {
   id: string
   title: string
@@ -14,37 +15,39 @@ export interface Chat extends Record<string, any> {
 
 export type ServerActionResult<Result> = Promise<Result | { error: string }>
 
-export interface GraphNode {
+export interface CustomGraphNode extends ReactFlowNode {
   id: string // Node ID is now a string
   label: string
   group: string
   CUI?: string
+  step?: number
 }
 
-export interface GraphEdge {
+export interface CustomGraphEdge {
   source: string // Source and target are now strings
   target: string
   type?: string // Including the type of relationship
   PubMed_ID?: string // PubMed ID for the relation
-}
-
-export interface GraphData {
-  nodes: GraphNode[]
-  edges: GraphEdge[]
+  step?: number
 }
 
 export interface VisualizationResult {
-  nodes: GraphNode[]
-  edges: GraphEdge[]
-}
-
-export interface GraphModalProps {
-  isOpen: boolean
-  onClose: () => void
-  graphData: GraphData
+  nodes: CustomGraphNode[]
+  edges: CustomGraphEdge[]
 }
 
 export interface Recommendation {
   id: number
   text: string
+}
+
+export interface BackendData {
+  data: {
+    recommendation: Recommendation[]
+    vis_res: VisualizationResult[]
+  }
+  keywords_list_answer: string[]
+  keywords_list_question: string[]
+  message: string
+  status: string
 }
