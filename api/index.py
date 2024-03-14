@@ -10,6 +10,8 @@ import re
 from sklearn.preprocessing import normalize
 from sklearn.metrics.pairwise import cosine_similarity as cosine_similarity_sklearn
 from embeddings_utils import get_embedding
+import pandas as pd
+import gdown
 
 # Initialize Flask App
 app = Flask(__name__)
@@ -22,7 +24,11 @@ load_dotenv(dotenv_path)
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # Global variables from AI_Agent.py
-kg_nodes_embedding = pd.read_parquet("api/ADInt_CUI_embeddings.parquet")
+url = os.getenv("EMBEDDING_URL")
+output = 'ADInt_CUI_embeddings.parquet'
+gdown.download(url, output, quiet=False)
+
+kg_nodes_embedding = pd.read_parquet(output)
 print("kg_nodes_embedding loaded" + str(kg_nodes_embedding.shape))
 neo4j_url = os.getenv("NEO4J_URL")
 recommendation_space = {}
