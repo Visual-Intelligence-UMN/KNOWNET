@@ -347,7 +347,8 @@ export function Chat({ id, initialMessages }: ChatProps) {
         ) => {
           // const edgeId = `e${edge.Source}-${edge.Target}-${edge.Type}`
           const edgeId = `e${edge.Source}-${edge.Target}`
-          if (!edgeIds.has(edgeId)) {
+          const edgeRevId = `e${edge.Target}-${edge.Source}`
+          if (!edgeIds.has(edgeId) && !edgeIds.has(edgeRevId)) {
             edges.push({
               id: edgeId,
               source: edge.Source.toString(),
