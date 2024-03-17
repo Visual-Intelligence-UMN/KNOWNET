@@ -278,6 +278,7 @@ def agent(kg_nodes_embedding, keywords_list_answer, keywords_list_question, reco
     nodes_list_answer = match_KG_nodes(keywords_list_answer, kg_nodes_embedding)
     vis_res = visualization(nodes_list_answer, node_id_map, rel_id_map)
     response_data["vis_res"] = vis_res
+    response_data['node_name_mapping'] = {nodes_list_answer[i][1]: keywords_list_answer[i] for i in range(len(keywords_list_answer))}
 
     if input_type == "new_conversation":
         nodes_list_question = match_KG_nodes(keywords_list_question, kg_nodes_embedding)

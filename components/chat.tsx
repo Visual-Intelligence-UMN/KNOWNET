@@ -52,7 +52,7 @@ import { fetchBackendData } from '@/lib/utils'
 import dagre from 'dagre'
 import FlowComponent from './flow-component'
 import CustomEdge from './customEdge'
-import { CustomGraphNode } from '@/lib/types'
+import { BackendData, CustomGraphNode } from '@/lib/types'
 // const IS_PREVIEW = process.env.VERCEL_ENV === 'preview'
 
 // Initialize dagre graph for layout calculations
@@ -263,12 +263,12 @@ export function Chat({ id, initialMessages }: ChatProps) {
   // Helper function to convert backend data to React Flow nodes and edges
 
   const convertDataToFlowElements = (
-    data: { vis_res: any[] },
+    data: BackendData["data"],
     currentStep: any
   ) => {
     const nodes: {
       id: any
-      data: { label: any }
+      data: { label: string, gptName: string }
       label: any
       position: { x: number; y: number }
       type: string
@@ -315,12 +315,12 @@ export function Chat({ id, initialMessages }: ChatProps) {
 
     data.vis_res.forEach(graph => {
       graph.nodes.forEach(
-        (node: { Node_ID: string; Name: any; Label: string }) => {
+        (node) => {
           if (!nodeIds.has(node.Node_ID)) {
             const nodeColor = labelColorMapping[node.Label] || '#ffffff' // White as default color
             nodes.push({
               id: node.Node_ID.toString(),
-              data: { label: node.Name },
+              data: { label: node.Name, gptName: data.node_name_mapping[node.Name] },
               position: { x: Math.random() * 400, y: Math.random() * 400 },
               type: 'default',
               label: node.Label,
@@ -338,13 +338,7 @@ export function Chat({ id, initialMessages }: ChatProps) {
 
       graph.edges.forEach(
         (
-          edge: {
-            Source: { toString: () => any }
-            Target: { toString: () => any }
-            PubMed_ID: string
-            Type: any
-            step: any
-          },
+          edge,
           index: any
         ) => {
           // const edgeId = `e${edge.Source}-${edge.Target}-${edge.Type}`
@@ -416,7 +410,7 @@ export function Chat({ id, initialMessages }: ChatProps) {
   }, [activeStep])
 
   const appendDataToFlow = useCallback(
-    (newData: { vis_res: any[] }, currentStep: any) => {
+    (newData: BackendData["data"], currentStep: number) => {
       const { nodes: newNodes, edges: newEdges } = convertDataToFlowElements(
         newData,
         currentStep

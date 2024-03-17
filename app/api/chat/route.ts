@@ -49,7 +49,7 @@ export async function POST(req: Request) {
   // "Some studies have suggested that Coenzyme Q10 supplementation may have potential benefits for heart health... CoQ10 has antioxidant properties... ||
   // [Coenzyme Q10 | heart health || antioxidant] || [Coenzyme Q10 | Heart disease]
   //   `
-  const num_triples = 4
+  const num_triples = 6
 
   const qaPrompt = `
   You are an expert in healthcare domain and need to help user to answer the healthcare related questions.

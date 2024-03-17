@@ -56,7 +56,7 @@ const labelColorMapping: { [key: string]: string } = {
 //   // Add more mappings as needed
 // }
 
-const tailwindColorMapping: { [key: string]: string } = {
+export const tailwindColorMapping: { [key: string]: string } = {
   'Dietary Supplement': 'bg-blue-200', // Example mapping
   Disorders: 'bg-orange-200', // Continue mapping other categories...
   Drug: 'bg-red-200',
@@ -154,11 +154,11 @@ export function ChatMessage({
     let processedContent = content
 
     nodes.forEach(node => {
-      if (node.data?.label) {
-        const label = node.data.label
-
-        const highlightRegex = new RegExp(`(${label})`, 'gi')
-        const isNodeClicked = clickedNode?.data?.label === label
+      if (node.data?.gptName) {
+        const gptName = node.data.gptName
+        console.info(node.data)
+        const highlightRegex = new RegExp(`(${gptName})`, 'gi')
+        const isNodeClicked = clickedNode?.data?.gptName === gptName
         const category = node.label
         let tailwindClasses =
           tailwindColorMapping[category] || 'text-gray-600 bg-gray-100'
