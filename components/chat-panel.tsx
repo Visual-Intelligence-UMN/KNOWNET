@@ -3,7 +3,7 @@ import React, { useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { PromptForm } from '@/components/prompt-form'
 import { ButtonScrollToBottom } from '@/components/button-scroll-to-bottom'
-import { IconPlus, IconMessage } from '@/components/ui/icons'
+import { IconPlus, IconMessage, IconClose } from '@/components/ui/icons'
 import { FooterText } from '@/components/footer'
 import {
   SpeedDial,
@@ -55,7 +55,7 @@ export function ChatPanel({
   messages,
   continueConversation
 }: ChatPanelProps) {
-  const [recommendations] = useAtom(recommendationsAtom)
+  const [recommendations, setRecommendations] = useAtom(recommendationsAtom)
   const [keywordsListAnswer] = useAtom(keywordsListAnswerAtom)
   const [keywordsListQuestion] = useAtom(keywordsListQuestionAtom)
 
@@ -103,19 +103,29 @@ export function ChatPanel({
   const isRecomendationsHiding =
     isLoading || activeStep < messages.length / 2 - 1
 
+  const removeRecommendation = (recommendId: number) => {
+    const newRecommendations = recommendations.filter(
+      rec => rec.id !== recommendId
+    )
+    setRecommendations(newRecommendations)
+  }
+
   const TopRecommendations =
     !isRecomendationsHiding &&
     topRecommendations?.map(rec => (
       <Button
         key={rec.id}
         variant="outline"
-        onClick={async () => {
-          handleContextButtonClick(rec.text, rec.id)
-        }}
+
         className="m-2"
         title={rec.text}
       >
-        <p className="py-3 px-2 text-[5px] sm:text-sm">{rec.text}</p>
+        <p className="py-3 px-2 text-[5px] sm:text-sm" 
+          onClick={async () => {
+            handleContextButtonClick(rec.text, rec.id)
+          }}
+        >{rec.text}</p>
+        <IconClose className="size-4 ml-1" onClick={(e) => { e.stopPropagation(); removeRecommendation(rec.id)}} />
       </Button>
     ))
 
