@@ -24,9 +24,9 @@ load_dotenv(dotenv_path)
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # Global variables from AI_Agent.py
-url = os.getenv("EMBEDDING_URL")
 output = 'api/ADInt_CUI_embeddings.parquet'
 if not os.path.exists(output):
+    url = os.getenv("EMBEDDING_URL")
     gdown.download(url, output, quiet=False)
 
 kg_nodes_embedding = pd.read_parquet(output)
