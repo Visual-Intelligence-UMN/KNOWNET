@@ -204,8 +204,8 @@ export function Chat({ id, initialMessages }: ChatProps) {
 
       const parts = message.content.split(' || ')
       const firstPart = parts[0]
-      const secondPart = parts[1] || ''
-      const thirdPart = parts[2] || ''
+      const secondPart:string[][] = JSON.parse(parts[1] || '') // a list of triplets, Array<[source, relation, target]>
+      const thirdPart:string[] = JSON.parse(parts[2] || '') // a list of entities
 
       // Debugging the parts
       console.log('Chat First Part:', firstPart)
@@ -213,10 +213,12 @@ export function Chat({ id, initialMessages }: ChatProps) {
       console.log('Chat Third Part:', thirdPart)
 
       // Adjusting the regex pattern to be more flexible
-      const newkeywordsListAnswer =
-        secondPart.match(/\[(.*?)\]/)?.[1].split(' | ') || []
-      const newkeywordsListQuestion =
-        thirdPart.match(/\[(.*?)\]/)?.[1].split(' | ') || []
+      // const newkeywordsListAnswer =
+      //   secondPart.match(/\[(.*?)\]/)?.[1].split(' | ') || []
+      // const newkeywordsListQuestion =
+      //   thirdPart.match(/\[(.*?)\]/)?.[1].split(' | ') || []
+      const newkeywordsListAnswer = [... new Set( secondPart.map((d:string[])=>[d[0], d[2]]).flat())]
+      const newkeywordsListQuestion = thirdPart
       setKeywordsAnswer(newkeywordsListAnswer)
       setKeywordsListQuestion(newkeywordsListQuestion)
 

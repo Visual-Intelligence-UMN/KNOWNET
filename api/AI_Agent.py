@@ -14,9 +14,9 @@ import re
 from sklearn.preprocessing import normalize
 from sklearn.metrics.pairwise import cosine_similarity as cosine_similarity_sklearn
 
-kg_nodes_embedding = pd.read_parquet("/Users/youfuyan/Desktop/UMN/QianwenWang'lab/VisConAgent/api/ADInt_CUI_embeddings.parquet")
+kg_nodes_embedding = pd.read_parquet("/api/ADInt_CUI_embeddings.parquet")
 print("KG nodes embedding load complete...")
-openai.api_key = "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"
+openai.api_key = ""
 neo4j_url = "neo4j://3.82.211.172:7687"
 
 

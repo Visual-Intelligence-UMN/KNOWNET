@@ -27,28 +27,51 @@ export async function POST(req: Request) {
     openai.apiKey = previewToken
   }
 
+  // const qaPrompt = `
+  // You are an expert in healthcare domain and need to help user to answer the healthcare related questions.
+  // Also, please summary the specific entity/terms in your response (the keywords).
+  // In addition, please identify the specific entity/terms from the question.
+  // The entities/terms (keywords) can only be the following types: Dietary Supplement, Drugs, Disease, Symptom and Gene.
+  // Please return your response in three parts: the first part is the answer of the question; the part part is the summarized entities/terms (keywords); the third part is the identified entities/terms from the question.
+  // Please use " || " to split the three parts.
+  // Please split the entities/terms (keywords) by " | " if there are more than one, and put them in "[]".
+  // For example, if the question is "Can Ginkgo biloba prevent Alzheimer's Disease?"
+  // Your response could be:
+  // "Gingko biloba is a plant extract...
+  // Some studies have suggested that Gingko biloba may improve cognitive function and behavior in people with Alzheimer's disease... ||
+  // [Ginkgo biloba | Alzheimer‘s Disease] || [Ginkgo biloba | Alzheimer‘s Disease]"
+  // If the question is "What are the benefits of fish oil?"
+  // Your response could be:
+  // "Fish oil is known for its rich content of Omega-3 fatty acids... The benefits of Fish Oil: Fish oil can delay or reduce the risk of cognitive decline.
+  // Fight Inflammation: Omega-3 has potent... || [Fish Oil | Omega-3 fatty acids | cognitive decline | Inflammation] || [Fish Oil]"
+  // If the question is "Can Coenzyme Q10 prevent Heart disease?"
+  // Your response could be:
+  // "Some studies have suggested that Coenzyme Q10 supplementation may have potential benefits for heart health... CoQ10 has antioxidant properties... ||
+  // [Coenzyme Q10 | heart health || antioxidant] || [Coenzyme Q10 | Heart disease]
+  //   `
+  const num_triples = 4
+
   const qaPrompt = `
   You are an expert in healthcare domain and need to help user to answer the healthcare related questions.
-  Also, please summary the specific entity/terms in your response (the keywords).
-  In addition, please identify the specific entity/terms from the question.
-  The entities/terms (keywords) can only be the following types: Dietary Supplement, Drugs, Disease, Symptom and Gene.
-  Please return your response in three parts: the first part is the answer of the question; the part part is the summarized entities/terms (keywords); the third part is the identified entities/terms from the question.
+  After the response, please summary the entity/terms and their relations (tripes) in your response.
+  The entities/terms can only be the following types: Dietary Supplement, Drugs, Disease, Symptom, Gene.
+  Keep your response short and concise, and the number of triples mentioned in the response should be less than ${num_triples}.
+  Please return your response in four parts: 
+  the 1st part is your response to user question; 
+  the 2nd part is the summarized triples in your response, in the format of json string list; 
+  the 3rd part is the identified entities/terms in user question, in the format of json string list.
   Please use " || " to split the three parts.
-  Please split the entities/terms (keywords) by " | " if there are more than one, and put them in "[]".
   For example, if the question is "Can Ginkgo biloba prevent Alzheimer's Disease?"
   Your response could be:
   "Gingko biloba is a plant extract...
   Some studies have suggested that Gingko biloba may improve cognitive function and behavior in people with Alzheimer's disease... ||
-  [Ginkgo biloba | Alzheimer‘s Disease] || [Ginkgo biloba | Alzheimer‘s Disease]"
+  [[Ginkgo biloba, improve, Alzheimer‘s Disease], [Ginkgo biloba, extract from, plant]] || [Ginkgo biloba, Alzheimer‘s Disease]"
   If the question is "What are the benefits of fish oil?"
   Your response could be:
   "Fish oil is known for its rich content of Omega-3 fatty acids... The benefits of Fish Oil: Fish oil can delay or reduce the risk of cognitive decline.
-  Fight Inflammation: Omega-3 has potent... || [Fish Oil | Omega-3 fatty acids | cognitive decline | Inflammation] || [Fish Oil]"
-  If the question is "Can Coenzyme Q10 prevent Heart disease?"
-  Your response could be:
-  "Some studies have suggested that Coenzyme Q10 supplementation may have potential benefits for heart health... CoQ10 has antioxidant properties... ||
-  [Coenzyme Q10 | heart health || antioxidant] || [Coenzyme Q10 | Heart disease]
+  || [ [Fish Oil, contains, Omega-3 fatty acids], [Omega-3 fatty acids, delay, cognitive decline]] || [Fish Oil]"
     `
+
 
   const res = await openai.chat.completions.create({
     model: 'gpt-4',
