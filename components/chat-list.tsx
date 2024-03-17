@@ -7,10 +7,16 @@ import { useViewMode } from '@/components/ui/view-mode'
 export interface ChatListProps {
   messages: Message[]
   activeStep: number
+  nodes: any
   clickedNode: any
 }
 
-export function ChatList({ messages, activeStep, clickedNode }: ChatListProps) {
+export function ChatList({
+  messages,
+  activeStep,
+  nodes,
+  clickedNode
+}: ChatListProps) {
   const { isPaneView } = useViewMode()
 
   if (!messages.length) {
@@ -27,6 +33,7 @@ export function ChatList({ messages, activeStep, clickedNode }: ChatListProps) {
               <ChatMessage
                 key={index}
                 message={message}
+                nodes={nodes}
                 clickedNode={clickedNode}
               />
             ))}
@@ -37,6 +44,7 @@ export function ChatList({ messages, activeStep, clickedNode }: ChatListProps) {
             <ChatMessage
               key={index}
               message={message}
+              nodes={nodes}
               clickedNode={clickedNode}
             />
           ))}

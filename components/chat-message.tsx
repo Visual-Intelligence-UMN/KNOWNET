@@ -14,6 +14,7 @@ import { ChatMessageActions } from '@/components/chat-message-actions'
 
 export interface ChatMessageProps {
   message: Message
+  nodes: any
   clickedNode: any
 }
 const labelColorMapping: { [key: string]: string } = {
@@ -35,7 +36,7 @@ const labelColorMapping: { [key: string]: string } = {
   // Add more label types and colors as needed
 }
 
-const tailwindColorMapping = {
+const tailwindColorMapping: { [key: string]: string } = {
   'Dietary Supplement': 'text-blue-600 bg-blue-200', // Example mapping
   Disorders: 'text-orange-600 bg-orange-200', // Continue mapping other categories...
   Drug: 'text-red-600 bg-red-200',
@@ -57,41 +58,107 @@ const tailwindColorMapping = {
 
 export function ChatMessage({
   message,
+  nodes,
   clickedNode,
   ...props
 }: ChatMessageProps) {
-  function preprocessMarkdownContent(
-    content: string,
-    highlightTerm: string | null,
-    category: string | null
-  ) {
-    if (!highlightTerm || !category) return content // Skip if no term or category
+  // New function to color text based on nodes data
+  // function colorTextBasedOnNodes(content: string, nodes: any[] | undefined) {
+  //   let processedContent = content
+  //   if (!nodes) {
+  //     // If nodes is undefined or not an array, return the original content without modification
+  //     return processedContent
+  //   }
+  //   nodes.forEach(node => {
+  //     if (node.data?.label) {
+  //       const highlightTerm = node.data.label.replace(/s$/, 's?')
+  //       const highlightRegex = new RegExp(`(${highlightTerm})`, 'gi')
 
-    // This is a simple approach and might need further refinement for more complex variations
-    const adjustedHighlightTerm = highlightTerm.replace(/s$/, 's?')
-    const highlightRegex = new RegExp(`(${adjustedHighlightTerm})`, 'gi')
+  //       let tailwindClasses =
+  //         tailwindColorMapping[
+  //           node.label as keyof typeof tailwindColorMapping
+  //         ] || 'text-gray-600 bg-gray-100' // Default styling
 
-    // Use Tailwind classes for styling
-    const tailwindClasses =
-      tailwindColorMapping[category as keyof typeof tailwindColorMapping] ||
-      'text-gray-600 bg-gray-100' // Default styling
+  //       processedContent = processedContent.replace(
+  //         highlightRegex,
+  //         `<mark class="${tailwindClasses}">$1</mark>`
+  //       )
+  //     }
+  //   })
+  //   return processedContent
+  // }
 
-    return content.replace(
-      highlightRegex,
-      `<mark class="${tailwindClasses}">$1</mark>`
-    )
+  // let processedContent = colorTextBasedOnNodes(message.content, nodes)
+  // function preprocessMarkdownContent(
+  //   content: string,
+  //   highlightTerm: string | null,
+  //   category: string | null
+  // ) {
+  //   if (!highlightTerm || !category) return content // Skip if no term or category
+
+  //   // This is a simple approach and might need further refinement for more complex variations
+  //   const adjustedHighlightTerm = highlightTerm.replace(/s$/, 's?')
+  //   const highlightRegex = new RegExp(`(${adjustedHighlightTerm})`, 'gi')
+
+  //   // Use Tailwind classes for styling
+  //   let tailwindClasses =
+  //     tailwindColorMapping[category as keyof typeof tailwindColorMapping] ||
+  //     'text-gray-600 bg-gray-100' // Default styling
+  //   if (clickedNode?.data?.label === highlightTerm) {
+  //     // Add classes for bold text and dashed line frame
+  //     tailwindClasses += ' font-bold border-dashed border-2 border-gray-400'
+  //   }
+
+  //   return content.replace(
+  //     highlightRegex,
+  //     `<mark class="${tailwindClasses}">$1</mark>`
+  //   )
+  // }
+  // // Check if clickedNode and clickedNode.data are not null before accessing clickedNode.data.label
+  // // Usage before rendering with ReactMarkdown
+  // // Assume clickedNode could be null, adjust the call accordingly
+
+  // const highlightTerm = clickedNode?.data?.label ?? null
+  // const category = clickedNode?.label ?? null
+  // processedContent = preprocessMarkdownContent(
+  //   message.content,
+  //   highlightTerm,
+  //   category
+  // )
+  // Consolidated function to apply styles based on nodes and clickedNode
+  function processContent(content: string, nodes: any[], clickedNode: any) {
+    if (!nodes) {
+      return content
+    }
+
+    let processedContent = content
+
+    nodes.forEach(node => {
+      if (node.data?.label) {
+        const label = node.data.label
+
+        const highlightRegex = new RegExp(`(${label})`, 'gi')
+        const isNodeClicked = clickedNode?.data?.label === label
+        const category = node.label
+        let tailwindClasses =
+          tailwindColorMapping[category] || 'text-gray-600 bg-gray-100'
+
+        if (isNodeClicked) {
+          // Additional styles for clicked node
+          tailwindClasses += ' font-bold border-dashed border-2 border-gray-400'
+        }
+
+        processedContent = processedContent.replace(
+          highlightRegex,
+          `<mark class="${tailwindClasses}">$1</mark>`
+        )
+      }
+    })
+
+    return processedContent
   }
-  // Check if clickedNode and clickedNode.data are not null before accessing clickedNode.data.label
-  // Usage before rendering with ReactMarkdown
-  // Assume clickedNode could be null, adjust the call accordingly
-  const highlightTerm = clickedNode?.data?.label ?? null
-  const category = clickedNode?.label ?? null
-  const processedContent = preprocessMarkdownContent(
-    message.content,
-    highlightTerm,
-    category
-  )
 
+  let processedContent = processContent(message.content, nodes, clickedNode)
   return (
     <div
       className={cn('group relative mb-4 flex items-start md:-ml-12')}

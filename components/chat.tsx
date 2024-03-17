@@ -622,6 +622,7 @@ export function Chat({ id, initialMessages }: ChatProps) {
                 <ChatList
                   messages={messages}
                   activeStep={activeStep}
+                  nodes={nodes}
                   clickedNode={clickedNode}
                 />
                 {StopRegenerateButton}
