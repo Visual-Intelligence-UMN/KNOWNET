@@ -36,23 +36,43 @@ const labelColorMapping: { [key: string]: string } = {
   // Add more label types and colors as needed
 }
 
-export const tailwindColorMapping: { [key: string]: string } = {
-  'Dietary Supplement': 'text-blue-600 bg-blue-200', // Example mapping
-  Disorders: 'text-orange-600 bg-orange-200', // Continue mapping other categories...
-  Drug: 'text-red-600 bg-red-200',
-  'Genes & Molecular Sequences': 'text-cyan-600 bg-cyan-200',
-  Anatomy: 'text-green-600 bg-green-200',
-  'Living Beings': 'text-yellow-600 bg-yellow-200',
-  Physiology: 'text-purple-600 bg-purple-200',
-  'Chemicals & Drugs': 'text-pink-600 bg-pink-200',
-  Procedures: 'text-brown-600 bg-brown-200',
-  'Activities & Behaviors': 'text-gray-600 bg-gray-200',
-  'Concepts & Ideas': 'text-blue-600 bg-blue-200',
-  Device: 'text-orange-600 bg-orange-200',
-  Objects: 'text-red-600 bg-red-200',
-  Object: 'text-red-600 bg-red-200',
-  Organization: 'text-cyan-600 bg-cyan-200',
-  Phenomenon: 'text-green-600 bg-green-200'
+// const tailwindColorMapping: { [key: string]: string } = {
+//   'Dietary Supplement': 'text-blue-600 bg-blue-200', // Example mapping
+//   Disorders: 'text-orange-600 bg-orange-200', // Continue mapping other categories...
+//   Drug: 'text-red-600 bg-red-200',
+//   'Genes & Molecular Sequences': 'text-cyan-600 bg-cyan-200',
+//   Anatomy: 'text-green-600 bg-green-200',
+//   'Living Beings': 'text-yellow-600 bg-yellow-200',
+//   Physiology: 'text-purple-600 bg-purple-200',
+//   'Chemicals & Drugs': 'text-pink-600 bg-pink-200',
+//   Procedures: 'text-brown-600 bg-brown-200',
+//   'Activities & Behaviors': 'text-gray-600 bg-gray-200',
+//   'Concepts & Ideas': 'text-blue-600 bg-blue-200',
+//   Device: 'text-orange-600 bg-orange-200',
+//   Objects: 'text-red-600 bg-red-200',
+//   Object: 'text-red-600 bg-red-200',
+//   Organization: 'text-cyan-600 bg-cyan-200',
+//   Phenomenon: 'text-green-600 bg-green-200'
+//   // Add more mappings as needed
+// }
+
+const tailwindColorMapping: { [key: string]: string } = {
+  'Dietary Supplement': 'bg-blue-200', // Example mapping
+  Disorders: 'bg-orange-200', // Continue mapping other categories...
+  Drug: 'bg-red-200',
+  'Genes & Molecular Sequences': 'bg-cyan-200',
+  Anatomy: 'bg-green-200',
+  'Living Beings': 'bg-yellow-200',
+  Physiology: 'bg-purple-200',
+  'Chemicals & Drugs': 'bg-pink-200',
+  Procedures: 'bg-brown-200',
+  'Activities & Behaviors': 'bg-gray-200',
+  'Concepts & Ideas': 'bg-blue-200',
+  Device: 'bg-orange-200',
+  Objects: 'bg-red-200',
+  Object: 'bg-red-200',
+  Organization: 'bg-cyan-200',
+  Phenomenon: 'bg-green-200'
   // Add more mappings as needed
 }
 
@@ -145,7 +165,7 @@ export function ChatMessage({
 
         if (isNodeClicked) {
           // Additional styles for clicked node
-          tailwindClasses += ' font-bold border-dashed border-2 border-gray-400'
+          tailwindClasses += ' font-bold border-2 border-black'
         }
 
         processedContent = processedContent.replace(
