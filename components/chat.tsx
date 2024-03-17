@@ -630,23 +630,24 @@ export function Chat({ id, initialMessages }: ChatProps) {
                 <ChatScrollAnchor trackVisibility={isLoading} />
               </div>
             </div>
-
-            <ChatPanel
-              id={id}
-              isLoading={isLoading || isLoadingBackendData}
-              activeStep={activeStep}
-              stop={stop}
-              append={append}
-              reload={reload}
-              messages={messages}
-              input={input}
-              setInput={setInput}
-              continueConversation={continueConversation}
-            />
           </>
         ) : (
           <EmptyScreen setInput={setInput} id={id!} append={append} />
-        )}
+        )
+       
+        }
+         <ChatPanel
+          id={id}
+          isLoading={isLoading || isLoadingBackendData}
+          activeStep={activeStep}
+          stop={stop}
+          append={append}
+          reload={reload}
+          messages={messages}
+          input={input}
+          setInput={setInput}
+          continueConversation={continueConversation}
+        />
       </div>
 
       <Dialog open={previewTokenDialog} onOpenChange={setPreviewTokenDialog}>

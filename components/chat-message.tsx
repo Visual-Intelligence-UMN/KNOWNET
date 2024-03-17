@@ -36,7 +36,7 @@ const labelColorMapping: { [key: string]: string } = {
   // Add more label types and colors as needed
 }
 
-const tailwindColorMapping: { [key: string]: string } = {
+export const tailwindColorMapping: { [key: string]: string } = {
   'Dietary Supplement': 'text-blue-600 bg-blue-200', // Example mapping
   Disorders: 'text-orange-600 bg-orange-200', // Continue mapping other categories...
   Drug: 'text-red-600 bg-red-200',
@@ -166,7 +166,7 @@ export function ChatMessage({
     >
       <div
         className={cn(
-          'flex h-10 w-10 shrink-0 select-none items-center justify-center rounded-md border shadow',
+          'flex size-10 shrink-0 select-none items-center justify-center rounded-md border shadow',
           message.role === 'user'
             ? 'bg-background'
             : 'bg-primary text-primary-foreground'
