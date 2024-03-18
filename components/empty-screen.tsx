@@ -3,7 +3,7 @@ import { UseChatHelpers } from 'ai/react'
 import { Button } from '@/components/ui/button'
 import { ExternalLink } from '@/components/external-link'
 import { IconArrowRight } from '@/components/ui/icons'
-import {tailwindColorMapping} from '@/components/chat-message'
+import {tailwindColorMapping} from '@/lib/utils'
 import { Tooltip } from '@material-tailwind/react'
 
 const nodeTypes = Object.keys(tailwindColorMapping).map(d=>(<div key={d}>{d}</div>))

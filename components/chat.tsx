@@ -217,7 +217,7 @@ export function Chat({ id, initialMessages }: ChatProps) {
       //   secondPart.match(/\[(.*?)\]/)?.[1].split(' | ') || []
       // const newkeywordsListQuestion =
       //   thirdPart.match(/\[(.*?)\]/)?.[1].split(' | ') || []
-      
+
       const newkeywordsListAnswer = [... new Set( secondPart.map((d:string[])=>[d[0], d[2]]).flat())]
       const newkeywordsListQuestion = thirdPart
       setKeywordsAnswer(newkeywordsListAnswer)

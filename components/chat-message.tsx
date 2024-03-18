@@ -12,70 +12,14 @@ import { MemoizedReactMarkdown } from '@/components/markdown'
 import { IconOpenAI, IconUser } from '@/components/ui/icons'
 import { ChatMessageActions } from '@/components/chat-message-actions'
 import { CustomGraphNode } from '@/lib/types'
+import { tailwindColorMapping } from '@/lib/utils'
 
 export interface ChatMessageProps {
   message: Message
   nodes: CustomGraphNode[]
   clickedNode: any
 }
-const labelColorMapping: { [key: string]: string } = {
-  'Dietary Supplement': '#4e79a7', // Blue
-  Disorders: '#f28e2c', // Orange
-  Drug: '#e15759', // Red
-  'Genes & Molecular Sequences': '#76b7b2', // Cyan
-  Anatomy: '#59a14f', // Green
-  'Living Beings': '#edc949', // Yellow
-  Physiology: '#af7aa1', // Purple
-  'Chemicals & Drugs': '#ff9da7', // Pink
-  Procedures: '#9c755f', // Brown
-  'Activities & Behaviors': '#bab0ab', // Gray
-  'Concepts & Ideas': '#4e79a7', // Blue
-  Device: '#f28e2c', // Orange
-  Object: '#e15759', // Red
-  Organization: '#76b7b2', // Cyan
-  Phenomenon: '#59a14f' // Green
-  // Add more label types and colors as needed
-}
 
-// const tailwindColorMapping: { [key: string]: string } = {
-//   'Dietary Supplement': 'text-blue-600 bg-blue-200', // Example mapping
-//   Disorders: 'text-orange-600 bg-orange-200', // Continue mapping other categories...
-//   Drug: 'text-red-600 bg-red-200',
-//   'Genes & Molecular Sequences': 'text-cyan-600 bg-cyan-200',
-//   Anatomy: 'text-green-600 bg-green-200',
-//   'Living Beings': 'text-yellow-600 bg-yellow-200',
-//   Physiology: 'text-purple-600 bg-purple-200',
-//   'Chemicals & Drugs': 'text-pink-600 bg-pink-200',
-//   Procedures: 'text-brown-600 bg-brown-200',
-//   'Activities & Behaviors': 'text-gray-600 bg-gray-200',
-//   'Concepts & Ideas': 'text-blue-600 bg-blue-200',
-//   Device: 'text-orange-600 bg-orange-200',
-//   Objects: 'text-red-600 bg-red-200',
-//   Object: 'text-red-600 bg-red-200',
-//   Organization: 'text-cyan-600 bg-cyan-200',
-//   Phenomenon: 'text-green-600 bg-green-200'
-//   // Add more mappings as needed
-// }
-
-export const tailwindColorMapping: { [key: string]: string } = {
-  'Dietary Supplement': 'bg-blue-200', // Example mapping
-  Disorders: 'bg-orange-200', // Continue mapping other categories...
-  Drug: 'bg-red-200',
-  'Genes & Molecular Sequences': 'bg-cyan-200',
-  Anatomy: 'bg-green-200',
-  'Living Beings': 'bg-yellow-200',
-  Physiology: 'bg-purple-200',
-  'Chemicals & Drugs': 'bg-pink-200',
-  Procedures: 'bg-brown-200',
-  'Activities & Behaviors': 'bg-gray-200',
-  'Concepts & Ideas': 'bg-blue-200',
-  Device: 'bg-orange-200',
-  Objects: 'bg-red-200',
-  Object: 'bg-red-200',
-  Organization: 'bg-cyan-200',
-  Phenomenon: 'bg-green-200'
-  // Add more mappings as needed
-}
 
 export function ChatMessage({
   message,

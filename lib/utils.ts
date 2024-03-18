@@ -52,6 +52,27 @@ export const categoryColorMapping: { [key: string]: string } = {
   // Add more label types and colors as needed
 }
 
+
+export const tailwindColorMapping: { [key: string]: string } = {
+  'Dietary Supplement': 'bg-blue-200', // Example mapping
+  Disorders: 'bg-orange-200', // Continue mapping other categories...
+  Drug: 'bg-red-200',
+  'Genes & Molecular Sequences': 'bg-cyan-200',
+  Anatomy: 'bg-green-200',
+  'Living Beings': 'bg-yellow-200',
+  Physiology: 'bg-purple-200',
+  'Chemicals & Drugs': 'bg-pink-200',
+  Procedures: 'bg-brown-200',
+  'Activities & Behaviors': 'bg-gray-200',
+  'Concepts & Ideas': 'bg-blue-200',
+  Device: 'bg-orange-200',
+  Objects: 'bg-red-200',
+  Object: 'bg-red-200',
+  Organization: 'bg-cyan-200',
+  Phenomenon: 'bg-green-200'
+  // Add more mappings as needed
+}
+
 export function formatDate(input: string | number | Date): string {
   const date = new Date(input)
   return date.toLocaleDateString('en-US', {

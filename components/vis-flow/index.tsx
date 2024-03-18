@@ -2,14 +2,6 @@
 import React, { useEffect, useState } from 'react'
 import {
   ReactFlow,
-  Edge,
-  Node,
-  Position,
-  EdgeTypes,
-  addEdge,
-  useNodesState,
-  useEdgesState,
-  OnConnect,
   Background,
   Controls,
   useReactFlow
@@ -19,7 +11,6 @@ import CustomEdge from './customEdge' // Ensure this path is correct
 import { Button } from '../ui/button'
 import { Spinner } from '@material-tailwind/react'
 import { Progress } from '@material-tailwind/react'
-import { useAtom } from 'jotai'
 
 // FlowComponent separated from Chat function
 // Define custom edge types including your CustomEdge
