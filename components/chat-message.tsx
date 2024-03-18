@@ -12,7 +12,6 @@ import { MemoizedReactMarkdown } from '@/components/markdown'
 import { IconOpenAI, IconUser } from '@/components/ui/icons'
 import { ChatMessageActions } from '@/components/chat-message-actions'
 import { CustomGraphNode } from '@/lib/types'
-import { tailwindColorMapping } from '@/lib/utils'
 
 export interface ChatMessageProps {
   message: Message
