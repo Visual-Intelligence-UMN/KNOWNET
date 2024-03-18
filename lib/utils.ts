@@ -49,7 +49,7 @@ export const categoryColorMapping: { [key: string]: string } = {
   Object: '#e15759', // Red
   Organization: '#76b7b2', // Cyan
   Phenomenon: '#59a14f', // Green
-  NotFind: '#666' //gray
+  NotFind: '#dddddd' //gray
   // Add more label types and colors as needed
 }
 

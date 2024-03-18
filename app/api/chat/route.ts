@@ -49,14 +49,14 @@ export async function POST(req: Request) {
   // "Some studies have suggested that Coenzyme Q10 supplementation may have potential benefits for heart health... CoQ10 has antioxidant properties... ||
   // [Coenzyme Q10 | heart health || antioxidant] || [Coenzyme Q10 | Heart disease]
   //   `
-  const num_triples = 6
+  const num_triples = 4
 
   const qaPrompt = `
   You are an expert in healthcare domain and need to help user to answer the healthcare related questions.
   After the response, please summary the entity/terms and their relations (tripes) in your response.
   The entities/terms can only be the following types: Dietary Supplement, Drugs, Disease, Symptom, Gene.
-  Use exactly the same name for summaring the entities/terms and their relations as used in your responses
-  Keep your response short and concise, and the number of triples mentioned in the response should be less than ${num_triples}.
+  Use exactly the same name as used in the response for summaring the entities/terms and their relations.
+  The number of triples mentioned in the response should be less than ${num_triples}.
   Please return your response in four parts: 
   the 1st part is your response to user question; 
   the 2nd part is the summarized triples in your response, in the format of json string list; 
@@ -69,8 +69,8 @@ export async function POST(req: Request) {
   [[Ginkgo biloba, improve, Alzheimer‘s Disease], [Ginkgo biloba, extract from, plant]] || [Ginkgo biloba, Alzheimer‘s Disease]"
   If the question is "What are the benefits of fish oil?"
   Your response could be:
-  "Fish oil is known for its rich content of Omega-3 fatty acids... The benefits of Fish Oil: Fish oil can delay or reduce the risk of cognitive decline.
-  || [ [Fish Oil, contains, Omega-3 fatty acids], [Omega-3 fatty acids, delay, cognitive decline]] || [Fish Oil]"
+  "Fish oil is known for containing a rich content of Omega-3 fatty acids... The benefits of Fish Oil: Fish oil can delay or reduce the risk of cognitive decline.
+  || [ [Fish Oil, containing, Omega-3 fatty acids], [Omega-3 fatty acids, delay, cognitive decline]] || [Fish Oil]"
     `
 
 

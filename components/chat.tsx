@@ -286,7 +286,7 @@ export function Chat({ id, initialMessages }: ChatProps) {
     data.vis_res.forEach(graph => {
       graph.nodes.forEach(node => {
         if (!nodeIds.has(node.id)) {
-          const nodeColor = categoryColorMapping[node.category] || '#ffffff' // White as default color
+          const nodeColor = categoryColorMapping[node.category] || categoryColorMapping['NotFind']  // White as default color
           nodes.push({
             id: node.id,
             data: {
@@ -436,8 +436,7 @@ export function Chat({ id, initialMessages }: ChatProps) {
             category: 'NotFind', 
             style: {
               opacity: 1,
-              background: '#ffffff',
-              border: '1px solid #222'
+              background: categoryColorMapping['NotFind'],
             },
             step: currentStep,
           })
@@ -451,10 +450,22 @@ export function Chat({ id, initialMessages }: ChatProps) {
             category: 'NotFind',
             style: {
               opacity: 1,
-              background: '#ffffff',
-              border: '1px solid #222'
+              background: categoryColorMapping['NotFind']
             },
             step: currentStep,
+          })
+        }
+        if (!targetNode || !sourceNode){
+          updatedEdges.push({
+            id: `e${source}-${target}`,
+            source: source,
+            target: target,
+            label: relation,
+            data: { papers: { [relation]: [] } },
+            type: 'custom',
+            category: 'NotFind',
+            step: currentStep,
+            style: { opacity: 1 }
           })
         }
       })
