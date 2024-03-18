@@ -43,7 +43,6 @@ def hello_world():
 @app.route("/api/chat", methods=["POST"])
 def post_chat_message():
     data = request.json
-    print(data)
     input_type = data.get("input_type")
     user_id = data.get("userId")
     keywords_list_answer = data.get("data", {}).get("keywords_list_answer")
@@ -136,7 +135,7 @@ def match_KG_nodes(entity_list, kg_nodes_embedding):
         max_index = np.argmax(similarity_list)
         max_similarity = similarity_list[max_index]
         if max_similarity > 0.94:
-            nodes_list.append([kg_nodes_embedding.CUI.values[max_index], kg_nodes_embedding.Name.values[max_index]])
+            nodes_list.append([kg_nodes_embedding.CUI.values[max_index], kg_nodes_embedding.Name.values[max_index], entity])
 
     return nodes_list
 
@@ -279,7 +278,8 @@ def agent(kg_nodes_embedding, keywords_list_answer, keywords_list_question, reco
     nodes_list_answer = match_KG_nodes(keywords_list_answer, kg_nodes_embedding)
     vis_res = visualization(nodes_list_answer, node_id_map, rel_id_map)
     response_data["vis_res"] = vis_res
-    response_data['node_name_mapping'] = {nodes_list_answer[i][1]: keywords_list_answer[i] for i in range(len(keywords_list_answer))}
+
+    response_data['node_name_mapping'] = {nodes_list_answer[i][1]: nodes_list_answer[i][2] for i in range(len(nodes_list_answer))}
 
     if input_type == "new_conversation":
         nodes_list_question = match_KG_nodes(keywords_list_question, kg_nodes_embedding)
