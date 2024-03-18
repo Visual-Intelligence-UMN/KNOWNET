@@ -34,7 +34,7 @@ export async function fetcher<JSON = any>(
 }
 
 export const categoryColorMapping: { [key: string]: string } = {
-  'Dietary Supplement': '#4e79a7', // Blue
+  'Dietary Supplement': '#91b9f4', // Blue
   Disorders: '#f28e2c', // Orange
   Drug: '#e15759', // Red
   'Genes & Molecular Sequences': '#76b7b2', // Cyan
@@ -52,26 +52,6 @@ export const categoryColorMapping: { [key: string]: string } = {
   // Add more label types and colors as needed
 }
 
-
-export const tailwindColorMapping: { [key: string]: string } = {
-  'Dietary Supplement': 'bg-blue-200', // Example mapping
-  Disorders: 'bg-orange-200', // Continue mapping other categories...
-  Drug: 'bg-red-200',
-  'Genes & Molecular Sequences': 'bg-cyan-200',
-  Anatomy: 'bg-green-200',
-  'Living Beings': 'bg-yellow-200',
-  Physiology: 'bg-purple-200',
-  'Chemicals & Drugs': 'bg-pink-200',
-  Procedures: 'bg-brown-200',
-  'Activities & Behaviors': 'bg-gray-200',
-  'Concepts & Ideas': 'bg-blue-200',
-  Device: 'bg-orange-200',
-  Objects: 'bg-red-200',
-  Object: 'bg-red-200',
-  Organization: 'bg-cyan-200',
-  Phenomenon: 'bg-green-200'
-  // Add more mappings as needed
-}
 
 export function formatDate(input: string | number | Date): string {
   const date = new Date(input)

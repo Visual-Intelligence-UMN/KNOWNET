@@ -6,7 +6,7 @@ import remarkGfm from 'remark-gfm'
 import remarkMath from 'remark-math'
 import rehypeRaw from 'rehype-raw'
 
-import { cn } from '@/lib/utils'
+import { categoryColorMapping, cn } from '@/lib/utils'
 import { CodeBlock } from '@/components/ui/codeblock'
 import { MemoizedReactMarkdown } from '@/components/markdown'
 import { IconOpenAI, IconUser } from '@/components/ui/icons'
@@ -105,16 +105,20 @@ export function ChatMessage({
         const isNodeClicked = clickedNode?.data?.gptName === gptName
         const category = node.category
         let tailwindClasses =
-          tailwindColorMapping[category] || 'text-gray-600 bg-gray-100'
+          categoryColorMapping[category] ? '' : 'text-gray-600 bg-gray-100'
 
         if (isNodeClicked) {
           // Additional styles for clicked node
           tailwindClasses += ' font-bold border-2 border-black'
         }
 
+        // processedContent = processedContent.replace(
+        //   highlightRegex,
+        //   `<mark class="${tailwindClasses}">$1</mark>`
+        // )
         processedContent = processedContent.replace(
           highlightRegex,
-          `<mark class="${tailwindClasses}">$1</mark>`
+          `<mark class="${tailwindClasses}" style="background-color:${categoryColorMapping[category]}; color: black">$1</mark>`
         )
       }
     })
