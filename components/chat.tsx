@@ -407,7 +407,8 @@ export function Chat({ id, initialMessages }: ChatProps) {
         const targetNode = updatedNodes.find(node => node.data.gptName.toLowerCase() === target.toLowerCase())
         if (sourceNode && targetNode) {
           const edgeId = `e${sourceNode.id}-${targetNode.id}`
-          var findEdgeIndex = updatedEdges.findIndex(edge => edge.id === edgeId)
+          const edgeRevId = `e${targetNode.id}-${sourceNode.id}`
+          var findEdgeIndex = updatedEdges.findIndex(edge => edge.id === edgeId || edge.id === edgeRevId)
           if (findEdgeIndex === -1) {
             updatedEdges.push({
               id: edgeId,
