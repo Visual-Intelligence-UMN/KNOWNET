@@ -223,6 +223,8 @@ export function Chat({ id, initialMessages }: ChatProps) {
       setKeywordsAnswer(newkeywordsListAnswer)
       setKeywordsQuestion(newkeywordsListQuestion)
 
+      
+
       // console.log('set Chat Keywords List Answer:', keywordsAnswer)
       // console.log('set Chat Keywords List Question:', keywordsQuestion)
       if (recommendations.length === 0) {
@@ -264,9 +266,9 @@ export function Chat({ id, initialMessages }: ChatProps) {
 
   // Helper function to convert backend data to React Flow nodes and edges
 
-  const convertDataToFlowElements = (
+  const convertBackendDataToFlowElements = (
     data: BackendData["data"],
-    currentStep: any
+    currentStep: number
   ) => {
     const nodes: CustomGraphNode[] = []
     const edges: CustomGraphEdge[] = []
@@ -296,7 +298,6 @@ export function Chat({ id, initialMessages }: ChatProps) {
                 border: '1px solid #222'
               },
               step: currentStep,
-              Node_ID: ''
             })
             nodeIds.add(node.id)
           }
@@ -378,7 +379,7 @@ export function Chat({ id, initialMessages }: ChatProps) {
 
   const appendDataToFlow = useCallback(
     (newData: BackendData["data"], currentStep: number) => {
-      const { nodes: newNodes, edges: newEdges } = convertDataToFlowElements(
+      const { nodes: newNodes, edges: newEdges } = convertBackendDataToFlowElements(
         newData,
         currentStep
       )
