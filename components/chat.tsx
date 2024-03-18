@@ -379,128 +379,162 @@ export function Chat({ id, initialMessages }: ChatProps) {
     setEdges(layoutedEdges)
   }, [activeStep])
 
-  const appendDataToFlow = useCallback(
-    (newData: BackendData['data'], currentStep: number) => {
-      const { nodes: newNodes, edges: newEdges } =
-        convertBackendDataToFlowElements(newData, currentStep)
+  // const appendDataToFlow = useCallback(
+  //   (newData: BackendData['data'], currentStep: number) => {
+  //     const { nodes: newNodes, edges: newEdges } =
+  //       convertBackendDataToFlowElements(newData, currentStep)
 
-      let updatedNodes = [...nodes], updatedEdges = [...edges]
-      newNodes.forEach(newNode => {
-        if (!updatedNodes.find(node => node.id === newNode.id)) {
-          updatedNodes.push({
-            ...newNode,
-            position: { x: 0, y: 0 },
-            step: currentStep
-          })
-        }
-      })
+  //     let updatedNodes = [...nodes], updatedEdges = [...edges]
+  //     newNodes.forEach(newNode => {
+  //       if (!updatedNodes.find(node => node.id === newNode.id)) {
+  //         updatedNodes.push({
+  //           ...newNode,
+  //           position: { x: 0, y: 0 },
+  //           step: currentStep
+  //         })
+  //       }
+  //     })
 
-      newEdges.forEach(newEdge => { 
-        if (!updatedEdges.find(edge => edge.id === newEdge.id)) {
-          updatedEdges.push({ ...newEdge, step: currentStep })
-        }
-      })
+  //     newEdges.forEach(newEdge => { 
+  //       if (!updatedEdges.find(edge => edge.id === newEdge.id)) {
+  //         updatedEdges.push({ ...newEdge, step: currentStep })
+  //       }
+  //     })
 
-      gptTriples.forEach((triple, i) => {
-        const [source, relation, target] = triple
-        const sourceNode = updatedNodes.find(node => node.data.gptName.toLowerCase() === source.toLowerCase())
-        const targetNode = updatedNodes.find(node => node.data.gptName.toLowerCase() === target.toLowerCase())
-        if (sourceNode && targetNode) {
-          const edgeId = `e${sourceNode.id}-${targetNode.id}`
-          const edgeRevId = `e${targetNode.id}-${sourceNode.id}`
-          var findEdgeIndex = updatedEdges.findIndex(edge => edge.id === edgeId || edge.id === edgeRevId)
-          if (findEdgeIndex === -1) {
-            updatedEdges.push({
-              id: edgeId,
-              source: sourceNode.id,
-              target: targetNode.id,
-              label: relation,
-              data: { papers: { [relation]: [] } },
-              type: 'custom',
-              category: 'NotFind',
-              step: currentStep,
-              style: { opacity: 1 }
-            })
-          }else{
-            updatedEdges[findEdgeIndex] =  {
-              ...updatedEdges[findEdgeIndex],
-              label: relation, // use gpt relation
-            }
-          }
-        }
-        if (!sourceNode){
-          updatedNodes.push({
-            id: source,
-            data: { label: source, kgName: '', gptName: source },
-            position: { x: 0, y: 0 },
-            type: 'default',
-            category: 'NotFind', 
-            style: {
-              opacity: 1,
-              background: categoryColorMapping['NotFind'],
-            },
-            step: currentStep,
-          })
-        }
-        if (!targetNode){
-          updatedNodes.push({
-            id: target,
-            data: { label: target, kgName: '', gptName: target },
-            position: { x: 0, y: 0 },
-            type: 'default',
-            category: 'NotFind',
-            style: {
-              opacity: 1,
-              background: categoryColorMapping['NotFind']
-            },
-            step: currentStep,
-          })
-        }
-        if (!targetNode || !sourceNode){
-          updatedEdges.push({
-            id: `e${source}-${target}`,
-            source: source,
-            target: target,
-            label: relation,
-            data: { papers: { [relation]: [] } },
-            type: 'custom',
-            category: 'NotFind',
-            step: currentStep,
-            style: { opacity: 1 }
-          })
-        }
-      })
-      setNodes(updatedNodes)
-      setEdges(updatedEdges)
+  //     // gptTriples.forEach((triple, i) => {
+  //     //   const [source, relation, target] = triple
+  //     //   const sourceNode = updatedNodes.find(node => node.data.gptName.toLowerCase() === source.toLowerCase())
+  //     //   const targetNode = updatedNodes.find(node => node.data.gptName.toLowerCase() === target.toLowerCase())
+  //     //   if (sourceNode && targetNode) {
+  //     //     const edgeId = `e${sourceNode.id}-${targetNode.id}`
+  //     //     const edgeRevId = `e${targetNode.id}-${sourceNode.id}`
+  //     //     var findEdgeIndex = updatedEdges.findIndex(edge => edge.id === edgeId || edge.id === edgeRevId)
+  //     //     if (findEdgeIndex === -1) {
+  //     //       updatedEdges.push({
+  //     //         id: edgeId,
+  //     //         source: sourceNode.id,
+  //     //         target: targetNode.id,
+  //     //         label: relation,
+  //     //         data: { papers: { [relation]: [] } },
+  //     //         type: 'custom',
+  //     //         category: 'NotFind',
+  //     //         step: currentStep,
+  //     //         style: { opacity: 1 }
+  //     //       })
+  //     //     }else{
+  //     //       updatedEdges[findEdgeIndex] =  {
+  //     //         ...updatedEdges[findEdgeIndex],
+  //     //         label: relation, // use gpt relation
+  //     //       }
+  //     //     }
+  //     //   }
+  //     //   if (!sourceNode){
+  //     //     updatedNodes.push({
+  //     //       id: source,
+  //     //       data: { label: source, kgName: '', gptName: source },
+  //     //       position: { x: 0, y: 0 },
+  //     //       type: 'default',
+  //     //       category: 'NotFind', 
+  //     //       style: {
+  //     //         opacity: 1,
+  //     //         background: categoryColorMapping['NotFind'],
+  //     //       },
+  //     //       step: currentStep,
+  //     //     })
+  //     //   }
+  //     //   if (!targetNode){
+  //     //     updatedNodes.push({
+  //     //       id: target,
+  //     //       data: { label: target, kgName: '', gptName: target },
+  //     //       position: { x: 0, y: 0 },
+  //     //       type: 'default',
+  //     //       category: 'NotFind',
+  //     //       style: {
+  //     //         opacity: 1,
+  //     //         background: categoryColorMapping['NotFind']
+  //     //       },
+  //     //       step: currentStep,
+  //     //     })
+  //     //   }
+  //     //   if (!targetNode || !sourceNode){
+  //     //     updatedEdges.push({
+  //     //       id: `e${source}-${target}`,
+  //     //       source: source,
+  //     //       target: target,
+  //     //       label: relation,
+  //     //       data: { papers: { [relation]: [] } },
+  //     //       type: 'custom',
+  //     //       category: 'NotFind',
+  //     //       step: currentStep,
+  //     //       style: { opacity: 1 }
+  //     //     })
+  //     //   }
+  //     // })
+  //     setNodes(updatedNodes)
+  //     setEdges(updatedEdges)
       
 
-      // setNodes(currentNodes => {
-      //   const updatedNodes = [...currentNodes]
-      //   newNodes.forEach(newNode => {
-      //     if (!updatedNodes.find(node => node.id === newNode.id)) {
-      //       updatedNodes.push({
-      //         ...newNode,
-      //         position: { x: Math.random() * 400, y: Math.random() * 400 },
-      //         step: currentStep
-      //       })
-      //     }
-      //   })
-      //   return updatedNodes
-      // })
+  //     // setNodes(currentNodes => {
+  //     //   const updatedNodes = [...currentNodes]
+  //     //   newNodes.forEach(newNode => {
+  //     //     if (!updatedNodes.find(node => node.id === newNode.id)) {
+  //     //       updatedNodes.push({
+  //     //         ...newNode,
+  //     //         position: { x: Math.random() * 400, y: Math.random() * 400 },
+  //     //         step: currentStep
+  //     //       })
+  //     //     }
+  //     //   })
+  //     //   return updatedNodes
+  //     // })
 
-      // setEdges(currentEdges => {
-      //   const updatedEdges = [...currentEdges]
-      //   newEdges.forEach(newEdge => {
-      //     if (!updatedEdges.find(edge => edge.id === newEdge.id)) {
-      //       updatedEdges.push({ ...newEdge, step: currentStep })
-      //     }
-      //   })
-      //   gptTriples.current.forEach((triple, i) => {
-      //     const [source, relation, target] = triple
+  //     // setEdges(currentEdges => {
+  //     //   const updatedEdges = [...currentEdges]
+  //     //   newEdges.forEach(newEdge => {
+  //     //     if (!updatedEdges.find(edge => edge.id === newEdge.id)) {
+  //     //       updatedEdges.push({ ...newEdge, step: currentStep })
+  //     //     }
+  //     //   })
+  //     //   gptTriples.current.forEach((triple, i) => {
+  //     //     const [source, relation, target] = triple
 
-      //   })
-      //   return updatedEdges
-      // })
+  //     //   })
+  //     //   return updatedEdges
+  //     // })
+  //   },
+  //   [setNodes, setEdges]
+  // )
+
+  const appendDataToFlow = useCallback(
+    (newData: { vis_res: any[] }, currentStep: any) => {
+      const { nodes: newNodes, edges: newEdges } = convertBackendDataToFlowElements(
+        newData,
+        currentStep
+      )
+
+      setNodes(currentNodes => {
+        const updatedNodes = [...currentNodes]
+        newNodes.forEach(newNode => {
+          if (!updatedNodes.find(node => node.id === newNode.id)) {
+            updatedNodes.push({
+              ...newNode,
+              position: { x: Math.random() * 400, y: Math.random() * 400 },
+              step: currentStep
+            })
+          }
+        })
+        return updatedNodes
+      })
+
+      setEdges(currentEdges => {
+        const updatedEdges = [...currentEdges]
+        newEdges.forEach(newEdge => {
+          if (!updatedEdges.find(edge => edge.id === newEdge.id)) {
+            updatedEdges.push({ ...newEdge, step: currentStep })
+          }
+        })
+        return updatedEdges
+      })
     },
     [setNodes, setEdges]
   )
