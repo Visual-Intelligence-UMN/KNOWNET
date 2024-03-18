@@ -55,6 +55,7 @@ export async function POST(req: Request) {
   You are an expert in healthcare domain and need to help user to answer the healthcare related questions.
   After the response, please summary the entity/terms and their relations (tripes) in your response.
   The entities/terms can only be the following types: Dietary Supplement, Drugs, Disease, Symptom, Gene.
+  Use exactly the same name for summaring the entities/terms and their relations as used in your responses
   Keep your response short and concise, and the number of triples mentioned in the response should be less than ${num_triples}.
   Please return your response in four parts: 
   the 1st part is your response to user question; 

@@ -11,11 +11,12 @@ import { CodeBlock } from '@/components/ui/codeblock'
 import { MemoizedReactMarkdown } from '@/components/markdown'
 import { IconOpenAI, IconUser } from '@/components/ui/icons'
 import { ChatMessageActions } from '@/components/chat-message-actions'
-import { CustomGraphNode } from '@/lib/types'
+import { CustomGraphEdge, CustomGraphNode } from '@/lib/types'
 
 export interface ChatMessageProps {
   message: Message
   nodes: CustomGraphNode[]
+  edges: CustomGraphEdge[]
   clickedNode: any
 }
 
@@ -23,6 +24,7 @@ export interface ChatMessageProps {
 export function ChatMessage({
   message,
   nodes,
+  edges,
   clickedNode,
   ...props
 }: ChatMessageProps) {
@@ -120,6 +122,14 @@ export function ChatMessage({
           `<mark class="${tailwindClasses}" style="background-color:${categoryColorMapping[category]}; color: black">$1</mark>`
         )
       }
+    })
+
+    edges.forEach(edge => {
+      processedContent = processedContent.replace(
+        edge.label as string,
+        `<mark class="underline bg-white">${edge.label}</mark>`
+      )
+      
     })
 
     return processedContent

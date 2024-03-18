@@ -3,11 +3,13 @@ import React, { use, useCallback, useEffect } from 'react'
 import { Message } from 'ai'
 import { ChatMessage } from '@/components/chat-message'
 import { useViewMode } from '@/components/ui/view-mode'
+import { CustomGraphEdge, CustomGraphNode } from '@/lib/types'
 
 export interface ChatListProps {
   messages: Message[]
   activeStep: number
-  nodes: any
+  nodes: CustomGraphNode[]
+  edges: CustomGraphEdge[]
   clickedNode: any
 }
 
@@ -15,6 +17,7 @@ export function ChatList({
   messages,
   activeStep,
   nodes,
+  edges,
   clickedNode,
 }: ChatListProps) {
   const { isPaneView } = useViewMode()
@@ -34,6 +37,7 @@ export function ChatList({
                 key={index}
                 message={message}
                 nodes={message.role=='user'?[]:nodes}
+                edges={message.role=='user'?[]:edges}
                 clickedNode={clickedNode}
               />
             ))}
@@ -45,6 +49,7 @@ export function ChatList({
               key={index}
               message={message}
               nodes={message.role=='user'?[]:nodes}
+              edges={message.role=='user'?[]:edges}
               clickedNode={clickedNode}
             />
           ))}

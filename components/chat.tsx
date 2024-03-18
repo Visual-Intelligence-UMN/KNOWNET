@@ -46,7 +46,8 @@ import {
   recommendationsAtom,
   backendDataAtom,
   keywordsListAnswerAtom,
-  keywordsListQuestionAtom
+  keywordsListQuestionAtom,
+  gptTriplesAtom
 } from '@/lib/state'
 import { fetchBackendData, categoryColorMapping } from '@/lib/utils'
 import dagre from 'dagre'
@@ -145,6 +146,7 @@ export function Chat({ id, initialMessages }: ChatProps) {
   const [keywordsQuestion, setKeywordsQuestion] = useAtom(
     keywordsListQuestionAtom
   )
+  const [gptTriples, setGptTriples] = useAtom(gptTriplesAtom)
 
   const router = useRouter()
   const path = usePathname()
@@ -217,6 +219,10 @@ export function Chat({ id, initialMessages }: ChatProps) {
       //   secondPart.match(/\[(.*?)\]/)?.[1].split(' | ') || []
       // const newkeywordsListQuestion =
       //   thirdPart.match(/\[(.*?)\]/)?.[1].split(' | ') || []
+
+      if(secondPart.length> 0){
+        setGptTriples(secondPart)
+      }
 
       const newkeywordsListAnswer = [... new Set( secondPart.map((d:string[])=>[d[0], d[2]]).flat())]
       const newkeywordsListQuestion = thirdPart
@@ -384,29 +390,114 @@ export function Chat({ id, initialMessages }: ChatProps) {
         currentStep
       )
 
-      setNodes(currentNodes => {
-        const updatedNodes = [...currentNodes]
-        newNodes.forEach(newNode => {
-          if (!updatedNodes.find(node => node.id === newNode.id)) {
-            updatedNodes.push({
-              ...newNode,
-              position: { x: Math.random() * 400, y: Math.random() * 400 },
-              step: currentStep
-            })
-          }
-        })
-        return updatedNodes
+      let updatedNodes = [...nodes], updatedEdges = [...edges]
+      newNodes.forEach(newNode => {
+        if (!updatedNodes.find(node => node.id === newNode.id)) {
+          updatedNodes.push({
+            ...newNode,
+            position: { x: 0, y: 0 },
+            step: currentStep
+          })
+        }
       })
 
-      setEdges(currentEdges => {
-        const updatedEdges = [...currentEdges]
-        newEdges.forEach(newEdge => {
-          if (!updatedEdges.find(edge => edge.id === newEdge.id)) {
-            updatedEdges.push({ ...newEdge, step: currentStep })
-          }
-        })
-        return updatedEdges
+      newEdges.forEach(newEdge => { 
+        if (!updatedEdges.find(edge => edge.id === newEdge.id)) {
+          updatedEdges.push({ ...newEdge, step: currentStep })
+        }
       })
+
+      gptTriples.forEach((triple, i) => {
+        const [source, relation, target] = triple
+        const sourceNode = updatedNodes.find(node => node.data.gptName.toLowerCase() === source.toLowerCase())
+        const targetNode = updatedNodes.find(node => node.data.gptName.toLowerCase() === target.toLowerCase())
+        if (sourceNode && targetNode) {
+          const edgeId = `e${sourceNode.id}-${targetNode.id}`
+          var findEdgeIndex = updatedEdges.findIndex(edge => edge.id === edgeId)
+          if (findEdgeIndex === -1) {
+            updatedEdges.push({
+              id: edgeId,
+              source: sourceNode.id,
+              target: targetNode.id,
+              label: relation,
+              data: { papers: { [relation]: [] } },
+              type: 'custom',
+              category: 'NotFind',
+              step: currentStep,
+              style: { opacity: 1 }
+            })
+          }else{
+            updatedEdges[findEdgeIndex] =  {
+              ...updatedEdges[findEdgeIndex],
+              label: relation, // use gpt relation
+            }
+          }
+        }
+        if (!sourceNode){
+          updatedNodes.push({
+            id: source,
+            data: { label: source, kgName: '', gptName: source },
+            position: { x: 0, y: 0 },
+            type: 'default',
+            category: 'NotFind', 
+            style: {
+              opacity: 1,
+              background: '#ffffff',
+              border: '1px solid #222'
+            },
+            step: currentStep,
+          })
+        }
+        if (!targetNode){
+          updatedNodes.push({
+            id: target,
+            data: { label: target, kgName: '', gptName: target },
+            position: { x: 0, y: 0 },
+            type: 'default',
+            category: 'gptNode',
+            style: {
+              opacity: 1,
+              background: '#ffffff',
+              border: '1px solid #222'
+            },
+            step: currentStep,
+          })
+        }
+      })
+
+      console.info('Updated Nodes:', updatedNodes, 'Updated Edges:', updatedEdges, gptTriples)
+
+      setNodes(updatedNodes)
+      setEdges(updatedEdges)
+      
+
+      // setNodes(currentNodes => {
+      //   const updatedNodes = [...currentNodes]
+      //   newNodes.forEach(newNode => {
+      //     if (!updatedNodes.find(node => node.id === newNode.id)) {
+      //       updatedNodes.push({
+      //         ...newNode,
+      //         position: { x: Math.random() * 400, y: Math.random() * 400 },
+      //         step: currentStep
+      //       })
+      //     }
+      //   })
+      //   return updatedNodes
+      // })
+
+      // setEdges(currentEdges => {
+      //   const updatedEdges = [...currentEdges]
+      //   newEdges.forEach(newEdge => {
+      //     if (!updatedEdges.find(edge => edge.id === newEdge.id)) {
+      //       updatedEdges.push({ ...newEdge, step: currentStep })
+      //     }
+      //   })
+      //   gptTriples.current.forEach((triple, i) => {
+      //     const [source, relation, target] = triple
+
+      //   })
+      //   return updatedEdges
+      // })
     },
     [setNodes, setEdges]
   )
@@ -489,11 +580,12 @@ export function Chat({ id, initialMessages }: ChatProps) {
     }
   }, [backendData, appendDataToFlow, setRecommendations, activeStep])
 
-  useEffect(() => {
-    // Perform actions based on updated keywordsAnswer and keywordsQuestion
-    console.log('Keywords Answer Updated:', keywordsAnswer)
-    console.log('Keywords Question Updated:', keywordsQuestion)
-  }, [keywordsAnswer, keywordsQuestion])
+  // useEffect(() => {
+  //   // Perform actions based on updated keywordsAnswer and keywordsQuestion
+  //   console.log('Keywords Answer Updated:', keywordsAnswer)
+  //   console.log('Keywords Question Updated:', keywordsQuestion)
+  //   console.info('GPT Triples:', gptTriples.current)
+  // }, [keywordsAnswer, keywordsQuestion])
 
   const StopRegenerateButton = isLoading ? (
     <Button
@@ -514,13 +606,6 @@ export function Chat({ id, initialMessages }: ChatProps) {
     >
       <IconRefresh className="mr-2" /> Regenerate
     </Button>
-  )
-
-  const customEdgeTypes = useMemo(
-    () => ({
-      custom: CustomEdge
-    }),
-    []
   )
 
   useEffect(() => {
@@ -588,6 +673,7 @@ export function Chat({ id, initialMessages }: ChatProps) {
                   messages={messages}
                   activeStep={activeStep}
                   nodes={nodes}
+                  edges={edges}
                   clickedNode={clickedNode}
                 />
                 {StopRegenerateButton}
