@@ -40,6 +40,10 @@ export interface ChatPanelProps
     keywordsAnswer: string[],
     keywordsQuestion: string[]
   ) => void
+  firstConversation?: (
+    keywordsAnswer: string[],
+    keywordsQuestion: string[]
+  ) => void
 }
 
 export function ChatPanel({
@@ -53,7 +57,8 @@ export function ChatPanel({
   setInput,
   activeStep,
   messages,
-  continueConversation
+  continueConversation,
+  firstConversation
 }: ChatPanelProps) {
   const [recommendations, setRecommendations] = useAtom(recommendationsAtom)
   const [keywordsListAnswer] = useAtom(keywordsListAnswerAtom)
@@ -100,6 +105,24 @@ export function ChatPanel({
     }
   }
 
+  // Adjust PromptForm's onSubmit prop
+  const handlePromptSubmit = async (value: string) => {
+    await append({
+      id,
+      content: value,
+      role: 'user'
+    })
+
+    // Use the current value of the refs, which is always up-to-date
+    const currentKeywordsAnswer = keywordsAnswerRef.current
+    const currentKeywordsQuestion = keywordsQuestionRef.current
+
+    // Call continueConversation, using -1 as recommendation id(since the textinpu is customized by user)
+    if (firstConversation) {
+      firstConversation(currentKeywordsAnswer, currentKeywordsQuestion)
+    }
+  }
+
   const isRecomendationsHiding =
     isLoading || activeStep < messages.length / 2 - 1
 
@@ -113,19 +136,22 @@ export function ChatPanel({
   const TopRecommendations =
     !isRecomendationsHiding &&
     topRecommendations?.map(rec => (
-      <Button
-        key={rec.id}
-        variant="outline"
-
-        className="m-2"
-        title={rec.text}
-      >
-        <p className="py-3 px-2 text-[5px] sm:text-sm" 
+      <Button key={rec.id} variant="outline" className="m-2" title={rec.text}>
+        <p
+          className="py-3 px-2 text-[5px] sm:text-sm"
           onClick={async () => {
             handleContextButtonClick(rec.text, rec.id)
           }}
-        >{rec.text}</p>
-        <IconClose className="size-4 ml-1" onClick={(e) => { e.stopPropagation(); removeRecommendation(rec.id)}} />
+        >
+          {rec.text}
+        </p>
+        <IconClose
+          className="size-4 ml-1"
+          onClick={e => {
+            e.stopPropagation()
+            removeRecommendation(rec.id)
+          }}
+        />
       </Button>
     ))
 
@@ -173,13 +199,7 @@ export function ChatPanel({
           </div>
 
           <PromptForm
-            onSubmit={async value => {
-              await append({
-                id,
-                content: value,
-                role: 'user'
-              })
-            }}
+            onSubmit={handlePromptSubmit}
             input={input}
             setInput={setInput}
             isLoading={isLoading}

@@ -204,8 +204,8 @@ export function Chat({ id, initialMessages }: ChatProps) {
 
       const parts = message.content.split(' || ')
       const firstPart = parts[0]
-      const secondPart:string[][] = JSON.parse(parts[1] || '') // a list of triplets, Array<[source, relation, target]>
-      const thirdPart:string[] = JSON.parse(parts[2] || '') // a list of entities
+      const secondPart: string[][] = JSON.parse(parts[1] || '') // a list of triplets, Array<[source, relation, target]>
+      const thirdPart: string[] = JSON.parse(parts[2] || '') // a list of entities
 
       // // Debugging the parts
       // console.log('Chat First Part:', firstPart)
@@ -218,12 +218,12 @@ export function Chat({ id, initialMessages }: ChatProps) {
       // const newkeywordsListQuestion =
       //   thirdPart.match(/\[(.*?)\]/)?.[1].split(' | ') || []
 
-      const newkeywordsListAnswer = [... new Set( secondPart.map((d:string[])=>[d[0], d[2]]).flat())]
+      const newkeywordsListAnswer = [
+        ...new Set(secondPart.map((d: string[]) => [d[0], d[2]]).flat())
+      ]
       const newkeywordsListQuestion = thirdPart
       setKeywordsAnswer(newkeywordsListAnswer)
       setKeywordsQuestion(newkeywordsListQuestion)
-
-      
 
       // console.log('set Chat Keywords List Answer:', keywordsAnswer)
       // console.log('set Chat Keywords List Question:', keywordsQuestion)
@@ -267,7 +267,7 @@ export function Chat({ id, initialMessages }: ChatProps) {
   // Helper function to convert backend data to React Flow nodes and edges
 
   const convertBackendDataToFlowElements = (
-    data: BackendData["data"],
+    data: BackendData['data'],
     currentStep: number
   ) => {
     const nodes: CustomGraphNode[] = []
@@ -279,62 +279,58 @@ export function Chat({ id, initialMessages }: ChatProps) {
       console.warn('Data is not in the expected format or is null:', data)
       return { nodes, edges }
     }
-    
 
     data.vis_res.forEach(graph => {
-      graph.nodes.forEach(
-        (node) => {
-          if (!nodeIds.has(node.id)) {
-            const nodeColor = categoryColorMapping[node.category] || '#ffffff' // White as default color
-            nodes.push({
-              id: node.id,
-              data: { label: node.name, kgName: node.name, gptName: data.node_name_mapping[node.name] },
-              position: { x: 0, y: 0 },
-              type: 'default',
-              category: node.category,
-              style: {
-                opacity: 1,
-                background: nodeColor,
-                border: '1px solid #222'
-              },
-              step: currentStep,
-            })
-            nodeIds.add(node.id)
-          }
+      graph.nodes.forEach(node => {
+        if (!nodeIds.has(node.id)) {
+          const nodeColor = categoryColorMapping[node.category] || '#ffffff' // White as default color
+          nodes.push({
+            id: node.id,
+            data: {
+              label: node.name,
+              kgName: node.name,
+              gptName: data.node_name_mapping[node.name]
+            },
+            position: { x: 0, y: 0 },
+            type: 'default',
+            category: node.category,
+            style: {
+              opacity: 1,
+              background: nodeColor,
+              border: '1px solid #222'
+            },
+            step: currentStep
+          })
+          nodeIds.add(node.id)
         }
-      )
+      })
 
-      graph.edges.forEach(
-        (
-          edge,
-          index: any
-        ) => {
-          // const edgeId = `e${edge.Source}-${edge.Target}-${edge.Type}`
-          const edgeId = `e${edge.source}-${edge.target}`
-          const edgeRevId = `e${edge.target}-${edge.source}`
-          if (!edgeIds.has(edgeId) && !edgeIds.has(edgeRevId)) {
-            edges.push({
-              id: edgeId,
-              source: edge.source,
-              target: edge.target,
-              label: edge.category, // use the first edge type as label
-              data: { papers: { [edge.category]: [edge.PubMed_ID] } },
-              // type: 'smoothstep',
-              type: 'custom',
-              step: currentStep,
-              style: { opacity: 1 },
-            })
-            edgeIds.add(edgeId)
+      graph.edges.forEach((edge, index: any) => {
+        // const edgeId = `e${edge.Source}-${edge.Target}-${edge.Type}`
+        const edgeId = `e${edge.source}-${edge.target}`
+        const edgeRevId = `e${edge.target}-${edge.source}`
+        if (!edgeIds.has(edgeId) && !edgeIds.has(edgeRevId)) {
+          edges.push({
+            id: edgeId,
+            source: edge.source,
+            target: edge.target,
+            label: edge.category, // use the first edge type as label
+            data: { papers: { [edge.category]: [edge.PubMed_ID] } },
+            // type: 'smoothstep',
+            type: 'custom',
+            step: currentStep,
+            style: { opacity: 1 }
+          })
+          edgeIds.add(edgeId)
+        } else {
+          var existEdge = edges.find(e => e.id === edgeId)
+          if (existEdge!['data']['papers'][edge.category]) {
+            existEdge!['data']['papers'][edge.category].push(edge.PubMed_ID)
           } else {
-            var existEdge = edges.find(e => e.id === edgeId)
-            if (existEdge!['data']['papers'][edge.category]) {
-              existEdge!['data']['papers'][edge.category].push(edge.PubMed_ID)
-            } else {
-              existEdge!['data']['papers'][edge.category] = [edge.PubMed_ID]
-            }
+            existEdge!['data']['papers'][edge.category] = [edge.PubMed_ID]
           }
         }
-      )
+      })
     })
     setIsLoadingBackendData(false)
     return { nodes, edges }
@@ -352,7 +348,11 @@ export function Chat({ id, initialMessages }: ChatProps) {
   const updateLayout = useCallback(
     (direction = layoutDirection) => {
       const { nodes: layoutedNodes, edges: layoutedEdges } =
-        getLayoutedElements(nodes as CustomGraphNode[], edges as CustomGraphEdge[], direction)
+        getLayoutedElements(
+          nodes as CustomGraphNode[],
+          edges as CustomGraphEdge[],
+          direction
+        )
       setNodes(layoutedNodes)
       setEdges(layoutedEdges)
 
@@ -378,11 +378,9 @@ export function Chat({ id, initialMessages }: ChatProps) {
   }, [activeStep])
 
   const appendDataToFlow = useCallback(
-    (newData: BackendData["data"], currentStep: number) => {
-      const { nodes: newNodes, edges: newEdges } = convertBackendDataToFlowElements(
-        newData,
-        currentStep
-      )
+    (newData: BackendData['data'], currentStep: number) => {
+      const { nodes: newNodes, edges: newEdges } =
+        convertBackendDataToFlowElements(newData, currentStep)
 
       setNodes(currentNodes => {
         const updatedNodes = [...currentNodes]
@@ -597,10 +595,8 @@ export function Chat({ id, initialMessages }: ChatProps) {
           </>
         ) : (
           <EmptyScreen setInput={setInput} id={id!} append={append} />
-        )
-       
-        }
-         <ChatPanel
+        )}
+        <ChatPanel
           id={id}
           isLoading={isLoading || isLoadingBackendData}
           activeStep={activeStep}
@@ -611,6 +607,7 @@ export function Chat({ id, initialMessages }: ChatProps) {
           input={input}
           setInput={setInput}
           continueConversation={continueConversation}
+          firstConversation={firstConversation}
         />
       </div>
 
