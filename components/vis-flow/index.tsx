@@ -16,7 +16,7 @@ import {
 } from 'reactflow'
 import 'reactflow/dist/style.css'
 import CustomEdge from './customEdge' // Ensure this path is correct
-import { Button } from './ui/button'
+import { Button } from '../ui/button'
 import { Spinner } from '@material-tailwind/react'
 import { Progress } from '@material-tailwind/react'
 import { useAtom } from 'jotai'

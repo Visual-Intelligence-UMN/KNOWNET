@@ -1,7 +1,7 @@
 import React, { FC } from 'react';
 import { Tooltip , Typography, Popover, PopoverHandler, PopoverContent} from '@material-tailwind/react';
 import { EdgeProps, getBezierPath, EdgeLabelRenderer, BaseEdge } from 'reactflow';
-import { IconExternalLink } from './ui/icons';
+import { IconExternalLink } from '../ui/icons';
 
 const CustomEdge: FC<EdgeProps> = ({
     id,

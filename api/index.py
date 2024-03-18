@@ -43,6 +43,7 @@ def hello_world():
 @app.route("/api/chat", methods=["POST"])
 def post_chat_message():
     data = request.json
+    print(data)
     input_type = data.get("input_type")
     user_id = data.get("userId")
     keywords_list_answer = data.get("data", {}).get("keywords_list_answer")

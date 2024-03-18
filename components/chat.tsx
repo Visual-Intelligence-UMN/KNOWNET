@@ -50,8 +50,8 @@ import {
 } from '@/lib/state'
 import { fetchBackendData, categoryColorMapping } from '@/lib/utils'
 import dagre from 'dagre'
-import FlowComponent from './flow-component'
-import CustomEdge from './customEdge'
+import FlowComponent from './vis-flow'
+import CustomEdge from './vis-flow/customEdge'
 import { BackendData, CustomGraphEdge, CustomGraphNode } from '@/lib/types'
 // const IS_PREVIEW = process.env.VERCEL_ENV === 'preview'
 
@@ -142,7 +142,7 @@ export function Chat({ id, initialMessages }: ChatProps) {
   const [recommendations, setRecommendations] = useAtom(recommendationsAtom)
   const [backendData, setBackendData] = useAtom(backendDataAtom)
   const [keywordsAnswer, setKeywordsAnswer] = useAtom(keywordsListAnswerAtom)
-  const [keywordsQuestion, setKeywordsListQuestion] = useAtom(
+  const [keywordsQuestion, setKeywordsQuestion] = useAtom(
     keywordsListQuestionAtom
   )
 
@@ -207,23 +207,24 @@ export function Chat({ id, initialMessages }: ChatProps) {
       const secondPart:string[][] = JSON.parse(parts[1] || '') // a list of triplets, Array<[source, relation, target]>
       const thirdPart:string[] = JSON.parse(parts[2] || '') // a list of entities
 
-      // Debugging the parts
-      console.log('Chat First Part:', firstPart)
-      console.log('Chat Second Part:', secondPart)
-      console.log('Chat Third Part:', thirdPart)
+      // // Debugging the parts
+      // console.log('Chat First Part:', firstPart)
+      // console.log('Chat Second Part:', secondPart)
+      // console.log('Chat Third Part:', thirdPart)
 
       // Adjusting the regex pattern to be more flexible
       // const newkeywordsListAnswer =
       //   secondPart.match(/\[(.*?)\]/)?.[1].split(' | ') || []
       // const newkeywordsListQuestion =
       //   thirdPart.match(/\[(.*?)\]/)?.[1].split(' | ') || []
+      
       const newkeywordsListAnswer = [... new Set( secondPart.map((d:string[])=>[d[0], d[2]]).flat())]
       const newkeywordsListQuestion = thirdPart
       setKeywordsAnswer(newkeywordsListAnswer)
-      setKeywordsListQuestion(newkeywordsListQuestion)
+      setKeywordsQuestion(newkeywordsListQuestion)
 
-      console.log('set Chat Keywords List Answer:', keywordsAnswer)
-      console.log('set Chat Keywords List Question:', keywordsQuestion)
+      // console.log('set Chat Keywords List Answer:', keywordsAnswer)
+      // console.log('set Chat Keywords List Question:', keywordsQuestion)
       if (recommendations.length === 0) {
         firstConversation(newkeywordsListAnswer, newkeywordsListQuestion)
       }
@@ -234,6 +235,7 @@ export function Chat({ id, initialMessages }: ChatProps) {
   const withFetchBackendData = async (payload: any) => {
     setIsLoadingBackendData(true)
     const data = await fetchBackendData(payload)
+    console.info('Backend Data:', data)
     return data
   }
 
