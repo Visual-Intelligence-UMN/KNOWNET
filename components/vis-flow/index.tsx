@@ -89,12 +89,12 @@ const FlowComponent = ({
   useEffect(() => {
     if (recommendations && recommendations.length > totalRecommendations) {
       setTotalRecommendations(recommendations.length)
-      const exploredRecommendations =
-        totalRecommendations - recommendations.length
-      const progressPercentage =
-        (exploredRecommendations / totalRecommendations) * 100
-      setProgress(progressPercentage)
     }
+    const exploredRecommendations =
+      totalRecommendations - recommendations.length
+    const progressPercentage =
+      (exploredRecommendations / totalRecommendations) * 100
+    setProgress(progressPercentage)
   }, [recommendations, totalRecommendations])
 
   return (
