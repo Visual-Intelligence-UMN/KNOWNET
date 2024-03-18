@@ -15,7 +15,7 @@ export function ChatList({
   messages,
   activeStep,
   nodes,
-  clickedNode
+  clickedNode,
 }: ChatListProps) {
   const { isPaneView } = useViewMode()
 
@@ -33,7 +33,7 @@ export function ChatList({
               <ChatMessage
                 key={index}
                 message={message}
-                nodes={nodes}
+                nodes={message.role=='user'?[]:nodes}
                 clickedNode={clickedNode}
               />
             ))}
@@ -44,7 +44,7 @@ export function ChatList({
             <ChatMessage
               key={index}
               message={message}
-              nodes={nodes}
+              nodes={message.role=='user'?[]:nodes}
               clickedNode={clickedNode}
             />
           ))}
