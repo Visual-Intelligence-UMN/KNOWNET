@@ -48,11 +48,11 @@ import {
   keywordsListAnswerAtom,
   keywordsListQuestionAtom
 } from '@/lib/state'
-import { fetchBackendData } from '@/lib/utils'
+import { fetchBackendData, categoryColorMapping } from '@/lib/utils'
 import dagre from 'dagre'
 import FlowComponent from './flow-component'
 import CustomEdge from './customEdge'
-import { BackendData, CustomGraphNode } from '@/lib/types'
+import { BackendData, CustomGraphEdge, CustomGraphNode } from '@/lib/types'
 // const IS_PREVIEW = process.env.VERCEL_ENV === 'preview'
 
 // Initialize dagre graph for layout calculations
@@ -64,7 +64,7 @@ const nodeHeight = 36
 // Function to apply dagre layout to nodes and edges
 const getLayoutedElements = (
   nodes: CustomGraphNode[],
-  edges: any[],
+  edges: CustomGraphEdge[],
   direction = 'TB'
 ) => {
   const isHorizontal = direction === 'LR'
@@ -266,27 +266,8 @@ export function Chat({ id, initialMessages }: ChatProps) {
     data: BackendData["data"],
     currentStep: any
   ) => {
-    const nodes: {
-      id: any
-      data: { label: string, gptName: string }
-      label: any
-      position: { x: number; y: number }
-      type: string
-      style: React.CSSProperties
-      step: number
-    }[] = []
-    const edges: {
-      id: string
-      source: any
-      target: any
-      label: any
-      type: string
-      style: React.CSSProperties
-      data: {
-        papers: { [key: string]: string[] }
-      } // key is the edge relation, value is the url link
-      step: number
-    }[] = []
+    const nodes: CustomGraphNode[] = []
+    const edges: CustomGraphEdge[] = []
     const nodeIds = new Set()
     const edgeIds = new Set()
 
@@ -294,44 +275,28 @@ export function Chat({ id, initialMessages }: ChatProps) {
       console.warn('Data is not in the expected format or is null:', data)
       return { nodes, edges }
     }
-    const labelColorMapping: { [key: string]: string } = {
-      'Dietary Supplement': '#4e79a7', // Blue
-      Disorders: '#f28e2c', // Orange
-      Drug: '#e15759', // Red
-      'Genes & Molecular Sequences': '#76b7b2', // Cyan
-      Anatomy: '#59a14f', // Green
-      'Living Beings': '#edc949', // Yellow
-      Physiology: '#af7aa1', // Purple
-      'Chemicals & Drugs': '#ff9da7', // Pink
-      Procedures: '#9c755f', // Brown
-      'Activities & Behaviors': '#bab0ab', // Gray
-      'Concepts & Ideas': '#4e79a7', // Blue
-      Device: '#f28e2c', // Orange
-      Object: '#e15759', // Red
-      Organization: '#76b7b2', // Cyan
-      Phenomenon: '#59a14f' // Green
-      // Add more label types and colors as needed
-    }
+    
 
     data.vis_res.forEach(graph => {
       graph.nodes.forEach(
         (node) => {
-          if (!nodeIds.has(node.Node_ID)) {
-            const nodeColor = labelColorMapping[node.Label] || '#ffffff' // White as default color
+          if (!nodeIds.has(node.id)) {
+            const nodeColor = categoryColorMapping[node.category] || '#ffffff' // White as default color
             nodes.push({
-              id: node.Node_ID.toString(),
-              data: { label: node.Name, gptName: data.node_name_mapping[node.Name] },
-              position: { x: Math.random() * 400, y: Math.random() * 400 },
+              id: node.id,
+              data: { label: node.name, kgName: node.name, gptName: data.node_name_mapping[node.name] },
+              position: { x: 0, y: 0 },
               type: 'default',
-              label: node.Label,
+              category: node.category,
               style: {
                 opacity: 1,
                 background: nodeColor,
                 border: '1px solid #222'
               },
-              step: currentStep
+              step: currentStep,
+              Node_ID: ''
             })
-            nodeIds.add(node.Node_ID)
+            nodeIds.add(node.id)
           }
         }
       )
@@ -342,27 +307,27 @@ export function Chat({ id, initialMessages }: ChatProps) {
           index: any
         ) => {
           // const edgeId = `e${edge.Source}-${edge.Target}-${edge.Type}`
-          const edgeId = `e${edge.Source}-${edge.Target}`
-          const edgeRevId = `e${edge.Target}-${edge.Source}`
+          const edgeId = `e${edge.source}-${edge.target}`
+          const edgeRevId = `e${edge.target}-${edge.source}`
           if (!edgeIds.has(edgeId) && !edgeIds.has(edgeRevId)) {
             edges.push({
               id: edgeId,
-              source: edge.Source.toString(),
-              target: edge.Target.toString(),
-              label: edge.Type, // use the first edge type as label
-              data: { papers: { [edge.Type]: [edge.PubMed_ID] } },
+              source: edge.source,
+              target: edge.target,
+              label: edge.category, // use the first edge type as label
+              data: { papers: { [edge.category]: [edge.PubMed_ID] } },
               // type: 'smoothstep',
               type: 'custom',
               step: currentStep,
-              style: { opacity: 1 }
+              style: { opacity: 1 },
             })
             edgeIds.add(edgeId)
           } else {
             var existEdge = edges.find(e => e.id === edgeId)
-            if (existEdge!['data']['papers'][edge.Type]) {
-              existEdge!['data']['papers'][edge.Type].push(edge.PubMed_ID)
+            if (existEdge!['data']['papers'][edge.category]) {
+              existEdge!['data']['papers'][edge.category].push(edge.PubMed_ID)
             } else {
-              existEdge!['data']['papers'][edge.Type] = [edge.PubMed_ID]
+              existEdge!['data']['papers'][edge.category] = [edge.PubMed_ID]
             }
           }
         }
@@ -384,7 +349,7 @@ export function Chat({ id, initialMessages }: ChatProps) {
   const updateLayout = useCallback(
     (direction = layoutDirection) => {
       const { nodes: layoutedNodes, edges: layoutedEdges } =
-        getLayoutedElements(nodes as CustomGraphNode[], edges, direction)
+        getLayoutedElements(nodes as CustomGraphNode[], edges as CustomGraphEdge[], direction)
       setNodes(layoutedNodes)
       setEdges(layoutedEdges)
 

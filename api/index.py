@@ -157,17 +157,17 @@ def select_subgraph(cypher_statement, node_id_map, rel_id_map):
             cui = node['CUI']
             if cui not in node_id_map:
                 node_id_map[cui] = cui
-                nodes_res.append({'Node_ID':cui, "CUI": cui, "Name": node['Name'], "Label": node['Label']})
+                nodes_res.append({'id': cui, "name": node['Name'], "category": node['Label']})
             else:
                 # Node already exists, reuse Node_ID from map
-                nodes_res.append({'Node_ID': node_id_map[cui], "CUI": cui, "Name": node['Name'], "Label": node['Label']})
+                nodes_res.append({'id': cui, "name": node['Name'], "category": node['Label']})
 
         for rel in path_rels:
             pubmed_id = rel['PubMed_ID']
             rel_key = (path_nodes[0]['CUI'], path_nodes[1]['CUI'], rel['Type'])
             if pubmed_id not in rel_id_map:
                 rel_id_map[pubmed_id] = pubmed_id
-                rel_res.append({'PubMed_ID': pubmed_id, "Source": node_id_map[path_nodes[0]['CUI']], "Target": node_id_map[path_nodes[1]['CUI']], "Type": rel['Type']})
+                rel_res.append({'PubMed_ID': pubmed_id, "source": node_id_map[path_nodes[0]['CUI']], "target": node_id_map[path_nodes[1]['CUI']], "category": rel['Type']})
             else:
                 # Relationship already exists, reuse PubMed_ID from map
                 existing_pubmed_id = rel_id_map[pubmed_id]

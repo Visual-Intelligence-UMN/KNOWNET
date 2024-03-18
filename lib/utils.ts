@@ -33,6 +33,25 @@ export async function fetcher<JSON = any>(
   return res.json()
 }
 
+export const categoryColorMapping: { [key: string]: string } = {
+  'Dietary Supplement': '#4e79a7', // Blue
+  Disorders: '#f28e2c', // Orange
+  Drug: '#e15759', // Red
+  'Genes & Molecular Sequences': '#76b7b2', // Cyan
+  Anatomy: '#59a14f', // Green
+  'Living Beings': '#edc949', // Yellow
+  Physiology: '#af7aa1', // Purple
+  'Chemicals & Drugs': '#ff9da7', // Pink
+  Procedures: '#9c755f', // Brown
+  'Activities & Behaviors': '#bab0ab', // Gray
+  'Concepts & Ideas': '#4e79a7', // Blue
+  Device: '#f28e2c', // Orange
+  Object: '#e15759', // Red
+  Organization: '#76b7b2', // Cyan
+  Phenomenon: '#59a14f' // Green
+  // Add more label types and colors as needed
+}
+
 export function formatDate(input: string | number | Date): string {
   const date = new Date(input)
   return date.toLocaleDateString('en-US', {

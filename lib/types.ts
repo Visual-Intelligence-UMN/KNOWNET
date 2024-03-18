@@ -1,6 +1,6 @@
 import { type Message } from 'ai'
 
-import { Node as ReactFlowNode } from 'reactflow'
+import { Node as ReactFlowNode, Edge as ReactFlowEdge } from 'reactflow'
 export interface Chat extends Record<string, any> {
   id: string
   title: string
@@ -15,26 +15,42 @@ export interface Chat extends Record<string, any> {
 
 export type ServerActionResult<Result> = Promise<Result | { error: string }>
 
-export interface CustomGraphNode extends ReactFlowNode {
+export type CustomGraphNode = ReactFlowNode & {
   Node_ID: string // Node ID is now a string
-  Label: string
-  group: string
-  Name: string
-  CUI?: string
+  // Label: string
+  // group: string
+  data: { kgName: string, gptName: string, 
+    label: string }
+  category: string
   step?: number
 }
 
-export interface CustomGraphEdge {
-  Source: string // Source and target are now strings
-  Target: string
-  Type: string // Including the type of relationship
-  PubMed_ID: string // PubMed ID for the relation
+export type CustomGraphEdge = ReactFlowEdge & {
+  // Source: string // Source and target are now strings
+  // Target: string
+  // Type: string // Including the type of relationship
   step?: number
+  data: {
+    papers: { [key: string]: string[] }
+  } // key is the edge relation, value is the pubmed url link
+}
+
+export type KGNode = {
+  id: string
+  name: string
+  category: string
+}
+
+export type KGEdge = {  
+  source: string
+  target: string
+  category: string
+  PubMed_ID: string
 }
 
 export interface VisualizationResult {
-  nodes: CustomGraphNode[]
-  edges: CustomGraphEdge[]
+  nodes: KGNode[]
+  edges: KGEdge[]
 }
 
 export interface Recommendation {

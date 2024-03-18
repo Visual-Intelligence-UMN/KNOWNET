@@ -11,10 +11,11 @@ import { CodeBlock } from '@/components/ui/codeblock'
 import { MemoizedReactMarkdown } from '@/components/markdown'
 import { IconOpenAI, IconUser } from '@/components/ui/icons'
 import { ChatMessageActions } from '@/components/chat-message-actions'
+import { CustomGraphNode } from '@/lib/types'
 
 export interface ChatMessageProps {
   message: Message
-  nodes: any
+  nodes: CustomGraphNode[]
   clickedNode: any
 }
 const labelColorMapping: { [key: string]: string } = {
@@ -146,7 +147,7 @@ export function ChatMessage({
   //   category
   // )
   // Consolidated function to apply styles based on nodes and clickedNode
-  function processContent(content: string, nodes: any[], clickedNode: any) {
+  function processContent(content: string, nodes: CustomGraphNode[], clickedNode: any) {
     if (!nodes) {
       return content
     }
@@ -156,10 +157,9 @@ export function ChatMessage({
     nodes.forEach(node => {
       if (node.data?.gptName) {
         const gptName = node.data.gptName
-        console.info(node.data)
         const highlightRegex = new RegExp(`(${gptName})`, 'gi')
         const isNodeClicked = clickedNode?.data?.gptName === gptName
-        const category = node.label
+        const category = node.category
         let tailwindClasses =
           tailwindColorMapping[category] || 'text-gray-600 bg-gray-100'
 
