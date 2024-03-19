@@ -84,7 +84,7 @@ def post_chat_message():
         return jsonify({"status": "error", "message": str(e)}), 500
     
     end_time = time.time()
-    print("Time taken for the request: ", str(end_time - start_time))
+    app.logger.info("Time taken for the request: "+ str(end_time - start_time))
 
     return jsonify(response)
 
@@ -134,8 +134,9 @@ def post_chat_message():
 #     return [first_part, keywords_list_answer, keywords_list_question]
 
 
-def match_KG_nodes(entity_list, query_embeddings):
+def match_KG_nodes_old(entity_list, query_embeddings):
     nodes_list = []
+    start_time = time.time()
     
     for query_embedding, entity in zip(query_embeddings, entity_list):
     # for entity in entity_list:
@@ -143,13 +144,27 @@ def match_KG_nodes(entity_list, query_embeddings):
         normalized_vector = normalize(np.asarray(query_embedding).reshape(1, -1))
         
         similarity_list = cosine_similarity_sklearn(normalized_vector, normalized_embedding)[0]
+
         max_index = np.argmax(similarity_list)
+
         max_similarity = similarity_list[max_index]
         if max_similarity > 0.94:
             nodes_list.append([kg_nodes_embedding.CUI.values[max_index], kg_nodes_embedding.Name.values[max_index], entity])
 
+    app.logger.info("Time taken for the old KG matching: "+ str(time.time() - start_time))
     return nodes_list
 
+def match_KG_nodes(entity_list, similarity_list):
+    nodes_list = []
+    
+    for entity, similarity in zip(entity_list, similarity_list):
+
+        max_index = np.argmax(similarity)
+        max_similarity = similarity[max_index]
+        if max_similarity > 0.94:
+            nodes_list.append([kg_nodes_embedding.CUI.values[max_index], kg_nodes_embedding.Name.values[max_index], entity])
+
+    return nodes_list
 
 def select_subgraph(cypher_statement, node_id_map, rel_id_map):
     uri = neo4j_url
@@ -283,15 +298,17 @@ def agent(keywords_list_answer, keywords_list_question, recommand_id, input_type
     node_id_map = {}  # Maps CUI to Node_ID
     rel_id_map = {}  # Maps (Source_CUI, Target_CUI, Relation_Type) to Relation_ID
     
-    prev_time = time.time()
+    # start_time = time.time()
     
 
     response_data = {"vis_res": []}
 
-    query_embeddings = get_embeddings(keywords_list_answer+keywords_list_question, model="text-embedding-ada-002")
+    # speed up the process by using batch processing
+    query_embeddings = get_embeddings(keywords_list_answer+keywords_list_question, model="text-embedding-ada-002")  
+    normalized_vectors = normalize(np.asarray(query_embeddings))    
+    similarity_list = cosine_similarity_sklearn(normalized_vectors, normalized_embedding)
 
-    # Process for both new and continued conversations
-    nodes_list_answer = match_KG_nodes(keywords_list_answer, query_embeddings[:len(keywords_list_answer)])
+    nodes_list_answer = match_KG_nodes(keywords_list_answer, similarity_list[:len(keywords_list_answer)])
 
     vis_res = visualization(nodes_list_answer, node_id_map, rel_id_map)
 
@@ -301,7 +318,7 @@ def agent(keywords_list_answer, keywords_list_question, recommand_id, input_type
     response_data['node_name_mapping'] = {nodes_list_answer[i][1]: nodes_list_answer[i][2] for i in range(len(nodes_list_answer))}
 
     if input_type == "new_conversation":
-        nodes_list_question = match_KG_nodes(keywords_list_question, query_embeddings[len(keywords_list_answer):])
+        nodes_list_question = match_KG_nodes(keywords_list_question, similarity_list[len(keywords_list_answer):])
 
         add_recommendation_space(nodes_list_question)  # Updates the recommendation space
         recommendation = generate_recommendation()
@@ -327,7 +344,7 @@ def agent(keywords_list_answer, keywords_list_question, recommand_id, input_type
             recommendation = generate_recommendation()
             response_data["recommendation"] = recommendation
 
-    app.logger.info("Time taken for the request: "+ str(time.time() - prev_time))
+    # app.logger.info("Time taken for the agent function: "+ str(time.time() - start_time))
     return response_data
 
 
