@@ -184,7 +184,7 @@ export function Chat({ id, initialMessages }: ChatProps) {
       if (reloadFlag.current) {
         reloadFlag.current = false
       } else if (messages.length !== 0) {
-        setActiveStep(activeStep + 1)
+        setActiveStep(activeStep => activeStep + 1)
       }
     },
     onFinish(message) {
@@ -220,7 +220,7 @@ export function Chat({ id, initialMessages }: ChatProps) {
       //   thirdPart.match(/\[(.*?)\]/)?.[1].split(' | ') || []
 
 
-      setGptTriples(secondPart)
+      setGptTriples(secondPart.map((d: string[]) => [d[0], d[1], d[2], activeStep]))
 
       const newkeywordsListAnswer = [... new Set(secondPart.map((d: string[]) => [d[0], d[2]]).flat())]
       const newkeywordsListQuestion = thirdPart
@@ -486,7 +486,7 @@ export function Chat({ id, initialMessages }: ChatProps) {
     keywordsAnswer: string[],
     keywordsQuestion: string[]
   ) => {
-    setActiveStep(activeStep + 1)
+    // setActiveStep(activeStep => activeStep + 1)
     const payload = {
       input_type: 'continue_conversation',
       userId: id,
