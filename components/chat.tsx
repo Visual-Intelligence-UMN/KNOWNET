@@ -571,7 +571,7 @@ export function Chat({ id, initialMessages }: ChatProps) {
     <Button
       variant="outline"
       onClick={() => stop()}
-      className="absolute right-6 z-10"
+      className="relative left-[60%]"
     >
       <IconStop className="mr-2" /> Stop
     </Button>
@@ -582,7 +582,7 @@ export function Chat({ id, initialMessages }: ChatProps) {
         reloadFlag.current = true
         reload()
       }}
-      className="absolute right-6 z-10 "
+      className="relative left-[60%]"
     >
       <IconRefresh className="mr-2" /> Regenerate
     </Button>
@@ -621,8 +621,23 @@ export function Chat({ id, initialMessages }: ChatProps) {
             />
 
             <div className="md:flex pt-4 md:pt-10">
+
+               {/* Left column for ChatList */}
+               <div className="md:w-1/3 grow overflow-auto">
+                <ChatList
+                  messages={messages}
+                  activeStep={activeStep}
+                  gptTriples={gptTriples}
+                  nodes={nodes}
+                  edges={edges}
+                  clickedNode={clickedNode}
+                />
+                {StopRegenerateButton}
+                <ChatScrollAnchor trackVisibility={isLoading} />
+              </div>
+
               {/* {%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%} */}
-              {/* left column for visualization */}
+              {/* Right column for visualization */}
               {/* {%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%} */}
               <div className="md:w-2/3 top-10 space-y-1 pr-4">
                 <ReactFlowProvider>
@@ -647,19 +662,7 @@ export function Chat({ id, initialMessages }: ChatProps) {
                 </ReactFlowProvider>
               </div>
 
-              {/* Right column for ChatList */}
-              <div className="md:w-1/3 grow overflow-auto">
-                <ChatList
-                  messages={messages}
-                  activeStep={activeStep}
-                  gptTriples={gptTriples}
-                  nodes={nodes}
-                  edges={edges}
-                  clickedNode={clickedNode}
-                />
-                {StopRegenerateButton}
-                <ChatScrollAnchor trackVisibility={isLoading} />
-              </div>
+             
             </div>
           </>
         ) : (
