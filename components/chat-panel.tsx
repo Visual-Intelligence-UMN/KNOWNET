@@ -84,8 +84,8 @@ export function ChatPanel({
       id,
       content:
         'Can you tell me more about ' +
-        contextMessage +
-        ' related to my previous question?',
+        contextMessage + '?',
+        // ' related to my previous question?',
       role: 'user'
     })
 
