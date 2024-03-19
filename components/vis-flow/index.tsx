@@ -105,7 +105,15 @@ const FlowComponent = ({
         height: 'calc(65vh - 1rem)'
       }}
     >
-      {(isLoadingBackendData || isLoading) && (
+      {(isLoading) && (
+        <div className="absolute inset-0 bg-white bg-opacity-[85%] flex flex-wrap justify-center items-center z-10 p-[150px]">
+          <div className='text-gray-700 text-[20px]'>
+            Wait for GPT responding...
+          </div>
+        </div>
+      )}
+
+      {(isLoadingBackendData) && (
         <div className="absolute inset-0 bg-white bg-opacity-[85%] flex flex-wrap justify-center items-center z-10 p-[150px]">
           <Spinner color="blue" className='h-[60px] w-[60px]' />
           <div className='basis-full h-0'></div>
