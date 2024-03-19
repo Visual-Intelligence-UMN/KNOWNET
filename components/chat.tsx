@@ -220,7 +220,14 @@ export function Chat({ id, initialMessages }: ChatProps) {
       //   thirdPart.match(/\[(.*?)\]/)?.[1].split(' | ') || []
 
 
-      setGptTriples(secondPart.map((d: string[]) => [d[0], d[1], d[2], activeStep]))
+      setGptTriples(currentTriples => {
+        var updatedTriples = currentTriples
+        const newTriples: [string, string, string, number][] = secondPart.map((d: string[]) => [d[0], d[1], d[2], activeStep])
+        if (updatedTriples.some(d => d[3] == activeStep)) {
+          updatedTriples = updatedTriples.filter(d => d[3] != activeStep)
+        } 
+        return updatedTriples.concat(newTriples)
+      })
 
       const newkeywordsListAnswer = [... new Set(secondPart.map((d: string[]) => [d[0], d[2]]).flat())]
       const newkeywordsListQuestion = thirdPart
@@ -610,7 +617,7 @@ export function Chat({ id, initialMessages }: ChatProps) {
             {/* DotsMobileStepper positioned here */}
             <DotsMobileStepper
               messages={messages}
-              steps={messages.length / 2}
+              steps={Math.max(...nodes.map(d => d.step+1), activeStep+1, 1)}
               activeStep={activeStep}
               handleNext={() =>
                 handleStepChange(Math.min(activeStep + 1, nodes.length - 1))
@@ -626,9 +633,9 @@ export function Chat({ id, initialMessages }: ChatProps) {
                 <ChatList
                   messages={messages}
                   activeStep={activeStep}
-                  gptTriples={gptTriples}
+                  gptTriples={gptTriples.filter(d => d[3] == activeStep)}
                   nodes={nodes}
-                  edges={edges}
+                  edges={edges.filter(edge => edge.step == activeStep)}
                   clickedNode={clickedNode}
                 />
                 {StopRegenerateButton}
