@@ -49,7 +49,7 @@ import {
   keywordsListQuestionAtom,
   gptTriplesAtom
 } from '@/lib/state'
-import { fetchBackendData, categoryColorMapping } from '@/lib/utils'
+import { fetchBackendData, categoryColorMapping, highLevelNodes } from '@/lib/utils'
 import dagre from 'dagre'
 import FlowComponent from './vis-flow'
 import CustomEdge from './vis-flow/customEdge'
@@ -390,7 +390,8 @@ export function Chat({ id, initialMessages }: ChatProps) {
         currentStep
       )
 
-      let updatedNodes = [...nodes], updatedEdges = [...edges]
+      let updatedNodes = [...nodes].filter(node=> !highLevelNodes.some(d=> {node.data.label.includes(d)})),  // remove high level nodes
+        updatedEdges = [...edges]
       newNodes.forEach(newNode => {
         if (!updatedNodes.find(node => node.id === newNode.id)) {
           updatedNodes.push({

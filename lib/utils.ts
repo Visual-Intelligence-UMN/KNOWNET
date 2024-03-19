@@ -11,6 +11,10 @@ export const nanoid = customAlphabet(
   7
 ) // 7-character random string
 
+
+//  a list of nodes that are too much high level and should not be shown
+export const highLevelNodes = ['physiology', 'supplement']
+
 export async function fetcher<JSON = any>(
   input: RequestInfo,
   init?: RequestInit
