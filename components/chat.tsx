@@ -52,7 +52,6 @@ import {
 import { fetchBackendData, categoryColorMapping, highLevelNodes } from '@/lib/utils'
 import dagre from 'dagre'
 import FlowComponent from './vis-flow'
-import CustomEdge from './vis-flow/customEdge'
 import { BackendData, CustomGraphEdge, CustomGraphNode } from '@/lib/types'
 // const IS_PREVIEW = process.env.VERCEL_ENV === 'preview'
 
@@ -317,7 +316,7 @@ export function Chat({ id, initialMessages }: ChatProps) {
             source: edge.source,
             target: edge.target,
             label: edge.category, // use the first edge type as label
-            data: { papers: { [edge.category]: [edge.PubMed_ID] } },
+            data: { papers: { [edge.category]: [edge.PubMed_ID] }, sourceName: graph.nodes.find(n => n.id === edge.source)?.name, targetName: graph.nodes.find(n => n.id === edge.target)?.name},
             // type: 'smoothstep',
             type: 'custom',
             step: currentStep,
