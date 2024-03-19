@@ -426,7 +426,9 @@ export function Chat({ id, initialMessages }: ChatProps) {
       setEdges(currentEdges => {
         const updatedEdges = [...currentEdges]
         newEdges.forEach(newEdge => {
-          if (!updatedEdges.find(edge => edge.id === newEdge.id)) {
+          const edgeId = `e${newEdge.source}-${newEdge.target}`
+          const edgeRevId = `e${newEdge.target}-${newEdge.source}`
+          if (!updatedEdges.find(edge => edge.id === edgeId || edge.id === edgeRevId)) {
             updatedEdges.push({ ...newEdge, step: currentStep })
           }
         })
