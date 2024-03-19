@@ -4,7 +4,7 @@ import { ReactFlow, Background, Controls, useReactFlow } from 'reactflow'
 import 'reactflow/dist/style.css'
 import CustomEdge from './customEdge' // Ensure this path is correct
 import { Button } from '../ui/button'
-import { Spinner, Typography } from '@material-tailwind/react'
+import { Spinner } from '@material-tailwind/react'
 import { Progress } from '@material-tailwind/react'
 
 // FlowComponent separated from Chat function
@@ -105,7 +105,7 @@ const FlowComponent = ({
         height: 'calc(65vh - 1rem)'
       }}
     >
-      {(isLoadingBackendData || isLoading ||true) && (
+      {(isLoadingBackendData || isLoading) && (
         <div className="absolute inset-0 bg-white bg-opacity-[85%] flex flex-wrap justify-center items-center z-10 p-[150px]">
           <Spinner color="blue" className='h-[60px] w-[60px]' />
           <div className='basis-full h-0'></div>
