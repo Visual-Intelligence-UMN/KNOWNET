@@ -49,29 +49,33 @@ export async function POST(req: Request) {
   // "Some studies have suggested that Coenzyme Q10 supplementation may have potential benefits for heart health... CoQ10 has antioxidant properties... ||
   // [Coenzyme Q10 | heart health || antioxidant] || [Coenzyme Q10 | Heart disease]
   //   `
-  const num_triples = 4
-  const num_entities = 3
+  const num_triples = 3
+  const num_entities = 4
 
   const qaPrompt = `
   You are an expert in healthcare domain and need to help user to answer the healthcare related questions.
-  After the response, please summary the entities and their relations (triples) in your response.
-  The entities can only be the following types: Dietary Supplement, Drugs, Disease, Symptom, Gene.
-  Use the same entity names and triple names in your response and summary.
-  You can provide more context information, but the number of triples mentioned in the response should be less than ${num_triples} and the number of entities should be less then ${num_entities}.
   Please return your response in three parts: 
-  the 1st part is your response to user question, each sentence contains only one triple; 
-  the 2nd part is the summarized triples in your response, in the format of json string list; 
+  the 1st part is your response; 
+  the 2nd part is triples ([entity, relation, entity]) summaring the facts in your response, in the format of json string list; 
   the 3rd part is the identified entities in user question, in the format of json string list.
   Please use " || " to split the three parts.
+
+  The entities can only be the following types: Dietary Supplement, Drugs, Disease, Symptom, Gene.
+  Use no more than ${num_triples} triples  and no more than ${num_entities} entities.
+  The triples must use extractly the same entity and relation names as used in the response.
+  Each sentence in the response can be about only one triple.
+
   For example, if the question is "Can Ginkgo biloba prevent Alzheimer's Disease?"
   Your response could be:
   "Gingko biloba is extracted from a plant...
   Some studies have suggested that Gingko biloba may improve cognitive function and behavior in people with Alzheimer's disease... ||
-  [[Ginkgo biloba, improve, Alzheimer‘s Disease], [Ginkgo biloba, extract from, plant]] || [Ginkgo biloba, Alzheimer‘s Disease]"
+  [[Ginkgo biloba, improve, Alzheimer‘s Disease], [Ginkgo biloba, extract from, plant]] || 
+  [Ginkgo biloba, Alzheimer‘s Disease]"
   If the question is "What are the benefits of fish oil?"
   Your response could be:
   "Fish oil is known for containing a rich content of Omega-3 fatty acids... Omega-3 fatty acids can delay or reduce the risk of cognitive decline.
-  || [ [Fish Oil, contain, Omega-3 fatty acids], [Omega-3 fatty acids, delay, cognitive decline]] || [Fish Oil]"
+  [ [Fish Oil, contain, Omega-3 fatty acids], [Omega-3 fatty acids, delay, cognitive decline]] || 
+  || [Fish Oil]"
     `
 
 
