@@ -9,9 +9,10 @@ import numpy as np
 import re
 from sklearn.preprocessing import normalize
 from sklearn.metrics.pairwise import cosine_similarity as cosine_similarity_sklearn
-from embeddings_utils import get_embedding
+from embeddings_utils import get_embedding, get_embeddings
 import pandas as pd
 import gdown
+import time
 
 # Initialize Flask App
 app = Flask(__name__)
@@ -30,6 +31,9 @@ if not os.path.exists(output):
     gdown.download(url, output, quiet=False)
 
 kg_nodes_embedding = pd.read_parquet(output)
+embedding_list = kg_nodes_embedding.embedding.values
+normalized_embedding = normalize(np.vstack(embedding_list))
+
 print("kg_nodes_embedding loaded" + str(kg_nodes_embedding.shape))
 neo4j_url = os.getenv("NEO4J_URL")
 recommendation_space = {}
@@ -49,18 +53,20 @@ def post_chat_message():
     keywords_list_question = data.get("data", {}).get("keywords_list_question")
     recommendId = data.get("data", {}).get("recommendId")
 
+    start_time = time.time()
+
     if not user_id:
         return jsonify({"status": "error", "message": "Unauthorized"}), 401
 
     try:
         # Call the agent function from AI_agent.py
         if input_type == "new_conversation":
-            response_data = agent(kg_nodes_embedding, keywords_list_answer, keywords_list_question, 0, "new_conversation")
+            response_data = agent(keywords_list_answer, keywords_list_question, 0, "new_conversation")
 
             # print(response_data)
         elif input_type == "continue_conversation":
             # Handle the continue conversation logic
-            response_data = agent(kg_nodes_embedding, keywords_list_answer, keywords_list_question, recommendId, "continue_conversation")
+            response_data = agent(keywords_list_answer, keywords_list_question, recommendId, "continue_conversation")
         else:
             raise ValueError("Invalid input type")
 
@@ -74,7 +80,11 @@ def post_chat_message():
         }
 
     except Exception as e:
+        app.logger.error("Error in processing the request: " + str(e))
         return jsonify({"status": "error", "message": str(e)}), 500
+    
+    end_time = time.time()
+    print("Time taken for the request: ", str(end_time - start_time))
 
     return jsonify(response)
 
@@ -124,14 +134,15 @@ def post_chat_message():
 #     return [first_part, keywords_list_answer, keywords_list_question]
 
 
-def match_KG_nodes(entity_list, kg_nodes_embedding):
+def match_KG_nodes(entity_list, query_embeddings):
     nodes_list = []
-    embedding_list = kg_nodes_embedding.embedding.values
-    normalized_vector_list = normalize(np.vstack(embedding_list))
-    for entity in entity_list:
-        query_embedding = get_embedding(text=entity, model="text-embedding-ada-002")
+    
+    for query_embedding, entity in zip(query_embeddings, entity_list):
+    # for entity in entity_list:
+    #     query_embedding = get_embedding(entity, model="text-embedding-ada-002")
         normalized_vector = normalize(np.asarray(query_embedding).reshape(1, -1))
-        similarity_list = cosine_similarity_sklearn(normalized_vector, normalized_vector_list)[0]
+        
+        similarity_list = cosine_similarity_sklearn(normalized_vector, normalized_embedding)[0]
         max_index = np.argmax(similarity_list)
         max_similarity = similarity_list[max_index]
         if max_similarity > 0.94:
@@ -206,7 +217,7 @@ def subgraph_type(cui, target_type, node_id_map, rel_id_map):
 def visualization(node_list, node_id_map, rel_id_map):
     res = []
     if len(node_list) == 1:
-        cypher_statement = "MATCH path=(sub:Node{CUI:\"" + node_list[0][0] + "\"})-[rel:Relation*1]-(obj:Node) RETURN path LIMIT 20"
+        cypher_statement = "MATCH path=(sub:Node{CUI:\"" + node_list[0][0] + "\"})-[rel:Relation*1]-(obj:Node) RETURN path LIMIT 10"
         nodes, edges = select_subgraph(cypher_statement, node_id_map, rel_id_map)
         res.append({"nodes": nodes, "edges": edges})
     else:
@@ -214,13 +225,13 @@ def visualization(node_list, node_id_map, rel_id_map):
             current_entity = node_list[i][0]
             for j in range(i + 1, len(node_list)):
                 next_entity = node_list[j][0]
-                cypher_statement = "MATCH path=(sub:Node{CUI:\"" + current_entity + "\"})-[rel:Relation*1]-(obj:Node{CUI:\"" + next_entity + "\"}) RETURN path LIMIT 20"
+                cypher_statement = "MATCH path=(sub:Node{CUI:\"" + current_entity + "\"})-[rel:Relation*1]-(obj:Node{CUI:\"" + next_entity + "\"}) RETURN path LIMIT 10"
                 nodes, edges = select_subgraph(cypher_statement, node_id_map, rel_id_map)
                 if len(nodes) != 0:
                     res.append({"nodes": nodes, "edges": edges})
     if len(res) == 0:
         for i in range(len(node_list)):
-            cypher_statement = "MATCH path=(sub:Node{CUI:\"" + node_list[i][0] + "\"})-[rel:Relation*1]-(obj:Node) RETURN path LIMIT 20"
+            cypher_statement = "MATCH path=(sub:Node{CUI:\"" + node_list[i][0] + "\"})-[rel:Relation*1]-(obj:Node) RETURN path LIMIT 10"
             nodes, edges = select_subgraph(cypher_statement, node_id_map, rel_id_map)
             res.append({"nodes": nodes, "edges": edges})
 
@@ -268,23 +279,33 @@ def generate_recommendation():
         })
     return recommendations
 
-def agent(kg_nodes_embedding, keywords_list_answer, keywords_list_question, recommand_id, input_type):
+def agent(keywords_list_answer, keywords_list_question, recommand_id, input_type):
     node_id_map = {}  # Maps CUI to Node_ID
     rel_id_map = {}  # Maps (Source_CUI, Target_CUI, Relation_Type) to Relation_ID
+    
+    prev_time = time.time()
+    
 
     response_data = {"vis_res": []}
 
+    query_embeddings = get_embeddings(keywords_list_answer+keywords_list_question, model="text-embedding-ada-002")
+
     # Process for both new and continued conversations
-    nodes_list_answer = match_KG_nodes(keywords_list_answer, kg_nodes_embedding)
+    nodes_list_answer = match_KG_nodes(keywords_list_answer, query_embeddings[:len(keywords_list_answer)])
+
     vis_res = visualization(nodes_list_answer, node_id_map, rel_id_map)
+
+
     response_data["vis_res"] = vis_res
 
     response_data['node_name_mapping'] = {nodes_list_answer[i][1]: nodes_list_answer[i][2] for i in range(len(nodes_list_answer))}
 
     if input_type == "new_conversation":
-        nodes_list_question = match_KG_nodes(keywords_list_question, kg_nodes_embedding)
+        nodes_list_question = match_KG_nodes(keywords_list_question, query_embeddings[len(keywords_list_answer):])
+
         add_recommendation_space(nodes_list_question)  # Updates the recommendation space
         recommendation = generate_recommendation()
+
         response_data["recommendation"] = recommendation
 
     elif input_type == "continue_conversation" and recommand_id is not None:
@@ -305,6 +326,8 @@ def agent(kg_nodes_embedding, keywords_list_answer, keywords_list_question, reco
             del recommendation_space[selected_recommendation]
             recommendation = generate_recommendation()
             response_data["recommendation"] = recommendation
+
+    app.logger.info("Time taken for the request: "+ str(time.time() - prev_time))
     return response_data
 
 
