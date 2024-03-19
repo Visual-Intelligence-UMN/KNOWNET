@@ -206,8 +206,8 @@ export function Chat({ id, initialMessages }: ChatProps) {
 
       const parts = message.content.split(' || ')
       const firstPart = parts[0]
-      const secondPart:string[][] = JSON.parse(parts[1] || '') // a list of triplets, Array<[source, relation, target]>
-      const thirdPart:string[] = JSON.parse(parts[2] || '') // a list of entities
+      const secondPart: string[][] = JSON.parse(parts[1] || '') // a list of triplets, Array<[source, relation, target]>
+      const thirdPart: string[] = JSON.parse(parts[2] || '') // a list of entities
 
       // // Debugging the parts
       // console.log('Chat First Part:', firstPart)
@@ -220,16 +220,13 @@ export function Chat({ id, initialMessages }: ChatProps) {
       // const newkeywordsListQuestion =
       //   thirdPart.match(/\[(.*?)\]/)?.[1].split(' | ') || []
 
-      if(secondPart.length> 0){
-        setGptTriples(secondPart)
-      }
 
-      const newkeywordsListAnswer = [... new Set( secondPart.map((d:string[])=>[d[0], d[2]]).flat())]
+      setGptTriples(secondPart)
+
+      const newkeywordsListAnswer = [... new Set(secondPart.map((d: string[]) => [d[0], d[2]]).flat())]
       const newkeywordsListQuestion = thirdPart
       setKeywordsAnswer(newkeywordsListAnswer)
       setKeywordsQuestion(newkeywordsListQuestion)
-
-      
 
       // console.log('set Chat Keywords List Answer:', keywordsAnswer)
       // console.log('set Chat Keywords List Question:', keywordsQuestion)
@@ -255,14 +252,14 @@ export function Chat({ id, initialMessages }: ChatProps) {
     }
   }, [])
 
-  useEffect(() => {
-    if (messages.length > 0) {
-      const newMessages = messages
-      newMessages[messages.length - 1]['content'] =
-        messages[messages.length - 1]['content'].split('||')[0]
-      setMessages(newMessages)
-    }
-  }, [isLoading])
+  // useEffect(() => {
+  //   if (messages.length > 0) {
+  //     const newMessages = messages
+  //     newMessages[messages.length - 1]['content'] =
+  //       messages[messages.length - 1]['content'].split('||')[0]
+  //     setMessages(newMessages)
+  //   }
+  // }, [isLoading])
 
   const handleSaveToken = () => {
     setPreviewToken(previewTokenInput)
@@ -273,7 +270,7 @@ export function Chat({ id, initialMessages }: ChatProps) {
   // Helper function to convert backend data to React Flow nodes and edges
 
   const convertBackendDataToFlowElements = (
-    data: BackendData["data"],
+    data: BackendData['data'],
     currentStep: number
   ) => {
     const nodes: CustomGraphNode[] = []
@@ -285,62 +282,57 @@ export function Chat({ id, initialMessages }: ChatProps) {
       console.warn('Data is not in the expected format or is null:', data)
       return { nodes, edges }
     }
-    
 
     data.vis_res.forEach(graph => {
-      graph.nodes.forEach(
-        (node) => {
-          if (!nodeIds.has(node.id)) {
-            const nodeColor = categoryColorMapping[node.category] || '#ffffff' // White as default color
-            nodes.push({
-              id: node.id,
-              data: { label: node.name, kgName: node.name, gptName: data.node_name_mapping[node.name] },
-              position: { x: 0, y: 0 },
-              type: 'default',
-              category: node.category,
-              style: {
-                opacity: 1,
-                background: nodeColor,
-                border: '1px solid #222'
-              },
-              step: currentStep,
-            })
-            nodeIds.add(node.id)
-          }
+      graph.nodes.forEach(node => {
+        if (!nodeIds.has(node.id)) {
+          const nodeColor = categoryColorMapping[node.category] || categoryColorMapping['NotFind']  // White as default color
+          nodes.push({
+            id: node.id,
+            data: {
+              label: node.name,
+              kgName: node.name,
+              gptName: data.node_name_mapping[node.name]
+            },
+            position: { x: 0, y: 0 },
+            type: 'default',
+            category: node.category,
+            style: {
+              opacity: 1,
+              background: nodeColor,
+            },
+            step: currentStep
+          })
+          nodeIds.add(node.id)
         }
-      )
+      })
 
-      graph.edges.forEach(
-        (
-          edge,
-          index: any
-        ) => {
-          // const edgeId = `e${edge.Source}-${edge.Target}-${edge.Type}`
-          const edgeId = `e${edge.source}-${edge.target}`
-          const edgeRevId = `e${edge.target}-${edge.source}`
-          if (!edgeIds.has(edgeId) && !edgeIds.has(edgeRevId)) {
-            edges.push({
-              id: edgeId,
-              source: edge.source,
-              target: edge.target,
-              label: edge.category, // use the first edge type as label
-              data: { papers: { [edge.category]: [edge.PubMed_ID] } },
-              // type: 'smoothstep',
-              type: 'custom',
-              step: currentStep,
-              style: { opacity: 1 },
-            })
-            edgeIds.add(edgeId)
+      graph.edges.forEach((edge, index: any) => {
+        // const edgeId = `e${edge.Source}-${edge.Target}-${edge.Type}`
+        const edgeId = `e${edge.source}-${edge.target}`
+        const edgeRevId = `e${edge.target}-${edge.source}`
+        if (!edgeIds.has(edgeId) && !edgeIds.has(edgeRevId)) {
+          edges.push({
+            id: edgeId,
+            source: edge.source,
+            target: edge.target,
+            label: edge.category, // use the first edge type as label
+            data: { papers: { [edge.category]: [edge.PubMed_ID] } },
+            // type: 'smoothstep',
+            type: 'custom',
+            step: currentStep,
+            style: { opacity: 1 }
+          })
+          edgeIds.add(edgeId)
+        } else {
+          var existEdge = edges.find(e => e.id === edgeId)
+          if (existEdge!['data']['papers'][edge.category]) {
+            existEdge!['data']['papers'][edge.category].push(edge.PubMed_ID)
           } else {
-            var existEdge = edges.find(e => e.id === edgeId)
-            if (existEdge!['data']['papers'][edge.category]) {
-              existEdge!['data']['papers'][edge.category].push(edge.PubMed_ID)
-            } else {
-              existEdge!['data']['papers'][edge.category] = [edge.PubMed_ID]
-            }
+            existEdge!['data']['papers'][edge.category] = [edge.PubMed_ID]
           }
         }
-      )
+      })
     })
     setIsLoadingBackendData(false)
     return { nodes, edges }
@@ -358,7 +350,11 @@ export function Chat({ id, initialMessages }: ChatProps) {
   const updateLayout = useCallback(
     (direction = layoutDirection) => {
       const { nodes: layoutedNodes, edges: layoutedEdges } =
-        getLayoutedElements(nodes as CustomGraphNode[], edges as CustomGraphEdge[], direction)
+        getLayoutedElements(
+          nodes as CustomGraphNode[],
+          edges as CustomGraphEdge[],
+          direction
+        )
       setNodes(layoutedNodes)
       setEdges(layoutedEdges)
 
@@ -384,121 +380,102 @@ export function Chat({ id, initialMessages }: ChatProps) {
   }, [activeStep])
 
   const appendDataToFlow = useCallback(
-    (newData: BackendData["data"], currentStep: number) => {
+    (newData: BackendData['data'], currentStep: any) => {
       const { nodes: newNodes, edges: newEdges } = convertBackendDataToFlowElements(
         newData,
         currentStep
       )
 
-      let updatedNodes = [...nodes].filter(node=> !highLevelNodes.some(d=> {node.data.label.includes(d)})),  // remove high level nodes
-        updatedEdges = [...edges]
-      newNodes.forEach(newNode => {
-        if (!updatedNodes.find(node => node.id === newNode.id)) {
-          updatedNodes.push({
-            ...newNode,
-            position: { x: 0, y: 0 },
-            step: currentStep
-          })
-        }
-      })
-
-      newEdges.forEach(newEdge => { 
-        if (!updatedEdges.find(edge => edge.id === newEdge.id)) {
-          updatedEdges.push({ ...newEdge, step: currentStep })
-        }
-      })
-
-      gptTriples.forEach((triple, i) => {
-        const [source, relation, target] = triple
-        const sourceNode = updatedNodes.find(node => node.data.gptName.toLowerCase() === source.toLowerCase())
-        const targetNode = updatedNodes.find(node => node.data.gptName.toLowerCase() === target.toLowerCase())
-        if (sourceNode && targetNode) {
-          const edgeId = `e${sourceNode.id}-${targetNode.id}`
-          var findEdgeIndex = updatedEdges.findIndex(edge => edge.id === edgeId)
-          if (findEdgeIndex === -1) {
-            updatedEdges.push({
-              id: edgeId,
-              source: sourceNode.id,
-              target: targetNode.id,
-              label: relation,
-              data: { papers: { [relation]: [] } },
-              type: 'custom',
-              category: 'NotFind',
-              step: currentStep,
-              style: { opacity: 1 }
+      const mergeNodes = (currentNodes: any[], newNodes: CustomGraphNode[]) => {
+        const mergedNodes = [...currentNodes]
+        newNodes.forEach(newNode => {
+          if (!mergedNodes.find(node => node.id === newNode.id)) {
+            mergedNodes.push({
+              ...newNode,
+              position: { x: Math.random() * 400, y: Math.random() * 400 },
+              step: currentStep
             })
-          }else{
-            updatedEdges[findEdgeIndex] =  {
-              ...updatedEdges[findEdgeIndex],
-              label: relation, // use gpt relation
-            }
           }
-        }
-        if (!sourceNode){
-          updatedNodes.push({
-            id: source,
-            data: { label: source, kgName: '', gptName: source },
-            position: { x: 0, y: 0 },
-            type: 'default',
-            category: 'NotFind', 
-            style: {
-              opacity: 1,
-              background: '#ffffff',
-              border: '1px solid #222'
-            },
-            step: currentStep,
-          })
-        }
-        if (!targetNode){
-          updatedNodes.push({
-            id: target,
-            data: { label: target, kgName: '', gptName: target },
-            position: { x: 0, y: 0 },
-            type: 'default',
-            category: 'gptNode',
-            style: {
-              opacity: 1,
-              background: '#ffffff',
-              border: '1px solid #222'
-            },
-            step: currentStep,
-          })
-        }
+        })
+        return mergedNodes
+      }
+
+
+      setNodes(currentNodes => {
+        const updatedNodes = mergeNodes(currentNodes, newNodes).filter(node=> !highLevelNodes.some(d=> {node.data.label.includes(d)}))
+        // const uniqueNodes:string[] = [...new Set(gptTriples.map((triple, i) => ([triple[0], triple[2]])).flat())]
+        // uniqueNodes.forEach(node => {
+        //   if (!updatedNodes.find(n => n['data']['gptName'].toLowerCase() === node.toLowerCase())) {
+        //     updatedNodes.push({
+        //       id: node,
+        //       data: { label: node, kgName: '', gptName: node },
+        //       position: { x: Math.random() * 400, y: Math.random() * 400 },
+        //       type: 'default',
+        //       category: 'NotFind',
+        //       style: {
+        //         opacity: 1,
+        //         background: categoryColorMapping['NotFind']
+        //       },
+        //       step: currentStep,
+        //     })
+        //   }
+        // })
+        return updatedNodes
       })
 
-      console.info('Updated Nodes:', updatedNodes, 'Updated Edges:', updatedEdges, gptTriples)
+      setEdges(currentEdges => {
+        const updatedEdges = [...currentEdges]
+        newEdges.forEach(newEdge => {
+          if (!updatedEdges.find(edge => edge.id === newEdge.id)) {
+            updatedEdges.push({ ...newEdge, step: currentStep })
+          }
+        })
 
-      setNodes(updatedNodes)
-      setEdges(updatedEdges)
-      
+      //   const updatedNodes = mergeNodes(nodes, newNodes)
 
-      // setNodes(currentNodes => {
-      //   const updatedNodes = [...currentNodes]
-      //   newNodes.forEach(newNode => {
-      //     if (!updatedNodes.find(node => node.id === newNode.id)) {
-      //       updatedNodes.push({
-      //         ...newNode,
-      //         position: { x: Math.random() * 400, y: Math.random() * 400 },
-      //         step: currentStep
+      //   gptTriples.forEach((triple, i) => {
+      //   const [source, relation, target] = triple
+      //   const sourceNode = updatedNodes.find(node => node.data.gptName.toLowerCase() === source.toLowerCase())
+      //   const targetNode = updatedNodes.find(node => node.data.gptName.toLowerCase() === target.toLowerCase())
+      //   if (sourceNode && targetNode) {
+      //     const edgeId = `e${sourceNode.id}-${targetNode.id}`
+      //     const edgeRevId = `e${targetNode.id}-${sourceNode.id}`
+      //     var findEdgeIndex = updatedEdges.findIndex(edge => edge.id === edgeId || edge.id === edgeRevId)
+      //     if (findEdgeIndex === -1) {
+      //       updatedEdges.push({
+      //         id: edgeId,
+      //         source: sourceNode.id,
+      //         target: targetNode.id,
+      //         label: relation,
+      //         data: { papers: { [relation]: [] } },
+      //         type: 'custom',
+      //         category: 'NotFind',
+      //         step: currentStep,
+      //         style: { opacity: 1 }
       //       })
+      //     }else{
+      //       updatedEdges[findEdgeIndex]['label'] = relation
       //     }
-      //   })
-      //   return updatedNodes
+      //   }
+      //   if (!targetNode || !sourceNode){
+      //     const s = sourceNode?sourceNode.id:source, t = targetNode?targetNode.id:target
+      //     updatedEdges.push({
+      //       id: `e${s}-${t}`,
+      //       source: s,
+      //       target: t,
+      //       label: relation,
+      //       data: { papers: { [relation]: [] } },
+      //       type: 'custom',
+      //       category: 'NotFind',
+      //       step: currentStep,
+      //       style: { opacity: 1 }
+      //     })
+      //   }
       // })
 
-      // setEdges(currentEdges => {
-      //   const updatedEdges = [...currentEdges]
-      //   newEdges.forEach(newEdge => {
-      //     if (!updatedEdges.find(edge => edge.id === newEdge.id)) {
-      //       updatedEdges.push({ ...newEdge, step: currentStep })
-      //     }
-      //   })
-      //   gptTriples.current.forEach((triple, i) => {
-      //     const [source, relation, target] = triple
+        return updatedEdges
+      })
 
-      //   })
-      //   return updatedEdges
-      // })
     },
     [setNodes, setEdges]
   )
@@ -673,6 +650,7 @@ export function Chat({ id, initialMessages }: ChatProps) {
                 <ChatList
                   messages={messages}
                   activeStep={activeStep}
+                  gptTriples={gptTriples}
                   nodes={nodes}
                   edges={edges}
                   clickedNode={clickedNode}
@@ -684,10 +662,8 @@ export function Chat({ id, initialMessages }: ChatProps) {
           </>
         ) : (
           <EmptyScreen setInput={setInput} id={id!} append={append} />
-        )
-       
-        }
-         <ChatPanel
+        )}
+        <ChatPanel
           id={id}
           isLoading={isLoading || isLoadingBackendData}
           activeStep={activeStep}
@@ -698,6 +674,7 @@ export function Chat({ id, initialMessages }: ChatProps) {
           input={input}
           setInput={setInput}
           continueConversation={continueConversation}
+          firstConversation={firstConversation}
         />
       </div>
 

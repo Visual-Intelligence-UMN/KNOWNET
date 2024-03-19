@@ -29,8 +29,8 @@ export async function POST(req: Request) {
 
   // const qaPrompt = `
   // You are an expert in healthcare domain and need to help user to answer the healthcare related questions.
-  // Also, please summary the specific entity/terms in your response (the keywords).
-  // In addition, please identify the specific entity/terms from the question.
+  // Also, please summary the specific entities in your response (the keywords).
+  // In addition, please identify the specific entities from the question.
   // The entities/terms (keywords) can only be the following types: Dietary Supplement, Drugs, Disease, Symptom and Gene.
   // Please return your response in three parts: the first part is the answer of the question; the part part is the summarized entities/terms (keywords); the third part is the identified entities/terms from the question.
   // Please use " || " to split the three parts.
@@ -49,28 +49,33 @@ export async function POST(req: Request) {
   // "Some studies have suggested that Coenzyme Q10 supplementation may have potential benefits for heart health... CoQ10 has antioxidant properties... ||
   // [Coenzyme Q10 | heart health || antioxidant] || [Coenzyme Q10 | Heart disease]
   //   `
-  const num_triples = 6
+  const num_triples = 3
+  const num_entities = 4
 
   const qaPrompt = `
   You are an expert in healthcare domain and need to help user to answer the healthcare related questions.
-  After the response, please summary the entity/terms and their relations (tripes) in your response.
-  The entities/terms can only be the following types: Dietary Supplement, Drugs, Disease, Symptom, Gene.
-  Use exactly the same name for summaring the entities/terms and their relations as used in your responses
-  Keep your response short and concise, and the number of triples mentioned in the response should be less than ${num_triples}.
-  Please return your response in four parts: 
-  the 1st part is your response to user question; 
-  the 2nd part is the summarized triples in your response, in the format of json string list; 
-  the 3rd part is the identified entities/terms in user question, in the format of json string list.
+  Please return your response in three parts: 
+  the 1st part is your response; 
+  the 2nd part is triples ([entity, relation, entity]) summaring the facts in your response, in the format of json string list; 
+  the 3rd part is the identified entities in user question, in the format of json string list.
   Please use " || " to split the three parts.
+
+  The entities can only be the following types: Dietary Supplement, Drugs, Disease, Symptom, Gene.
+  Use no more than ${num_triples} triples  and no more than ${num_entities} entities.
+  The triples must use extractly the same entity and relation names as used in the response.
+  Each sentence in the response can be about only one triple.
+
   For example, if the question is "Can Ginkgo biloba prevent Alzheimer's Disease?"
   Your response could be:
-  "Gingko biloba is a plant extract...
+  "Gingko biloba is extracted from a plant...
   Some studies have suggested that Gingko biloba may improve cognitive function and behavior in people with Alzheimer's disease... ||
-  [[Ginkgo biloba, improve, Alzheimer‘s Disease], [Ginkgo biloba, extract from, plant]] || [Ginkgo biloba, Alzheimer‘s Disease]"
+  [[Ginkgo biloba, improve, Alzheimer‘s Disease], [Ginkgo biloba, extract from, plant]] || 
+  [Ginkgo biloba, Alzheimer‘s Disease]"
   If the question is "What are the benefits of fish oil?"
   Your response could be:
-  "Fish oil is known for its rich content of Omega-3 fatty acids... The benefits of Fish Oil: Fish oil can delay or reduce the risk of cognitive decline.
-  || [ [Fish Oil, contains, Omega-3 fatty acids], [Omega-3 fatty acids, delay, cognitive decline]] || [Fish Oil]"
+  "Fish oil is known for containing a rich content of Omega-3 fatty acids... Omega-3 fatty acids can delay or reduce the risk of cognitive decline.
+  [ [Fish Oil, contain, Omega-3 fatty acids], [Omega-3 fatty acids, delay, cognitive decline]] || 
+  || [Fish Oil]"
     `
 
 
@@ -86,7 +91,7 @@ export async function POST(req: Request) {
         content: message.content
       }))
     ],
-    temperature: 0.7,
+    temperature: 0, // 0-2, lower is more deterministic
     stream: true
   })
 

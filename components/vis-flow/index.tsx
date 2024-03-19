@@ -1,11 +1,6 @@
 // Import necessary React and React Flow components at the beginning of your file
 import React, { useEffect, useState } from 'react'
-import {
-  ReactFlow,
-  Background,
-  Controls,
-  useReactFlow
-} from 'reactflow'
+import { ReactFlow, Background, Controls, useReactFlow } from 'reactflow'
 import 'reactflow/dist/style.css'
 import CustomEdge from './customEdge' // Ensure this path is correct
 import { Button } from '../ui/button'
@@ -92,7 +87,7 @@ const FlowComponent = ({
   }
 
   useEffect(() => {
-    if (recommendations.length > totalRecommendations) {
+    if (recommendations && recommendations.length > totalRecommendations) {
       setTotalRecommendations(recommendations.length)
     }
     const exploredRecommendations =
