@@ -113,7 +113,7 @@ const FlowComponent = ({
         </div>
       )}
 
-      {(isLoadingBackendData) && (
+      {(isLoadingBackendData && !isLoading) && (
         <div className="absolute inset-0 bg-white bg-opacity-[85%] flex flex-wrap justify-center items-center z-10 p-[150px]">
           <Spinner color="blue" className='h-[60px] w-[60px]' />
           <div className='basis-full h-0'></div>
