@@ -10,6 +10,7 @@ export interface ChatListProps {
   activeStep: number
   nodes: CustomGraphNode[]
   edges: CustomGraphEdge[]
+  gptTriples: string[][]
   clickedNode: any
 }
 
@@ -18,6 +19,7 @@ export function ChatList({
   activeStep,
   nodes,
   edges,
+  gptTriples,
   clickedNode,
 }: ChatListProps) {
   const { isPaneView } = useViewMode()
@@ -38,6 +40,7 @@ export function ChatList({
                 message={message}
                 nodes={message.role=='user'?[]:nodes}
                 edges={message.role=='user'?[]:edges}
+                gptTriples={gptTriples}
                 clickedNode={clickedNode}
               />
             ))}
@@ -48,6 +51,7 @@ export function ChatList({
             <ChatMessage
               key={index}
               message={message}
+              gptTriples={gptTriples}
               nodes={message.role=='user'?[]:nodes}
               edges={message.role=='user'?[]:edges}
               clickedNode={clickedNode}

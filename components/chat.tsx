@@ -220,10 +220,10 @@ export function Chat({ id, initialMessages }: ChatProps) {
       // const newkeywordsListQuestion =
       //   thirdPart.match(/\[(.*?)\]/)?.[1].split(' | ') || []
 
-      
+
       setGptTriples(secondPart)
 
-      const newkeywordsListAnswer = [... new Set( secondPart.map((d:string[])=>[d[0], d[2]]).flat())]
+      const newkeywordsListAnswer = [... new Set(secondPart.map((d: string[]) => [d[0], d[2]]).flat())]
       const newkeywordsListQuestion = thirdPart
       setKeywordsAnswer(newkeywordsListAnswer)
       setKeywordsQuestion(newkeywordsListQuestion)
@@ -252,14 +252,14 @@ export function Chat({ id, initialMessages }: ChatProps) {
     }
   }, [])
 
-  useEffect(() => {
-    if (messages.length > 0) {
-      const newMessages = messages
-      newMessages[messages.length - 1]['content'] =
-        messages[messages.length - 1]['content'].split('||')[0]
-      setMessages(newMessages)
-    }
-  }, [isLoading])
+  // useEffect(() => {
+  //   if (messages.length > 0) {
+  //     const newMessages = messages
+  //     newMessages[messages.length - 1]['content'] =
+  //       messages[messages.length - 1]['content'].split('||')[0]
+  //     setMessages(newMessages)
+  //   }
+  // }, [isLoading])
 
   const handleSaveToken = () => {
     setPreviewToken(previewTokenInput)
@@ -379,150 +379,47 @@ export function Chat({ id, initialMessages }: ChatProps) {
     setEdges(layoutedEdges)
   }, [activeStep])
 
-  // const appendDataToFlow = useCallback(
-  //   (newData: BackendData['data'], currentStep: number) => {
-  //     const { nodes: newNodes, edges: newEdges } =
-  //       convertBackendDataToFlowElements(newData, currentStep)
-
-  //     let updatedNodes = [...nodes], updatedEdges = [...edges]
-  //     newNodes.forEach(newNode => {
-  //       if (!updatedNodes.find(node => node.id === newNode.id)) {
-  //         updatedNodes.push({
-  //           ...newNode,
-  //           position: { x: 0, y: 0 },
-  //           step: currentStep
-  //         })
-  //       }
-  //     })
-
-  //     newEdges.forEach(newEdge => { 
-  //       if (!updatedEdges.find(edge => edge.id === newEdge.id)) {
-  //         updatedEdges.push({ ...newEdge, step: currentStep })
-  //       }
-  //     })
-
-  //     // gptTriples.forEach((triple, i) => {
-  //     //   const [source, relation, target] = triple
-  //     //   const sourceNode = updatedNodes.find(node => node.data.gptName.toLowerCase() === source.toLowerCase())
-  //     //   const targetNode = updatedNodes.find(node => node.data.gptName.toLowerCase() === target.toLowerCase())
-  //     //   if (sourceNode && targetNode) {
-  //     //     const edgeId = `e${sourceNode.id}-${targetNode.id}`
-  //     //     const edgeRevId = `e${targetNode.id}-${sourceNode.id}`
-  //     //     var findEdgeIndex = updatedEdges.findIndex(edge => edge.id === edgeId || edge.id === edgeRevId)
-  //     //     if (findEdgeIndex === -1) {
-  //     //       updatedEdges.push({
-  //     //         id: edgeId,
-  //     //         source: sourceNode.id,
-  //     //         target: targetNode.id,
-  //     //         label: relation,
-  //     //         data: { papers: { [relation]: [] } },
-  //     //         type: 'custom',
-  //     //         category: 'NotFind',
-  //     //         step: currentStep,
-  //     //         style: { opacity: 1 }
-  //     //       })
-  //     //     }else{
-  //     //       updatedEdges[findEdgeIndex] =  {
-  //     //         ...updatedEdges[findEdgeIndex],
-  //     //         label: relation, // use gpt relation
-  //     //       }
-  //     //     }
-  //     //   }
-  //     //   if (!sourceNode){
-  //     //     updatedNodes.push({
-  //     //       id: source,
-  //     //       data: { label: source, kgName: '', gptName: source },
-  //     //       position: { x: 0, y: 0 },
-  //     //       type: 'default',
-  //     //       category: 'NotFind', 
-  //     //       style: {
-  //     //         opacity: 1,
-  //     //         background: categoryColorMapping['NotFind'],
-  //     //       },
-  //     //       step: currentStep,
-  //     //     })
-  //     //   }
-  //     //   if (!targetNode){
-  //     //     updatedNodes.push({
-  //     //       id: target,
-  //     //       data: { label: target, kgName: '', gptName: target },
-  //     //       position: { x: 0, y: 0 },
-  //     //       type: 'default',
-  //     //       category: 'NotFind',
-  //     //       style: {
-  //     //         opacity: 1,
-  //     //         background: categoryColorMapping['NotFind']
-  //     //       },
-  //     //       step: currentStep,
-  //     //     })
-  //     //   }
-  //     //   if (!targetNode || !sourceNode){
-  //     //     updatedEdges.push({
-  //     //       id: `e${source}-${target}`,
-  //     //       source: source,
-  //     //       target: target,
-  //     //       label: relation,
-  //     //       data: { papers: { [relation]: [] } },
-  //     //       type: 'custom',
-  //     //       category: 'NotFind',
-  //     //       step: currentStep,
-  //     //       style: { opacity: 1 }
-  //     //     })
-  //     //   }
-  //     // })
-  //     setNodes(updatedNodes)
-  //     setEdges(updatedEdges)
-      
-
-  //     // setNodes(currentNodes => {
-  //     //   const updatedNodes = [...currentNodes]
-  //     //   newNodes.forEach(newNode => {
-  //     //     if (!updatedNodes.find(node => node.id === newNode.id)) {
-  //     //       updatedNodes.push({
-  //     //         ...newNode,
-  //     //         position: { x: Math.random() * 400, y: Math.random() * 400 },
-  //     //         step: currentStep
-  //     //       })
-  //     //     }
-  //     //   })
-  //     //   return updatedNodes
-  //     // })
-
-  //     // setEdges(currentEdges => {
-  //     //   const updatedEdges = [...currentEdges]
-  //     //   newEdges.forEach(newEdge => {
-  //     //     if (!updatedEdges.find(edge => edge.id === newEdge.id)) {
-  //     //       updatedEdges.push({ ...newEdge, step: currentStep })
-  //     //     }
-  //     //   })
-  //     //   gptTriples.current.forEach((triple, i) => {
-  //     //     const [source, relation, target] = triple
-
-  //     //   })
-  //     //   return updatedEdges
-  //     // })
-  //   },
-  //   [setNodes, setEdges]
-  // )
-
   const appendDataToFlow = useCallback(
-    (newData: { vis_res: any[] }, currentStep: any) => {
+    (newData: BackendData['data'], currentStep: any) => {
       const { nodes: newNodes, edges: newEdges } = convertBackendDataToFlowElements(
         newData,
         currentStep
       )
 
-      setNodes(currentNodes => {
-        const updatedNodes = [...currentNodes]
+      const mergeNodes = (currentNodes: any[], newNodes: CustomGraphNode[]) => {
+        const mergedNodes = [...currentNodes]
         newNodes.forEach(newNode => {
-          if (!updatedNodes.find(node => node.id === newNode.id)) {
-            updatedNodes.push({
+          if (!mergedNodes.find(node => node.id === newNode.id)) {
+            mergedNodes.push({
               ...newNode,
               position: { x: Math.random() * 400, y: Math.random() * 400 },
               step: currentStep
             })
           }
         })
+        return mergedNodes
+      }
+
+
+      setNodes(currentNodes => {
+        const updatedNodes = mergeNodes(currentNodes, newNodes)
+        // const uniqueNodes:string[] = [...new Set(gptTriples.map((triple, i) => ([triple[0], triple[2]])).flat())]
+        // uniqueNodes.forEach(node => {
+        //   if (!updatedNodes.find(n => n['data']['gptName'].toLowerCase() === node.toLowerCase())) {
+        //     updatedNodes.push({
+        //       id: node,
+        //       data: { label: node, kgName: '', gptName: node },
+        //       position: { x: Math.random() * 400, y: Math.random() * 400 },
+        //       type: 'default',
+        //       category: 'NotFind',
+        //       style: {
+        //         opacity: 1,
+        //         background: categoryColorMapping['NotFind']
+        //       },
+        //       step: currentStep,
+        //     })
+        //   }
+        // })
         return updatedNodes
       })
 
@@ -533,8 +430,52 @@ export function Chat({ id, initialMessages }: ChatProps) {
             updatedEdges.push({ ...newEdge, step: currentStep })
           }
         })
+
+      //   const updatedNodes = mergeNodes(nodes, newNodes)
+
+      //   gptTriples.forEach((triple, i) => {
+      //   const [source, relation, target] = triple
+      //   const sourceNode = updatedNodes.find(node => node.data.gptName.toLowerCase() === source.toLowerCase())
+      //   const targetNode = updatedNodes.find(node => node.data.gptName.toLowerCase() === target.toLowerCase())
+      //   if (sourceNode && targetNode) {
+      //     const edgeId = `e${sourceNode.id}-${targetNode.id}`
+      //     const edgeRevId = `e${targetNode.id}-${sourceNode.id}`
+      //     var findEdgeIndex = updatedEdges.findIndex(edge => edge.id === edgeId || edge.id === edgeRevId)
+      //     if (findEdgeIndex === -1) {
+      //       updatedEdges.push({
+      //         id: edgeId,
+      //         source: sourceNode.id,
+      //         target: targetNode.id,
+      //         label: relation,
+      //         data: { papers: { [relation]: [] } },
+      //         type: 'custom',
+      //         category: 'NotFind',
+      //         step: currentStep,
+      //         style: { opacity: 1 }
+      //       })
+      //     }else{
+      //       updatedEdges[findEdgeIndex]['label'] = relation
+      //     }
+      //   }
+      //   if (!targetNode || !sourceNode){
+      //     const s = sourceNode?sourceNode.id:source, t = targetNode?targetNode.id:target
+      //     updatedEdges.push({
+      //       id: `e${s}-${t}`,
+      //       source: s,
+      //       target: t,
+      //       label: relation,
+      //       data: { papers: { [relation]: [] } },
+      //       type: 'custom',
+      //       category: 'NotFind',
+      //       step: currentStep,
+      //       style: { opacity: 1 }
+      //     })
+      //   }
+      // })
+
         return updatedEdges
       })
+
     },
     [setNodes, setEdges]
   )
@@ -709,6 +650,7 @@ export function Chat({ id, initialMessages }: ChatProps) {
                 <ChatList
                   messages={messages}
                   activeStep={activeStep}
+                  gptTriples={gptTriples}
                   nodes={nodes}
                   edges={edges}
                   clickedNode={clickedNode}

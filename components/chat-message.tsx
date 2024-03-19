@@ -17,6 +17,7 @@ export interface ChatMessageProps {
   message: Message
   nodes: CustomGraphNode[]
   edges: CustomGraphEdge[]
+  gptTriples: string[][]
   clickedNode: any
 }
 
@@ -26,6 +27,7 @@ export function ChatMessage({
   nodes,
   edges,
   clickedNode,
+  gptTriples,
   ...props
 }: ChatMessageProps) {
   // New function to color text based on nodes data
@@ -92,7 +94,7 @@ export function ChatMessage({
   //   category
   // )
   // Consolidated function to apply styles based on nodes and clickedNode
-  function processContent(content: string, nodes: CustomGraphNode[], clickedNode: any) {
+  function processContent(content: string, nodes: CustomGraphNode[], gptTriples:string[][], clickedNode: any) {
     if (!nodes) {
       return content
     }
@@ -136,10 +138,19 @@ export function ChatMessage({
       
     })
 
+    
+    gptTriples.forEach(triple => {
+      console.info('test', triple)
+      processedContent = processedContent.replace(
+        triple[1] as string,
+        `<mark class="underline bg-white">${triple[1]}</mark>`
+      )
+    })
+  
     return processedContent
   }
 
-  let processedContent = processContent(message.content, nodes, clickedNode)
+  let processedContent = processContent(message.content, nodes,  gptTriples, clickedNode)
   return (
     <div
       className={cn('group relative mb-4 flex items-start md:-ml-12')}
