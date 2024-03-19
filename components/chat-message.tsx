@@ -99,6 +99,10 @@ export function ChatMessage({
 
     let processedContent = content
 
+    if (content.includes(' || ')) {
+      processedContent = content.split(' || ')[0]
+    }
+
     nodes.forEach(node => {
       if (node.data?.gptName) {
         const gptName = node.data.gptName
