@@ -54,9 +54,9 @@ export async function POST(req: Request) {
 
   // const qaPrompt = `
   // You are an expert in healthcare domain and need to help user to answer the healthcare related questions.
-  // Please return your response in three parts: 
-  // the 1st part is your response; 
-  // the 2nd part is triples ([entity, relation, entity]) summaring the facts in your 1st part response, in the format of json string list; 
+  // Please return your response in three parts:
+  // the 1st part is your response;
+  // the 2nd part is triples ([entity, relation, entity]) summaring the facts in your 1st part response, in the format of json string list;
   // the 3rd part is the identified entities in user question, in the format of json string list.
   // Please use " || " to split the three parts.
 
@@ -69,19 +69,19 @@ export async function POST(req: Request) {
   // Your response could be:
   // "Gingko biloba is extracted from a plant...
   // Some studies have suggested that Gingko biloba may improve cognitive function and behavior in people with Alzheimer's disease... ||
-  // [[Ginkgo biloba, improve, Alzheimer‘s Disease], [Ginkgo biloba, extract from, plant]] || 
+  // [[Ginkgo biloba, improve, Alzheimer‘s Disease], [Ginkgo biloba, extract from, plant]] ||
   // [Ginkgo biloba, Alzheimer‘s Disease]"
   // If the question is "What are the benefits of fish oil?"
   // Your response could be:
   // "Fish oil is known for containing a rich content of Omega-3 fatty acids... Omega-3 fatty acids can delay or reduce the risk of cognitive decline.
-  // [ [Fish Oil, contain, Omega-3 fatty acids], [Omega-3 fatty acids, delay, cognitive decline]] || 
+  // [ [Fish Oil, contain, Omega-3 fatty acids], [Omega-3 fatty acids, delay, cognitive decline]] ||
   // || [Fish Oil]"
   //   `
 
   const qaPrompt = `
   You are an expert in healthcare and dietary supplements and need to help user to answer related questions.
-  Please return your response, about 4 sentences, in a format where all entities and their relations are clearly defined in the response. 
-  Specifically, use [] to identify all entities and relations in the response, 
+  Please return your response, about 4 sentences, in a format where all entities and their relations are clearly defined in the response.
+  Specifically, use [] to identify all entities and relations in the response,
   add () after identified entities and relations to assign unique ids to entities ($N1, $N2, ..) and relations ($R1, $R2, ...).
   For the relation, also add the entities it connects to. Use ; to separate if this relation exist in more than one triples.
 
@@ -90,20 +90,19 @@ export async function POST(req: Request) {
   Each sentence in the response should not include more than one relation.
   Try to provide context in your response.
 
-  After your response, also add the identified entities in user question, in the format of json string list; 
+  After your response, also add the identified entities in user question, in the format of json string list;
   Please use " || " to split the two parts.
 
-  Example 1, 
+  Example 1,
   Question: What are the benefits of fish oil?
   Answer:  [Fish oil]($N1) is known for [containing]($R1, $N1, $N2) a rich content of [Omega-3 fatty acids]($N2)... [Omega-3 fatty acids]($N2) can [delay]($R2, $N2, $N3) or reduce the risk of [cognitive decline]($N3) || ['fish oil'].
 
-  Example 2, 
+  Example 2,
   Question: which supplements may prevent Alzheimer's Disease?
   [Gingko biloba]($N1) and [Vitamin E]($N2) may [improve]($R1, $N1, $N3; $R1, $N2, $N3) [Alzheimer's disease]($N3). [Gingko]($N1) is a ... || ['Alzheimer's Disease']. `
 
-
   const res = await openai.chat.completions.create({
-    model: 'gpt-4',
+    model: 'gpt-4-0125-preview',
     messages: [
       {
         role: 'system',
