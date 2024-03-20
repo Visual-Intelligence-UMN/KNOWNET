@@ -72,7 +72,7 @@ const FlowComponent = ({
     }
 
     adjustView()
-  }, [nodes, reactFlowInstance])
+  }, [nodes.length, reactFlowInstance])
 
   const handleonNodeClick = (event: any, node: any) => {
     // Set hovered node id in a state that's accessible by the chat component
@@ -105,21 +105,21 @@ const FlowComponent = ({
         height: 'calc(65vh - 1rem)'
       }}
     >
-      {(isLoading) && (
+      {isLoading && (
         <div className="absolute inset-0 bg-white bg-opacity-[65%] flex flex-wrap justify-center items-center z-10 p-[150px]">
-          <div className='text-gray-700 text-[20px]'>
+          <div className="text-gray-700 text-[20px]">
             Wait for GPT responding...
           </div>
         </div>
       )}
 
-      {(isLoadingBackendData && !isLoading) && (
+      {isLoadingBackendData && !isLoading && (
         <div className="absolute inset-0 bg-white bg-opacity-[85%] flex flex-wrap justify-center items-center z-10 p-[150px]">
-          <Spinner color="blue" className='h-[60px] w-[60px]' />
-          <div className='basis-full h-0'></div>
-          <div className='text-gray-700 text-[20px]'>
+          <Spinner color="blue" className="h-[60px] w-[60px]" />
+          <div className="basis-full h-0"></div>
+          <div className="text-gray-700 text-[20px]">
             Waiting loading data from backend knowledge graph...
-            <br/>
+            <br />
             Searching 162,213 nodes and 1,017,319 edges...
           </div>
         </div>
