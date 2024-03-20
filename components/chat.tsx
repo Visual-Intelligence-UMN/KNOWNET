@@ -204,21 +204,11 @@ export function Chat({ id, initialMessages }: ChatProps) {
       console.log('Chat Full completion:', message) // Ensure this logs the expected completion
 
       const parts = message.content.split(' || ')
-      const firstPart = parts[0]
-      const secondPart: string[][] = JSON.parse(parts[1] || '') // a list of triplets, Array<[source, relation, target]>
-      const thirdPart: string[] = JSON.parse(parts[2] || '') // a list of entities
 
-      // // Debugging the parts
-      // console.log('Chat First Part:', firstPart)
-      // console.log('Chat Second Part:', secondPart)
-      // console.log('Chat Third Part:', thirdPart)
-
-      // Adjusting the regex pattern to be more flexible
-      // const newkeywordsListAnswer =
-      //   secondPart.match(/\[(.*?)\]/)?.[1].split(' | ') || []
-      // const newkeywordsListQuestion =
-      //   thirdPart.match(/\[(.*?)\]/)?.[1].split(' | ') || []
-
+      // // old prompt
+      // const firstPart = parts[0]
+      // const secondPart: string[][] = JSON.parse(parts[1] || '') // a list of triplets, Array<[source, relation, target]>
+      // const thirdPart: string[] = JSON.parse(parts[2] || '') // a list of entities
 
       // var updatedTriples = gptTriples
       // const newTriples: (string|number)[][] = secondPart.map((d: (string|number)[]) => [...d, activeStep])
@@ -229,8 +219,13 @@ export function Chat({ id, initialMessages }: ChatProps) {
       
       // setGptTriples(updatedTriples)
 
-      const newkeywordsListAnswer = [... new Set(secondPart.map((d: string[]) => [d[0], d[2]]).flat())]
-      const newkeywordsListQuestion = thirdPart
+      // const newkeywordsListAnswer = [... new Set(secondPart.map((d: string[]) => [d[0], d[2]]).flat())]
+      // const newkeywordsListQuestion = thirdPart
+
+      const newkeywordsListQuestion = JSON.parse(parts[1] || '') 
+      const {entities: newkeywordsListAnswer, relations} = extractRelations(parts[0])
+      console.log('New Keywords List Answer:', newkeywordsListAnswer, newkeywordsListQuestion)
+
       setKeywordsAnswer(newkeywordsListAnswer)
       setKeywordsQuestion(newkeywordsListQuestion)
 
@@ -720,4 +715,36 @@ export function Chat({ id, initialMessages }: ChatProps) {
       </Dialog>
     </>
   )
+}
+
+const extractRelations =(text: string): {entities: string[], relations: Array<Array<string>>} => {
+  // Define the patterns to match entities and relations
+  const entityPattern = /\[([^\]]+)\]\(\$N(\d+)\)/g;
+  const relationPattern = /\[([^\]]+)\]\((\$R\d+), (.+?)\)/g;
+
+  // Extract entities and map their codes to names
+  let entityMatch: RegExpExecArray | null;
+  const entities: { [key: string]: string } = {};
+
+  while ((entityMatch = entityPattern.exec(text)) !== null) {
+    const [_, name, code] = entityMatch;
+    entities[`$N${code}`] = name;
+  }
+
+  // Process the relation strings, including multiple relations
+  let relationMatch: RegExpExecArray | null;
+  const outputRelations: Array<Array<string>> = [];
+
+  while ((relationMatch = relationPattern.exec(text)) !== null) {
+    const [_, relationName, relationCode, relationDetails] = relationMatch;
+    const details = relationDetails.split(';');
+
+    details.forEach(detail => {
+      const [entity1Code, entity2Code] = detail.trim().split(', ').map(code => code.trim());
+      const entity1Name = entities[entity1Code];
+      const entity2Name = entities[entity2Code];
+      outputRelations.push([entity1Name, relationName, entity2Name]);
+    });
+  }
+  return {entities: Object.values(entities), relations: outputRelations}
 }

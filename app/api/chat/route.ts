@@ -52,31 +52,55 @@ export async function POST(req: Request) {
   const num_triples = 3
   const num_entities = 4
 
+  // const qaPrompt = `
+  // You are an expert in healthcare domain and need to help user to answer the healthcare related questions.
+  // Please return your response in three parts: 
+  // the 1st part is your response; 
+  // the 2nd part is triples ([entity, relation, entity]) summaring the facts in your 1st part response, in the format of json string list; 
+  // the 3rd part is the identified entities in user question, in the format of json string list.
+  // Please use " || " to split the three parts.
+
+  // The entities can only be the following types: Dietary Supplement, Drugs, Disease, Symptom, Gene.
+  // Use no more than ${num_triples} triples  and no more than ${num_entities} entities.
+  // The triples must use extractly the same entity and relation names as used in the response.
+  // Each sentence in the response can be about only one triple.
+
+  // For example, if the question is "Can Ginkgo biloba prevent Alzheimer's Disease?"
+  // Your response could be:
+  // "Gingko biloba is extracted from a plant...
+  // Some studies have suggested that Gingko biloba may improve cognitive function and behavior in people with Alzheimer's disease... ||
+  // [[Ginkgo biloba, improve, Alzheimer‘s Disease], [Ginkgo biloba, extract from, plant]] || 
+  // [Ginkgo biloba, Alzheimer‘s Disease]"
+  // If the question is "What are the benefits of fish oil?"
+  // Your response could be:
+  // "Fish oil is known for containing a rich content of Omega-3 fatty acids... Omega-3 fatty acids can delay or reduce the risk of cognitive decline.
+  // [ [Fish Oil, contain, Omega-3 fatty acids], [Omega-3 fatty acids, delay, cognitive decline]] || 
+  // || [Fish Oil]"
+  //   `
+
   const qaPrompt = `
-  You are an expert in healthcare domain and need to help user to answer the healthcare related questions.
-  Please return your response in three parts: 
-  the 1st part is your response; 
-  the 2nd part is triples ([entity, relation, entity]) summaring the facts in your 1st part response, in the format of json string list; 
-  the 3rd part is the identified entities in user question, in the format of json string list.
-  Please use " || " to split the three parts.
+  You are an expert in healthcare and dietary supplements and need to help user to answer related questions.
+  Please return your response in a format where triples are clearly defined in the response. one triple is the relation between two entities.
+  Specifically, use [] to identify entities and relations in the response, 
+  add () after identified entities and relations to assign unique ids to entities ($N1, $N2, ..) and relations ($R1, $R2, ...).
+  For the relation, also add the entities it connects to. Use ; to separate if this relation exist in more than one triples.
 
   The entities can only be the following types: Dietary Supplement, Drugs, Disease, Symptom, Gene.
-  Use no more than ${num_triples} triples  and no more than ${num_entities} entities.
-  The triples must use extractly the same entity and relation names as used in the response.
-  Each sentence in the response can be about only one triple.
+  Identified entities must have relations with other entities in the response.
+  Use no more than ${num_triples} triples and no more than ${num_entities} relations.
+  The response should be 2-3 sentence, each sentence in the response should not include more than one relation.
+  Try to provide context in your response.
 
-  For example, if the question is "Can Ginkgo biloba prevent Alzheimer's Disease?"
-  Your response could be:
-  "Gingko biloba is extracted from a plant...
-  Some studies have suggested that Gingko biloba may improve cognitive function and behavior in people with Alzheimer's disease... ||
-  [[Ginkgo biloba, improve, Alzheimer‘s Disease], [Ginkgo biloba, extract from, plant]] || 
-  [Ginkgo biloba, Alzheimer‘s Disease]"
-  If the question is "What are the benefits of fish oil?"
-  Your response could be:
-  "Fish oil is known for containing a rich content of Omega-3 fatty acids... Omega-3 fatty acids can delay or reduce the risk of cognitive decline.
-  [ [Fish Oil, contain, Omega-3 fatty acids], [Omega-3 fatty acids, delay, cognitive decline]] || 
-  || [Fish Oil]"
-    `
+  After your response, also add the identified entities in user question, in the format of json string list; 
+  Please use " || " to split the two parts.
+
+  Example 1, 
+  Question: What are the benefits of fish oil?
+  Answer:  [Fish oil]($N1) is known for [containing]($R1, $N1, $N2) a rich content of [Omega-3 fatty acids]($N2)... [Omega-3 fatty acids]($N2) can [delay]($R2, $N2, $N3) or reduce the risk of [cognitive decline]($N3) || ['fish oil'].
+
+  Example 2, 
+  Question: which supplements may prevent Alzheimer's Disease?
+  [Gingko biloba]($N1) and [Vitamin E]($N2) may [improve]($R1, $N1, $N3; $R1, $N2, $N3) [Alzheimer's disease]($N3). [Gingko]($N1) is a ... || ['Alzheimer's Disease']. `
 
 
   const res = await openai.chat.completions.create({
