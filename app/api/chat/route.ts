@@ -56,7 +56,7 @@ export async function POST(req: Request) {
   You are an expert in healthcare domain and need to help user to answer the healthcare related questions.
   Please return your response in three parts: 
   the 1st part is your response; 
-  the 2nd part is triples ([entity, relation, entity]) summaring the facts in your response, in the format of json string list; 
+  the 2nd part is triples ([entity, relation, entity]) summaring the facts in your 1st part response, in the format of json string list; 
   the 3rd part is the identified entities in user question, in the format of json string list.
   Please use " || " to split the three parts.
 

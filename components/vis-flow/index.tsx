@@ -106,7 +106,7 @@ const FlowComponent = ({
       }}
     >
       {(isLoading) && (
-        <div className="absolute inset-0 bg-white bg-opacity-[85%] flex flex-wrap justify-center items-center z-10 p-[150px]">
+        <div className="absolute inset-0 bg-white bg-opacity-[65%] flex flex-wrap justify-center items-center z-10 p-[150px]">
           <div className='text-gray-700 text-[20px]'>
             Wait for GPT responding...
           </div>

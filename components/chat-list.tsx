@@ -40,7 +40,7 @@ export function ChatList({
                 message={message}
                 nodes={message.role=='user'?[]:nodes}
                 edges={message.role=='user'?[]:edges}
-                gptTriples={gptTriples}
+                gptTriples={message.role =='user'?[]:gptTriples}
                 clickedNode={clickedNode}
               />
             ))}
@@ -51,7 +51,7 @@ export function ChatList({
             <ChatMessage
               key={index}
               message={message}
-              gptTriples={gptTriples}
+              gptTriples={message.role =='user'?[]:gptTriples}
               nodes={message.role=='user'?[]:nodes}
               edges={message.role=='user'?[]:edges}
               clickedNode={clickedNode}
