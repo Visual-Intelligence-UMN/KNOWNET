@@ -49,7 +49,11 @@ import {
   keywordsListQuestionAtom,
   gptTriplesAtom
 } from '@/lib/state'
-import { fetchBackendData, categoryColorMapping, highLevelNodes } from '@/lib/utils'
+import {
+  fetchBackendData,
+  categoryColorMapping,
+  highLevelNodes
+} from '@/lib/utils'
 import dagre from 'dagre'
 import FlowComponent from './vis-flow'
 import CustomEdge from './vis-flow/customEdge'
@@ -162,6 +166,8 @@ export function Chat({ id, initialMessages }: ChatProps) {
   const [previewTokenDialog, setPreviewTokenDialog] = useState(false)
   const [previewTokenInput, setPreviewTokenInput] = useState(previewToken ?? '')
   const [isLoadingBackendData, setIsLoadingBackendData] = useState(true)
+  const keywordsAnswerRef = useRef(keywordsAnswer)
+  const keywordsQuestionRef = useRef(keywordsQuestion)
   const {
     messages,
     append,
@@ -220,10 +226,11 @@ export function Chat({ id, initialMessages }: ChatProps) {
       // const newkeywordsListQuestion =
       //   thirdPart.match(/\[(.*?)\]/)?.[1].split(' | ') || []
 
-
       setGptTriples(secondPart)
 
-      const newkeywordsListAnswer = [... new Set(secondPart.map((d: string[]) => [d[0], d[2]]).flat())]
+      const newkeywordsListAnswer = [
+        ...new Set(secondPart.map((d: string[]) => [d[0], d[2]]).flat())
+      ]
       const newkeywordsListQuestion = thirdPart
       setKeywordsAnswer(newkeywordsListAnswer)
       setKeywordsQuestion(newkeywordsListQuestion)
@@ -243,6 +250,11 @@ export function Chat({ id, initialMessages }: ChatProps) {
     console.info('Backend Data:', data)
     return data
   }
+
+  useEffect(() => {
+    keywordsAnswerRef.current = keywordsAnswer
+    keywordsQuestionRef.current = keywordsQuestion
+  }, [keywordsAnswer, keywordsQuestion])
 
   useEffect(() => {
     if (initialRender.current) {
@@ -286,7 +298,9 @@ export function Chat({ id, initialMessages }: ChatProps) {
     data.vis_res.forEach(graph => {
       graph.nodes.forEach(node => {
         if (!nodeIds.has(node.id)) {
-          const nodeColor = categoryColorMapping[node.category] || categoryColorMapping['NotFind']  // White as default color
+          const nodeColor =
+            categoryColorMapping[node.category] ||
+            categoryColorMapping['NotFind'] // White as default color
           nodes.push({
             id: node.id,
             data: {
@@ -299,7 +313,7 @@ export function Chat({ id, initialMessages }: ChatProps) {
             category: node.category,
             style: {
               opacity: 1,
-              background: nodeColor,
+              background: nodeColor
             },
             step: currentStep
           })
@@ -381,10 +395,8 @@ export function Chat({ id, initialMessages }: ChatProps) {
 
   const appendDataToFlow = useCallback(
     (newData: BackendData['data'], currentStep: any) => {
-      const { nodes: newNodes, edges: newEdges } = convertBackendDataToFlowElements(
-        newData,
-        currentStep
-      )
+      const { nodes: newNodes, edges: newEdges } =
+        convertBackendDataToFlowElements(newData, currentStep)
 
       const mergeNodes = (currentNodes: any[], newNodes: CustomGraphNode[]) => {
         const mergedNodes = [...currentNodes]
@@ -400,9 +412,13 @@ export function Chat({ id, initialMessages }: ChatProps) {
         return mergedNodes
       }
 
-
       setNodes(currentNodes => {
-        const updatedNodes = mergeNodes(currentNodes, newNodes).filter(node=> !highLevelNodes.some(d=> {node.data.label.includes(d)}))
+        const updatedNodes = mergeNodes(currentNodes, newNodes).filter(
+          node =>
+            !highLevelNodes.some(d => {
+              node.data.label.includes(d)
+            })
+        )
         // const uniqueNodes:string[] = [...new Set(gptTriples.map((triple, i) => ([triple[0], triple[2]])).flat())]
         // uniqueNodes.forEach(node => {
         //   if (!updatedNodes.find(n => n['data']['gptName'].toLowerCase() === node.toLowerCase())) {
@@ -428,58 +444,88 @@ export function Chat({ id, initialMessages }: ChatProps) {
         newEdges.forEach(newEdge => {
           const edgeId = `e${newEdge.source}-${newEdge.target}`
           const edgeRevId = `e${newEdge.target}-${newEdge.source}`
-          if (!updatedEdges.find(edge => edge.id === edgeId || edge.id === edgeRevId)) {
+          if (
+            !updatedEdges.find(
+              edge => edge.id === edgeId || edge.id === edgeRevId
+            )
+          ) {
             updatedEdges.push({ ...newEdge, step: currentStep })
           }
         })
 
-      //   const updatedNodes = mergeNodes(nodes, newNodes)
+        //   const updatedNodes = mergeNodes(nodes, newNodes)
 
-      //   gptTriples.forEach((triple, i) => {
-      //   const [source, relation, target] = triple
-      //   const sourceNode = updatedNodes.find(node => node.data.gptName.toLowerCase() === source.toLowerCase())
-      //   const targetNode = updatedNodes.find(node => node.data.gptName.toLowerCase() === target.toLowerCase())
-      //   if (sourceNode && targetNode) {
-      //     const edgeId = `e${sourceNode.id}-${targetNode.id}`
-      //     const edgeRevId = `e${targetNode.id}-${sourceNode.id}`
-      //     var findEdgeIndex = updatedEdges.findIndex(edge => edge.id === edgeId || edge.id === edgeRevId)
-      //     if (findEdgeIndex === -1) {
-      //       updatedEdges.push({
-      //         id: edgeId,
-      //         source: sourceNode.id,
-      //         target: targetNode.id,
-      //         label: relation,
-      //         data: { papers: { [relation]: [] } },
-      //         type: 'custom',
-      //         category: 'NotFind',
-      //         step: currentStep,
-      //         style: { opacity: 1 }
-      //       })
-      //     }else{
-      //       updatedEdges[findEdgeIndex]['label'] = relation
-      //     }
-      //   }
-      //   if (!targetNode || !sourceNode){
-      //     const s = sourceNode?sourceNode.id:source, t = targetNode?targetNode.id:target
-      //     updatedEdges.push({
-      //       id: `e${s}-${t}`,
-      //       source: s,
-      //       target: t,
-      //       label: relation,
-      //       data: { papers: { [relation]: [] } },
-      //       type: 'custom',
-      //       category: 'NotFind',
-      //       step: currentStep,
-      //       style: { opacity: 1 }
-      //     })
-      //   }
-      // })
+        //   gptTriples.forEach((triple, i) => {
+        //   const [source, relation, target] = triple
+        //   const sourceNode = updatedNodes.find(node => node.data.gptName.toLowerCase() === source.toLowerCase())
+        //   const targetNode = updatedNodes.find(node => node.data.gptName.toLowerCase() === target.toLowerCase())
+        //   if (sourceNode && targetNode) {
+        //     const edgeId = `e${sourceNode.id}-${targetNode.id}`
+        //     const edgeRevId = `e${targetNode.id}-${sourceNode.id}`
+        //     var findEdgeIndex = updatedEdges.findIndex(edge => edge.id === edgeId || edge.id === edgeRevId)
+        //     if (findEdgeIndex === -1) {
+        //       updatedEdges.push({
+        //         id: edgeId,
+        //         source: sourceNode.id,
+        //         target: targetNode.id,
+        //         label: relation,
+        //         data: { papers: { [relation]: [] } },
+        //         type: 'custom',
+        //         category: 'NotFind',
+        //         step: currentStep,
+        //         style: { opacity: 1 }
+        //       })
+        //     }else{
+        //       updatedEdges[findEdgeIndex]['label'] = relation
+        //     }
+        //   }
+        //   if (!targetNode || !sourceNode){
+        //     const s = sourceNode?sourceNode.id:source, t = targetNode?targetNode.id:target
+        //     updatedEdges.push({
+        //       id: `e${s}-${t}`,
+        //       source: s,
+        //       target: t,
+        //       label: relation,
+        //       data: { papers: { [relation]: [] } },
+        //       type: 'custom',
+        //       category: 'NotFind',
+        //       step: currentStep,
+        //       style: { opacity: 1 }
+        //     })
+        //   }
+        // })
 
         return updatedEdges
       })
 
+      const currentKeywordsQuestion = keywordsQuestionRef.current
+      // After processing existing nodes and edges, add recommendation nodes and edges
+      const recommendationNodes = recommendations.map(recommendation => ({
+        id: `recommendation-${recommendation.id}`, // Unique ID for the recommendation node
+        data: {
+          label: recommendation.text.replace(currentKeywordsQuestion[0], '')
+        },
+        position: { x: Math.random() * 400, y: Math.random() * 400 }, // Random position, adjust as needed
+        type: 'special', // Assuming you have a 'special' type for recommendation nodes
+        style: { background: '#ffcc00', borderColor: '#ffcc00' }, // Styling for recommendation nodes
+        step: currentStep
+      }))
+
+      setNodes(currentNodes => [...currentNodes, ...recommendationNodes])
+
+      const recommendationEdges = recommendations.flatMap(recommendation => {
+        return currentKeywordsQuestion.map(keyword => ({
+          id: `edge-${recommendation.id}-${keyword}`,
+          source: `recommendation-${recommendation.id}`,
+          target: keyword,
+          type: 'straight', // Or any other type you prefer
+          style: { stroke: '#ffcc00' } // Styling for recommendation edges
+        }))
+      })
+
+      setEdges(currentEdges => [...currentEdges, ...recommendationEdges])
     },
-    [setNodes, setEdges]
+    [recommendations, setNodes, setEdges]
   )
 
   const continueConversation = async (
@@ -641,7 +687,10 @@ export function Chat({ id, initialMessages }: ChatProps) {
                       updateLayout,
                       setLayoutDirection,
                       setClickedNode,
-                      recommendations
+                      recommendations,
+                      continueConversation,
+                      id,
+                      append
                     }}
                   />
                 </ReactFlowProvider>

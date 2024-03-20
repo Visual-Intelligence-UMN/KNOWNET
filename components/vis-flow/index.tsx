@@ -1,12 +1,18 @@
 // Import necessary React and React Flow components at the beginning of your file
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { ReactFlow, Background, Controls, useReactFlow } from 'reactflow'
 import 'reactflow/dist/style.css'
 import CustomEdge from './customEdge' // Ensure this path is correct
 import { Button } from '../ui/button'
 import { Spinner } from '@material-tailwind/react'
 import { Progress } from '@material-tailwind/react'
-
+import {
+  recommendationsAtom,
+  keywordsListAnswerAtom,
+  keywordsListQuestionAtom
+} from '@/lib/state'
+import { useAtom } from 'jotai'
+import { type UseChatHelpers } from 'ai/react'
 // FlowComponent separated from Chat function
 // Define custom edge types including your CustomEdge
 const edgeTypes = {
@@ -27,7 +33,10 @@ const FlowComponent = ({
   setLayoutDirection,
   updateLayout,
   setClickedNode,
-  recommendations
+  recommendations,
+  continueConversation,
+  id,
+  append
 }: {
   nodes: any
   edges: any
@@ -43,10 +52,26 @@ const FlowComponent = ({
   updateLayout: any
   setClickedNode: any
   recommendations: any
+  continueConversation?: (
+    recommendId: number,
+    keywordsAnswer: string[],
+    keywordsQuestion: string[]
+  ) => void
+  id: any
+  append: any
 }) => {
   const reactFlowInstance = useReactFlow()
   const [progress, setProgress] = useState(0)
   const [totalRecommendations, setTotalRecommendations] = useState(0)
+  const [keywordsListAnswer] = useAtom(keywordsListAnswerAtom)
+  const [keywordsListQuestion] = useAtom(keywordsListQuestionAtom)
+  const keywordsAnswerRef = useRef(keywordsListAnswer)
+  const keywordsQuestionRef = useRef(keywordsListQuestion)
+  // Update refs whenever the keywords state changes
+  useEffect(() => {
+    keywordsAnswerRef.current = keywordsListAnswer
+    keywordsQuestionRef.current = keywordsListQuestion
+  }, [keywordsListAnswer, keywordsListQuestion])
 
   useEffect(() => {
     // Function to adjust view
@@ -74,10 +99,40 @@ const FlowComponent = ({
     adjustView()
   }, [nodes, reactFlowInstance])
 
-  const handleonNodeClick = (event: any, node: any) => {
+  const handleonNodeClick = async (event: any, node: any, nodes: any) => {
     // Set hovered node id in a state that's accessible by the chat component
     setClickedNode(node)
     console.log('Clicked Node:', node)
+    if (node.id.startsWith('recommendation-')) {
+      await append({
+        id,
+        content:
+          'Can you tell me more about ' +
+          node.data.label +
+          ' related to my previous question?',
+        role: 'user'
+      })
+      const recommendationId = parseInt(node.id.split('-')[1], 10)
+      // Use the current value of the refs, which is always up-to-date
+      const currentKeywordsAnswer = keywordsAnswerRef.current
+      const currentKeywordsQuestion = keywordsQuestionRef.current
+      // Assuming you have a way to trigger the continueConversation method from here
+      // You may need to lift state up or use a global state management solution
+      if (continueConversation) {
+        continueConversation(
+          recommendationId,
+          currentKeywordsAnswer,
+          currentKeywordsQuestion
+        )
+      }
+
+      // Remove the clicked recommendation nodes from the graph and nodes
+      const updatedNodes = nodes.filter(node)
+      onNodesChange(updatedNodes)
+    } else {
+      setClickedNode(node)
+      console.log('Clicked Node:', node)
+    }
   }
 
   const handleonNodeDoubleClick = () => {
