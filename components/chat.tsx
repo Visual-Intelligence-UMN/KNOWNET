@@ -183,6 +183,7 @@ export function Chat({ id, initialMessages }: ChatProps) {
       if (reloadFlag.current) {
         // do not update active step for regenerate
         // set to false at the finish function
+        reloadFlag.current = false
       } else if (messages.length !== 0) {
         setActiveStep(activeStep => activeStep + 1)
       }
@@ -622,7 +623,7 @@ export function Chat({ id, initialMessages }: ChatProps) {
                   edges={edges.filter(edge => edge.step == activeStep)}
                   clickedNode={clickedNode}
                 />
-                {StopRegenerateButton}
+                {activeStep==messages.length/2-1 && StopRegenerateButton}
                 <ChatScrollAnchor trackVisibility={isLoading} />
               </div>
 
