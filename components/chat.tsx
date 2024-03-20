@@ -56,7 +56,6 @@ import {
 } from '@/lib/utils'
 import dagre from 'dagre'
 import FlowComponent from './vis-flow'
-import CustomEdge from './vis-flow/customEdge'
 import { BackendData, CustomGraphEdge, CustomGraphNode } from '@/lib/types'
 // const IS_PREVIEW = process.env.VERCEL_ENV === 'preview'
 
@@ -150,7 +149,7 @@ export function Chat({ id, initialMessages }: ChatProps) {
   const [keywordsQuestion, setKeywordsQuestion] = useAtom(
     keywordsListQuestionAtom
   )
-  const [gptTriples, setGptTriples] = useAtom(gptTriplesAtom)
+  const gptTriples = useRef([] as string[][])
 
   const router = useRouter()
   const path = usePathname()
@@ -168,81 +167,78 @@ export function Chat({ id, initialMessages }: ChatProps) {
   const [isLoadingBackendData, setIsLoadingBackendData] = useState(true)
   const keywordsAnswerRef = useRef(keywordsAnswer)
   const keywordsQuestionRef = useRef(keywordsQuestion)
-  const {
-    messages,
-    append,
-    reload,
-    stop,
-    isLoading,
-    input,
-    setInput,
-    setMessages
-  } = useChat({
-    initialMessages,
-    id,
-    body: {
+  const { messages, append, reload, stop, isLoading, input, setInput } =
+    useChat({
+      initialMessages,
       id,
-      previewToken
-    },
-    onResponse(response) {
-      if (response.status === 401) {
-        toast.error(response.statusText)
-      }
-      if (reloadFlag.current) {
-        reloadFlag.current = false
-      } else if (messages.length !== 0) {
-        setActiveStep(activeStep + 1)
-      }
-    },
-    onFinish(message) {
-      if (!path.includes('chat')) {
-        router.push(`/chat/${id}`, { shallow: true })
+      body: {
+        id,
+        previewToken
+      },
+      onResponse(response) {
+        if (response.status === 401) {
+          toast.error(response.statusText)
+        }
+        if (reloadFlag.current) {
+          // do not update active step for regenerate
+          // set to false at the finish function
+          reloadFlag.current = false
+        } else if (messages.length !== 0) {
+          setActiveStep(activeStep => activeStep + 1)
+        }
+      },
+      onFinish(message) {
+        if (!path.includes('chat')) {
+          router.push(`/chat/${id}`, { shallow: true })
+          router.refresh()
+        }
+        if (
+          message.role === 'assistant' &&
+          processedMessageIds.has(message.id) === false
+        ) {
+          setProcessedMessageIds(
+            prevIds => new Set([...Array.from(prevIds), message.id])
+          )
+        }
+
+        console.log('Chat Full completion:', message) // Ensure this logs the expected completion
+
+        const parts = message.content.split(' || ')
+
+        // // old prompt
+        // const firstPart = parts[0]
+        // const secondPart: string[][] = JSON.parse(parts[1] || '') // a list of triplets, Array<[source, relation, target]>
+        // const thirdPart: string[] = JSON.parse(parts[2] || '') // a list of entities
+
+        // var updatedTriples = gptTriples
+        // const newTriples: (string|number)[][] = secondPart.map((d: (string|number)[]) => [...d, activeStep])
+        // if (updatedTriples.some(d => d[3] == activeStep)) {
+        //   updatedTriples = updatedTriples.filter(d => d[3] != activeStep)
+        // }
+        // updatedTriples = updatedTriples.concat(newTriples)
+
+        // setGptTriples(updatedTriples)
+
+        // const newkeywordsListAnswer = [... new Set(secondPart.map((d: string[]) => [d[0], d[2]]).flat())]
+        // const newkeywordsListQuestion = thirdPart
+
+        const newkeywordsListQuestion = JSON.parse(parts[1] || '')
+        const { entities: newkeywordsListAnswer, relations } = extractRelations(
+          parts[0]
+        )
+        gptTriples.current = relations
+
+        setKeywordsAnswer(newkeywordsListAnswer)
+        setKeywordsQuestion(newkeywordsListQuestion)
+
+        // console.log('set Chat Keywords List Answer:', keywordsAnswer)
+        // console.log('set Chat Keywords List Question:', keywordsQuestion)
+        if (recommendations.length === 0) {
+          firstConversation(newkeywordsListAnswer, newkeywordsListQuestion)
+        }
         router.refresh()
       }
-      if (
-        message.role === 'assistant' &&
-        processedMessageIds.has(message.id) === false
-      ) {
-        setProcessedMessageIds(
-          prevIds => new Set([...Array.from(prevIds), message.id])
-        )
-      }
-
-      console.log('Chat Full completion:', message) // Ensure this logs the expected completion
-
-      const parts = message.content.split(' || ')
-      const firstPart = parts[0]
-      const secondPart: string[][] = JSON.parse(parts[1] || '') // a list of triplets, Array<[source, relation, target]>
-      const thirdPart: string[] = JSON.parse(parts[2] || '') // a list of entities
-
-      // // Debugging the parts
-      // console.log('Chat First Part:', firstPart)
-      // console.log('Chat Second Part:', secondPart)
-      // console.log('Chat Third Part:', thirdPart)
-
-      // Adjusting the regex pattern to be more flexible
-      // const newkeywordsListAnswer =
-      //   secondPart.match(/\[(.*?)\]/)?.[1].split(' | ') || []
-      // const newkeywordsListQuestion =
-      //   thirdPart.match(/\[(.*?)\]/)?.[1].split(' | ') || []
-
-      setGptTriples(secondPart)
-
-      const newkeywordsListAnswer = [
-        ...new Set(secondPart.map((d: string[]) => [d[0], d[2]]).flat())
-      ]
-      const newkeywordsListQuestion = thirdPart
-      setKeywordsAnswer(newkeywordsListAnswer)
-      setKeywordsQuestion(newkeywordsListQuestion)
-
-      // console.log('set Chat Keywords List Answer:', keywordsAnswer)
-      // console.log('set Chat Keywords List Question:', keywordsQuestion)
-      if (recommendations.length === 0) {
-        firstConversation(newkeywordsListAnswer, newkeywordsListQuestion)
-      }
-      router.refresh()
-    }
-  })
+    })
 
   const withFetchBackendData = async (payload: any) => {
     setIsLoadingBackendData(true)
@@ -331,7 +327,11 @@ export function Chat({ id, initialMessages }: ChatProps) {
             source: edge.source,
             target: edge.target,
             label: edge.category, // use the first edge type as label
-            data: { papers: { [edge.category]: [edge.PubMed_ID] } },
+            data: {
+              papers: { [edge.category]: [edge.PubMed_ID] },
+              sourceName: graph.nodes.find(n => n.id === edge.source)?.name,
+              targetName: graph.nodes.find(n => n.id === edge.target)?.name
+            },
             // type: 'smoothstep',
             type: 'custom',
             step: currentStep,
@@ -533,7 +533,7 @@ export function Chat({ id, initialMessages }: ChatProps) {
     keywordsAnswer: string[],
     keywordsQuestion: string[]
   ) => {
-    setActiveStep(activeStep + 1)
+    // setActiveStep(activeStep => activeStep + 1)
     const payload = {
       input_type: 'continue_conversation',
       userId: id,
@@ -617,7 +617,7 @@ export function Chat({ id, initialMessages }: ChatProps) {
     <Button
       variant="outline"
       onClick={() => stop()}
-      className="absolute right-6 z-10"
+      className="relative left-[60%]"
     >
       <IconStop className="mr-2" /> Stop
     </Button>
@@ -628,7 +628,7 @@ export function Chat({ id, initialMessages }: ChatProps) {
         reloadFlag.current = true
         reload()
       }}
-      className="absolute right-6 z-10 "
+      className="relative left-[60%]"
     >
       <IconRefresh className="mr-2" /> Regenerate
     </Button>
@@ -655,20 +655,23 @@ export function Chat({ id, initialMessages }: ChatProps) {
         {messages.length ? (
           <>
             {/* DotsMobileStepper positioned here */}
-            <DotsMobileStepper
-              messages={messages}
-              steps={messages.length / 2}
-              activeStep={activeStep}
-              handleNext={() =>
-                handleStepChange(Math.min(activeStep + 1, nodes.length - 1))
-              }
-              handleBack={() => handleStepChange(Math.max(activeStep - 1, 0))}
-              jumpToStep={handleStepChange}
-            />
-
             <div className="md:flex pt-4 md:pt-10">
+              {/* Left column for ChatList */}
+              <div className="md:w-1/3 grow overflow-auto">
+                <ChatList
+                  messages={messages}
+                  activeStep={activeStep}
+                  // gptTriples={gptTriples.filter(d => d[3] == activeStep)}
+                  nodes={nodes}
+                  edges={edges.filter(edge => edge.step == activeStep)}
+                  clickedNode={clickedNode}
+                />
+                {activeStep == messages.length / 2 - 1 && StopRegenerateButton}
+                <ChatScrollAnchor trackVisibility={isLoading} />
+              </div>
+
               {/* {%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%} */}
-              {/* left column for visualization */}
+              {/* Right column for visualization */}
               {/* {%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%} */}
               <div className="md:w-2/3 top-10 space-y-1 pr-4">
                 <ReactFlowProvider>
@@ -695,21 +698,18 @@ export function Chat({ id, initialMessages }: ChatProps) {
                   />
                 </ReactFlowProvider>
               </div>
-
-              {/* Right column for ChatList */}
-              <div className="md:w-1/3 grow overflow-auto">
-                <ChatList
-                  messages={messages}
-                  activeStep={activeStep}
-                  gptTriples={gptTriples}
-                  nodes={nodes}
-                  edges={edges}
-                  clickedNode={clickedNode}
-                />
-                {StopRegenerateButton}
-                <ChatScrollAnchor trackVisibility={isLoading} />
-              </div>
             </div>
+
+            <DotsMobileStepper
+              messages={messages}
+              steps={Math.max(...nodes.map(d => d.step + 1), activeStep + 1, 1)}
+              activeStep={activeStep}
+              handleNext={() =>
+                handleStepChange(Math.min(activeStep + 1, nodes.length - 1))
+              }
+              handleBack={() => handleStepChange(Math.max(activeStep - 1, 0))}
+              jumpToStep={handleStepChange}
+            />
           </>
         ) : (
           <EmptyScreen setInput={setInput} id={id!} append={append} />
@@ -759,4 +759,41 @@ export function Chat({ id, initialMessages }: ChatProps) {
       </Dialog>
     </>
   )
+}
+
+const extractRelations = (
+  text: string
+): { entities: string[]; relations: Array<Array<string>> } => {
+  // Define the patterns to match entities and relations
+  const entityPattern = /\[([^\]]+)\]\(\$N(\d+)\)/g
+  const relationPattern = /\[([^\]]+)\]\((\$R\d+), (.+?)\)/g
+
+  // Extract entities and map their codes to names
+  let entityMatch: RegExpExecArray | null
+  const entities: { [key: string]: string } = {}
+
+  while ((entityMatch = entityPattern.exec(text)) !== null) {
+    const [_, name, code] = entityMatch
+    entities[`$N${code}`] = name
+  }
+
+  // Process the relation strings, including multiple relations
+  let relationMatch: RegExpExecArray | null
+  const outputRelations: Array<Array<string>> = []
+
+  while ((relationMatch = relationPattern.exec(text)) !== null) {
+    const [_, relationName, relationCode, relationDetails] = relationMatch
+    const details = relationDetails.split(';')
+
+    details.forEach(detail => {
+      const [entity1Code, entity2Code] = detail
+        .trim()
+        .split(', ')
+        .map(code => code.trim())
+      const entity1Name = entities[entity1Code]
+      const entity2Name = entities[entity2Code]
+      outputRelations.push([entity1Name, relationName, entity2Name])
+    })
+  }
+  return { entities: Object.values(entities), relations: outputRelations }
 }

@@ -1,7 +1,6 @@
 import React, { FC } from 'react';
-import { Tooltip , Typography, Popover, PopoverHandler, PopoverContent} from '@material-tailwind/react';
+import { Typography, Popover, PopoverHandler, PopoverContent} from '@material-tailwind/react';
 import { EdgeProps, getBezierPath, EdgeLabelRenderer, BaseEdge } from 'reactflow';
-import { IconExternalLink } from '../ui/icons';
 
 const CustomEdge: FC<EdgeProps> = ({
     id,
@@ -13,7 +12,7 @@ const CustomEdge: FC<EdgeProps> = ({
     targetPosition,
     style,
     data,
-    label
+    label,
 }) => {
 
     // const [showTooltip, setShowTooltip] = React.useState(false);
@@ -32,15 +31,21 @@ const CustomEdge: FC<EdgeProps> = ({
     const links = Object.keys(data.papers).map((key) => {
         const urls = data['papers'][key]
         return <span key={key}>
-            <span className='font-bold'>{key.toLocaleLowerCase()} </span>: {urls.length} papers 
-            <a href={`https://pubmed.ncbi.nlm.nih.gov/${urls[0]}`} target='_blank'><IconExternalLink className="size-4 inline-block" /> </a>
+            <span className='font-bold'>{key.toLocaleLowerCase()} </span> in {urls.length} papers :
+                {urls.slice(0, 3).map(
+                    (url) => <a key={url} href={`https://pubmed.ncbi.nlm.nih.gov/${url}`} target='_blank'> 
+                        <i className="fas fa-solid fa-arrow-up-right-from-square px-1"/> 
+                    </a>
+                )}
+                {urls.length > 3 && '...' }
+            
             <br />
         </span>
     })
 
     const tooltipContent = <div className="w-80">
         <Typography color="blue-gray" className="font-medium">
-            Evidences
+            {data.targetName} -&gt; {data.sourceName}
         </Typography>
         <Typography
         variant="small"
@@ -50,6 +55,8 @@ const CustomEdge: FC<EdgeProps> = ({
             {links}
         </Typography>
     </div>
+
+    const num_papers = Object.values(data.papers).reduce((acc:number, val) => acc + val.length, 0)
 
     return (
         <>
@@ -81,13 +88,15 @@ const CustomEdge: FC<EdgeProps> = ({
                             style={{
                                 ...style,
                                 position: 'absolute',
-                                transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
+                                transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px) scale(0.8)`,
                                 backgroundColor: 'white',
                                 pointerEvents: 'all',
+                                cursor: 'pointer'
                             }}
                             className="nodrag nopan"
                         >
-                            {label!.toString().toLowerCase()}
+                            {label!.toString().toLowerCase()}{` `}
+                            <span className='border-l border-gray-400 px-[2px] text-gray-600 text-sm'><i className="fas fa-regular fa-circle-check px-1" />{num_papers}</span>
                         </div>
                     </PopoverHandler>
                     <PopoverContent>
