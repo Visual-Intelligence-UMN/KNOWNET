@@ -169,7 +169,6 @@ export function Chat({ id, initialMessages }: ChatProps) {
     isLoading,
     input,
     setInput,
-    setMessages
   } = useChat({
     initialMessages,
     id,
@@ -182,7 +181,8 @@ export function Chat({ id, initialMessages }: ChatProps) {
         toast.error(response.statusText)
       }
       if (reloadFlag.current) {
-        reloadFlag.current = false
+        // do not update active step for regenerate
+        // set to false at the finish function
       } else if (messages.length !== 0) {
         setActiveStep(activeStep => activeStep + 1)
       }
@@ -220,14 +220,14 @@ export function Chat({ id, initialMessages }: ChatProps) {
       //   thirdPart.match(/\[(.*?)\]/)?.[1].split(' | ') || []
 
 
-      setGptTriples(currentTriples => {
-        var updatedTriples = currentTriples
-        const newTriples: [string, string, string, number][] = secondPart.map((d: string[]) => [d[0], d[1], d[2], activeStep])
-        if (updatedTriples.some(d => d[3] == activeStep)) {
-          updatedTriples = updatedTriples.filter(d => d[3] != activeStep)
-        } 
-        return updatedTriples.concat(newTriples)
-      })
+      // var updatedTriples = gptTriples
+      // const newTriples: (string|number)[][] = secondPart.map((d: (string|number)[]) => [...d, activeStep])
+      // if (updatedTriples.some(d => d[3] == activeStep)) {
+      //   updatedTriples = updatedTriples.filter(d => d[3] != activeStep)
+      // } 
+      // updatedTriples = updatedTriples.concat(newTriples)
+      
+      // setGptTriples(updatedTriples)
 
       const newkeywordsListAnswer = [... new Set(secondPart.map((d: string[]) => [d[0], d[2]]).flat())]
       const newkeywordsListQuestion = thirdPart
@@ -615,17 +615,6 @@ export function Chat({ id, initialMessages }: ChatProps) {
         {messages.length ? (
           <>
             {/* DotsMobileStepper positioned here */}
-            <DotsMobileStepper
-              messages={messages}
-              steps={Math.max(...nodes.map(d => d.step+1), activeStep+1, 1)}
-              activeStep={activeStep}
-              handleNext={() =>
-                handleStepChange(Math.min(activeStep + 1, nodes.length - 1))
-              }
-              handleBack={() => handleStepChange(Math.max(activeStep - 1, 0))}
-              jumpToStep={handleStepChange}
-            />
-
             <div className="md:flex pt-4 md:pt-10">
 
                {/* Left column for ChatList */}
@@ -670,6 +659,18 @@ export function Chat({ id, initialMessages }: ChatProps) {
 
              
             </div>
+
+            <DotsMobileStepper
+              messages={messages}
+              steps={Math.max(...nodes.map(d => d.step+1), activeStep+1, 1)}
+              activeStep={activeStep}
+              handleNext={() =>
+                handleStepChange(Math.min(activeStep + 1, nodes.length - 1))
+              }
+              handleBack={() => handleStepChange(Math.max(activeStep - 1, 0))}
+              jumpToStep={handleStepChange}
+            />
+
           </>
         ) : (
           <EmptyScreen setInput={setInput} id={id!} append={append} />
