@@ -17,7 +17,7 @@ export interface ChatMessageProps {
   message: Message
   nodes: CustomGraphNode[]
   edges: CustomGraphEdge[]
-  gptTriples: string[][]
+  // gptTriples: string[][]
   clickedNode: any
 }
 
@@ -27,7 +27,7 @@ export function ChatMessage({
   nodes,
   edges,
   clickedNode,
-  gptTriples,
+  // gptTriples,
   ...props
 }: ChatMessageProps) {
   // New function to color text based on nodes data
@@ -93,62 +93,63 @@ export function ChatMessage({
   //   highlightTerm,
   //   category
   // )
+  
   // Consolidated function to apply styles based on nodes and clickedNode
-  function processContent(content: string, nodes: CustomGraphNode[], gptTriples:string[][], clickedNode: any) {
-    if (!nodes) {
-      return content
-    }
+  // function processContent(content: string, nodes: CustomGraphNode[], gptTriples:string[][], clickedNode: any) {
+  //   if (!nodes) {
+  //     return content
+  //   }
 
-    let processedContent = content
+  //   let processedContent = content
 
-    if (content.includes(' || ')) {
-      processedContent = content.split(' || ')[0]
-    }
+  //   if (content.includes(' || ')) {
+  //     processedContent = content.split(' || ')[0]
+  //   }
 
-    nodes.forEach(node => {
-      if (node.data?.gptName) {
-        const gptName = node.data.gptName
-        const highlightRegex = new RegExp(`(${gptName})`, 'gi')
-        const isNodeClicked = clickedNode?.data?.gptName === gptName
-        const category = node.category
-        let tailwindClasses =
-          categoryColorMapping[category] ? '' : 'text-gray-600 bg-gray-100'
+  //   nodes.forEach(node => {
+  //     if (node.data?.gptName) {
+  //       const gptName = node.data.gptName
+  //       const highlightRegex = new RegExp(`(${gptName})`, 'gi')
+  //       const isNodeClicked = clickedNode?.data?.gptName === gptName
+  //       const category = node.category
+  //       let tailwindClasses =
+  //         categoryColorMapping[category] ? '' : 'text-gray-600 bg-gray-100'
 
-        if (isNodeClicked) {
-          // Additional styles for clicked node
-          tailwindClasses += ' font-bold border-2 border-black'
-        }
+  //       if (isNodeClicked) {
+  //         // Additional styles for clicked node
+  //         tailwindClasses += ' font-bold border-2 border-black'
+  //       }
 
-        // processedContent = processedContent.replace(
-        //   highlightRegex,
-        //   `<mark class="${tailwindClasses}">$1</mark>`
-        // )
-        processedContent = processedContent.replace(
-          highlightRegex,
-          `<mark class="${tailwindClasses}" style="background-color:${categoryColorMapping[category]}; color: black">$1</mark>`
-        )
-      }
-    })
+  //       // processedContent = processedContent.replace(
+  //       //   highlightRegex,
+  //       //   `<mark class="${tailwindClasses}">$1</mark>`
+  //       // )
+  //       processedContent = processedContent.replace(
+  //         highlightRegex,
+  //         `<mark class="${tailwindClasses}" style="background-color:${categoryColorMapping[category]}; color: black">$1</mark>`
+  //       )
+  //     }
+  //   })
 
-    edges.forEach(edge => {
-      processedContent = processedContent.replace(
-        edge.label as string,
-        `<mark class="underline bg-white">${edge.label}</mark>`
-      )
+  //   edges.forEach(edge => {
+  //     processedContent = processedContent.replace(
+  //       edge.label as string,
+  //       `<mark class="underline bg-white">${edge.label}</mark>`
+  //     )
       
-    })
+  //   })
 
     
-    gptTriples.forEach(triple => {
-      console.info('test', triple)
-      processedContent = processedContent.replace(
-        triple[1] as string,
-        `<mark class="underline bg-white">${triple[1]}</mark>`
-      )
-    })
+  //   gptTriples.forEach(triple => {
+  //     console.info('test', triple)
+  //     processedContent = processedContent.replace(
+  //       triple[1] as string,
+  //       `<mark class="underline bg-white">${triple[1]}</mark>`
+  //     )
+  //   })
   
-    return processedContent
-  }
+  //   return processedContent
+  // }
 
   function formatText(input: string, nodes: CustomGraphNode[]): string {
     // Pattern to match entities and relations

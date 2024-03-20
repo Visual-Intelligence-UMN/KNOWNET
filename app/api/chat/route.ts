@@ -80,15 +80,14 @@ export async function POST(req: Request) {
 
   const qaPrompt = `
   You are an expert in healthcare and dietary supplements and need to help user to answer related questions.
-  Please return your response in a format where triples are clearly defined in the response. one triple is the relation between two entities.
-  Specifically, use [] to identify entities and relations in the response, 
+  Please return your response, about 4 sentences, in a format where all entities and their relations are clearly defined in the response. 
+  Specifically, use [] to identify all entities and relations in the response, 
   add () after identified entities and relations to assign unique ids to entities ($N1, $N2, ..) and relations ($R1, $R2, ...).
   For the relation, also add the entities it connects to. Use ; to separate if this relation exist in more than one triples.
 
   The entities can only be the following types: Dietary Supplement, Drugs, Disease, Symptom, Gene.
   Identified entities must have relations with other entities in the response.
-  Use no more than ${num_triples} triples and no more than ${num_entities} relations.
-  The response should be 2-3 sentence, each sentence in the response should not include more than one relation.
+  Each sentence in the response should not include more than one relation.
   Try to provide context in your response.
 
   After your response, also add the identified entities in user question, in the format of json string list; 

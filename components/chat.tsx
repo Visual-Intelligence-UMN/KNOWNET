@@ -145,7 +145,7 @@ export function Chat({ id, initialMessages }: ChatProps) {
   const [keywordsQuestion, setKeywordsQuestion] = useAtom(
     keywordsListQuestionAtom
   )
-  const [gptTriples, setGptTriples] = useAtom(gptTriplesAtom)
+  const gptTriples = useRef([] as string[][])
 
   const router = useRouter()
   const path = usePathname()
@@ -225,7 +225,7 @@ export function Chat({ id, initialMessages }: ChatProps) {
 
       const newkeywordsListQuestion = JSON.parse(parts[1] || '') 
       const {entities: newkeywordsListAnswer, relations} = extractRelations(parts[0])
-      console.log('New Keywords List Answer:', newkeywordsListAnswer, newkeywordsListQuestion)
+      gptTriples.current = relations
 
       setKeywordsAnswer(newkeywordsListAnswer)
       setKeywordsQuestion(newkeywordsListQuestion)
@@ -618,7 +618,7 @@ export function Chat({ id, initialMessages }: ChatProps) {
                 <ChatList
                   messages={messages}
                   activeStep={activeStep}
-                  gptTriples={gptTriples.filter(d => d[3] == activeStep)}
+                  // gptTriples={gptTriples.filter(d => d[3] == activeStep)}
                   nodes={nodes}
                   edges={edges.filter(edge => edge.step == activeStep)}
                   clickedNode={clickedNode}
