@@ -51,6 +51,7 @@ def post_chat_message():
     user_id = data.get("userId")
     keywords_list_answer = data.get("data", {}).get("keywords_list_answer")
     keywords_list_question = data.get("data", {}).get("keywords_list_question")
+    triples = data.get("data", {}).get("triples")
     recommendId = data.get("data", {}).get("recommendId")
 
     start_time = time.time()

@@ -145,7 +145,7 @@ export function Chat({ id, initialMessages }: ChatProps) {
   const [keywordsQuestion, setKeywordsQuestion] = useAtom(
     keywordsListQuestionAtom
   )
-  const gptTriples = useRef([] as string[][])
+  const [gptTriples, setGptTriples] = useAtom(gptTriplesAtom)
 
   const router = useRouter()
   const path = usePathname()
@@ -224,16 +224,17 @@ export function Chat({ id, initialMessages }: ChatProps) {
       // const newkeywordsListQuestion = thirdPart
 
       const newkeywordsListQuestion = JSON.parse(parts[1] || '') 
-      const {entities: newkeywordsListAnswer, relations} = extractRelations(parts[0])
-      gptTriples.current = relations
+      const {entities: newkeywordsListAnswer, relations:triples} = extractRelations(parts[0])
+      
 
       setKeywordsAnswer(newkeywordsListAnswer)
       setKeywordsQuestion(newkeywordsListQuestion)
+      setGptTriples(triples)
 
       // console.log('set Chat Keywords List Answer:', keywordsAnswer)
       // console.log('set Chat Keywords List Question:', keywordsQuestion)
       if (recommendations.length === 0) {
-        firstConversation(newkeywordsListAnswer, newkeywordsListQuestion)
+        firstConversation(newkeywordsListAnswer, newkeywordsListQuestion, triples)
       }
       router.refresh()
     }
@@ -487,7 +488,8 @@ export function Chat({ id, initialMessages }: ChatProps) {
   const continueConversation = async (
     recommendId: number,
     keywordsAnswer: string[],
-    keywordsQuestion: string[]
+    keywordsQuestion: string[],
+    triples: string[][]
   ) => {
     // setActiveStep(activeStep => activeStep + 1)
     const payload = {
@@ -496,7 +498,8 @@ export function Chat({ id, initialMessages }: ChatProps) {
       data: {
         recommendId: recommendId,
         keywords_list_answer: keywordsAnswer,
-        keywords_list_question: keywordsQuestion
+        keywords_list_question: keywordsQuestion,
+        triples
       }
     }
 
@@ -534,7 +537,8 @@ export function Chat({ id, initialMessages }: ChatProps) {
 
   const firstConversation = async (
     keywordsAnswer: string[],
-    keywordsQuestion: string[]
+    keywordsQuestion: string[],
+    triples: string[][]
   ) => {
     // setActiveStep(activeStep + 1)
     const payload = {
@@ -542,7 +546,8 @@ export function Chat({ id, initialMessages }: ChatProps) {
       userId: id,
       data: {
         keywords_list_answer: keywordsAnswer,
-        keywords_list_question: keywordsQuestion
+        keywords_list_question: keywordsQuestion,
+        triples
       }
     }
 

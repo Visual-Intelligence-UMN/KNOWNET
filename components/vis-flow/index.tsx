@@ -91,7 +91,7 @@ const FlowComponent = ({
       setTotalRecommendations(recommendations.length)
     }
     const exploredRecommendations =
-      totalRecommendations - recommendations.length
+      totalRecommendations - recommendations.length||0
     const progressPercentage =
       (exploredRecommendations / totalRecommendations) * 100
     setProgress(progressPercentage)
