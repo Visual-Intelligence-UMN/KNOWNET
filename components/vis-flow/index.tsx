@@ -5,9 +5,6 @@ import {
   Background,
   Controls,
   useReactFlow,
-  NodeToolbar,
-  Position,
-  Panel
 } from 'reactflow'
 import 'reactflow/dist/style.css'
 import CustomEdge from './customEdge' // Ensure this path is correct

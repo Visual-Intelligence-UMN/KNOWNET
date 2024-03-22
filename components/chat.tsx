@@ -57,7 +57,6 @@ import {
 import dagre from 'dagre'
 import FlowComponent from './vis-flow'
 import { BackendData, CustomGraphEdge, CustomGraphNode } from '@/lib/types'
-import CustomNode, { CustomNodeType } from './vis-flow/customNode'
 // const IS_PREVIEW = process.env.VERCEL_ENV === 'preview'
 
 // Initialize dagre graph for layout calculations

@@ -22,7 +22,6 @@ export type CustomGraphNode = ReactFlowNode & {
     kgName: string
     gptName: string
     label: string
-    recommendations: Recommendation[]
   }
   category: string
   step?: number
