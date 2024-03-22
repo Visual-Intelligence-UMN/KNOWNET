@@ -7,11 +7,7 @@ import CustomNode from './customNode'
 import { Button } from '../ui/button'
 import { Spinner } from '@material-tailwind/react'
 import { Progress } from '@material-tailwind/react'
-import {
-  recommendationsAtom,
-  keywordsListAnswerAtom,
-  keywordsListQuestionAtom
-} from '@/lib/state'
+import { gptTriplesAtom } from '@/lib/state'
 import { useAtom } from 'jotai'
 import { type UseChatHelpers } from 'ai/react'
 import FlowContext from './flow-context'
@@ -58,28 +54,20 @@ const FlowComponent = ({
   updateLayout: any
   setClickedNode: any
   recommendations: any
-  continueConversation?: (
-    recommendId: number,
-    keywordsAnswer: string[],
-    keywordsQuestion: string[],
-    triples: string[][]
-  ) => void
+  continueConversation?: (recommendId: number, triples: string[][]) => void
   id: any
   append: any
 }) => {
   const reactFlowInstance = useReactFlow()
   const [progress, setProgress] = useState(0)
   const [totalRecommendations, setTotalRecommendations] = useState(0)
-  const [keywordsListAnswer] = useAtom(keywordsListAnswerAtom)
-  const [keywordsListQuestion] = useAtom(keywordsListQuestionAtom)
-  const keywordsAnswerRef = useRef(keywordsListAnswer)
-  const keywordsQuestionRef = useRef(keywordsListQuestion)
+  const [gptTriples] = useAtom(gptTriplesAtom)
+  const gptTriplesRef = useRef(gptTriples)
 
   // Update refs whenever the keywords state changes
   useEffect(() => {
-    keywordsAnswerRef.current = keywordsListAnswer
-    keywordsQuestionRef.current = keywordsListQuestion
-  }, [keywordsListAnswer, keywordsListQuestion])
+    gptTriplesRef.current = gptTriples
+  }, [gptTriples])
 
   useEffect(() => {
     // Function to adjust view
@@ -112,25 +100,16 @@ const FlowComponent = ({
     if (recommendation) {
       await append({
         id,
-        content:
-          'Can you tell me more about ' +
-          recommendation.text +
-          ' related to my previous question?',
+        content: 'Can you tell me more about ' + recommendation.text + '?',
         role: 'user'
       })
       const recommendationId = recommendation.id
       // Use the current value of the refs, which is always up-to-date
-      const currentKeywordsAnswer = keywordsAnswerRef.current
-      const currentKeywordsQuestion = keywordsQuestionRef.current
+      const gptTriples = gptTriplesRef.current
       // Assuming you have a way to trigger the continueConversation method from here
       // You may need to lift state up or use a global state management solution
       if (continueConversation) {
-        continueConversation(
-          recommendationId,
-          currentKeywordsAnswer,
-          currentKeywordsQuestion,
-          []
-        )
+        continueConversation(recommendationId, gptTriples)
       }
     }
   }
