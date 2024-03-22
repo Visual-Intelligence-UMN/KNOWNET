@@ -102,7 +102,7 @@ export async function POST(req: Request) {
   [Gingko biloba]($N1) and [Vitamin E]($N2) may [improve]($R1, $N1, $N3; $R1, $N2, $N3) [Alzheimer's disease]($N3). [Gingko]($N1) is a ... || ['Alzheimer's Disease']. `
 
   const res = await openai.chat.completions.create({
-    model: 'gpt-4-0125-preview',
+    model: 'gpt-4',
     messages: [
       {
         role: 'system',

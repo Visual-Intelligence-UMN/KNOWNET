@@ -88,10 +88,8 @@ export function ChatPanel({
   ) => {
     await append({
       id,
-      content:
-        'Can you tell me more about ' +
-        contextMessage + '?',
-        // ' related to my previous question?',
+      content: 'Can you tell me more about ' + contextMessage + '?',
+      // ' related to my previous question?',
       role: 'user'
     })
 
@@ -128,7 +126,11 @@ export function ChatPanel({
 
     // Call continueConversation, using -1 as recommendation id(since the textinpu is customized by user)
     if (firstConversation) {
-      firstConversation(currentKeywordsAnswer, currentKeywordsQuestion, currentGptTriples)
+      firstConversation(
+        currentKeywordsAnswer,
+        currentKeywordsQuestion,
+        currentGptTriples
+      )
     }
   }
 
@@ -201,8 +203,12 @@ export function ChatPanel({
       {/* {StopRegenerateButton} */}
       <div className="mx-auto sm:max-w-\[90vw\] sm:px-4">
         <div className="mt-2 space-y-1 border-t bg-background px-4 py-2 shadow-lg sm:rounded-t-xl sm:border md:py-2 ">
-          <div className='flex  justify-center items-center'>
-             {!isRecomendationsHiding && <span className='text-gray-600 w-[180px]'>Tell me more about </span>}
+          <div className="flex  justify-center items-center">
+            {!isRecomendationsHiding && (
+              <span className="text-gray-600 w-[180px]">
+                Tell me more about{' '}
+              </span>
+            )}
             <div className={`grid grid-cols-4 gap-1`}>
               {TopRecommendations}
               {/* Speed Dial Positioned in the third column if there are additional recommendations */}

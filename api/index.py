@@ -77,13 +77,14 @@ def post_chat_message():
             "message": "Chat session retrieved/created successfully",
             "keywords_list_answer": keywords_list_answer,
             "keywords_list_question": keywords_list_question,
+            "triples": triples,
             "data": response_data
         }
 
     except Exception as e:
         app.logger.error("Error in processing the request: " + str(e))
         return jsonify({"status": "error", "message": str(e)}), 500
-    
+
     end_time = time.time()
     app.logger.info("Time taken for the request: "+ str(end_time - start_time))
 
@@ -138,12 +139,12 @@ def post_chat_message():
 def match_KG_nodes_old(entity_list, query_embeddings):
     nodes_list = []
     start_time = time.time()
-    
+
     for query_embedding, entity in zip(query_embeddings, entity_list):
     # for entity in entity_list:
     #     query_embedding = get_embedding(entity, model="text-embedding-ada-002")
         normalized_vector = normalize(np.asarray(query_embedding).reshape(1, -1))
-        
+
         similarity_list = cosine_similarity_sklearn(normalized_vector, normalized_embedding)[0]
 
         max_index = np.argmax(similarity_list)
@@ -157,7 +158,7 @@ def match_KG_nodes_old(entity_list, query_embeddings):
 
 def match_KG_nodes(entity_list, similarity_list):
     nodes_list = []
-    
+
     for entity, similarity in zip(entity_list, similarity_list):
 
         max_index = np.argmax(similarity)
@@ -298,15 +299,15 @@ def generate_recommendation():
 def agent(keywords_list_answer, keywords_list_question, recommand_id, input_type):
     node_id_map = {}  # Maps CUI to Node_ID
     rel_id_map = {}  # Maps (Source_CUI, Target_CUI, Relation_Type) to Relation_ID
-    
+
     # start_time = time.time()
-    
+
 
     response_data = {"vis_res": []}
 
     # speed up the process by using batch processing
-    query_embeddings = get_embeddings(keywords_list_answer+keywords_list_question, model="text-embedding-ada-002")  
-    normalized_vectors = normalize(np.asarray(query_embeddings))    
+    query_embeddings = get_embeddings(keywords_list_answer+keywords_list_question, model="text-embedding-ada-002")
+    normalized_vectors = normalize(np.asarray(query_embeddings))
     similarity_list = cosine_similarity_sklearn(normalized_vectors, normalized_embedding)
 
     nodes_list_answer = match_KG_nodes(keywords_list_answer, similarity_list[:len(keywords_list_answer)])

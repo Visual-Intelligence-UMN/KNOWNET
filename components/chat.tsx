@@ -57,6 +57,7 @@ import {
 import dagre from 'dagre'
 import FlowComponent from './vis-flow'
 import { BackendData, CustomGraphEdge, CustomGraphNode } from '@/lib/types'
+import CustomNode, { CustomNodeType } from './vis-flow/customNode'
 // const IS_PREVIEW = process.env.VERCEL_ENV === 'preview'
 
 // Initialize dagre graph for layout calculations
@@ -305,14 +306,17 @@ export function Chat({ id, initialMessages }: ChatProps) {
             data: {
               label: node.name,
               kgName: node.name,
-              gptName: data.node_name_mapping[node.name]
+              gptName: data.node_name_mapping[node.name],
+              recommendations: data.recommendation
             },
             position: { x: 0, y: 0 },
-            type: 'default',
+            // type: 'default',
+            type: 'custom',
             category: node.category,
             style: {
               opacity: 1,
-              background: nodeColor
+              background: nodeColor,
+              borderRadius: '5px'
             },
             step: currentStep
           })
@@ -500,35 +504,8 @@ export function Chat({ id, initialMessages }: ChatProps) {
 
         return updatedEdges
       })
-
-      const currentKeywordsQuestion = keywordsQuestionRef.current
-      // After processing existing nodes and edges, add recommendation nodes and edges
-      const recommendationNodes = recommendations.map(recommendation => ({
-        id: `recommendation-${recommendation.id}`, // Unique ID for the recommendation node
-        data: {
-          label: recommendation.text.replace(currentKeywordsQuestion[0], '')
-        },
-        position: { x: Math.random() * 400, y: Math.random() * 400 }, // Random position, adjust as needed
-        type: 'special', // Assuming you have a 'special' type for recommendation nodes
-        style: { background: '#ffcc00', borderColor: '#ffcc00' }, // Styling for recommendation nodes
-        step: currentStep
-      }))
-
-      setNodes(currentNodes => [...currentNodes, ...recommendationNodes])
-
-      const recommendationEdges = recommendations.flatMap(recommendation => {
-        return currentKeywordsQuestion.map(keyword => ({
-          id: `edge-${recommendation.id}-${keyword}`,
-          source: `recommendation-${recommendation.id}`,
-          target: keyword,
-          type: 'straight', // Or any other type you prefer
-          style: { stroke: '#ffcc00' } // Styling for recommendation edges
-        }))
-      })
-
-      setEdges(currentEdges => [...currentEdges, ...recommendationEdges])
     },
-    [recommendations, setNodes, setEdges]
+    [setNodes, setEdges]
   )
 
   const continueConversation = async (
@@ -683,25 +660,23 @@ export function Chat({ id, initialMessages }: ChatProps) {
               <div className="md:w-2/3 top-10 space-y-1 pr-4">
                 <ReactFlowProvider>
                   <FlowComponent
-                    {...{
-                      nodes,
-                      edges,
-                      onNodesChange,
-                      onEdgesChange,
-                      activeStep,
-                      proOptions,
-                      onConnect,
-                      onInit,
-                      isLoadingBackendData,
-                      isLoading,
-                      updateLayout,
-                      setLayoutDirection,
-                      setClickedNode,
-                      recommendations,
-                      continueConversation,
-                      id,
-                      append
-                    }}
+                    nodes={nodes}
+                    edges={edges}
+                    onNodesChange={onNodesChange}
+                    onEdgesChange={onEdgesChange}
+                    activeStep={activeStep}
+                    proOptions={proOptions}
+                    onConnect={onConnect}
+                    onInit={onInit}
+                    isLoadingBackendData={isLoadingBackendData}
+                    isLoading={isLoading}
+                    updateLayout={updateLayout}
+                    setLayoutDirection={setLayoutDirection}
+                    setClickedNode={setClickedNode}
+                    recommendations={recommendations}
+                    continueConversation={continueConversation}
+                    id={id}
+                    append={append}
                   />
                 </ReactFlowProvider>
               </div>

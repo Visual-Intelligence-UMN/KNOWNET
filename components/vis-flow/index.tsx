@@ -1,8 +1,17 @@
 // Import necessary React and React Flow components at the beginning of your file
-import React, { useEffect, useRef, useState } from 'react'
-import { ReactFlow, Background, Controls, useReactFlow } from 'reactflow'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
+import {
+  ReactFlow,
+  Background,
+  Controls,
+  useReactFlow,
+  NodeToolbar,
+  Position,
+  Panel
+} from 'reactflow'
 import 'reactflow/dist/style.css'
 import CustomEdge from './customEdge' // Ensure this path is correct
+import CustomNode from './customNode'
 import { Button } from '../ui/button'
 import { Spinner } from '@material-tailwind/react'
 import { Progress } from '@material-tailwind/react'
@@ -17,6 +26,10 @@ import { type UseChatHelpers } from 'ai/react'
 // Define custom edge types including your CustomEdge
 const edgeTypes = {
   custom: CustomEdge
+}
+
+const nodesTypes = {
+  custom: CustomNode
 }
 
 const FlowComponent = ({
@@ -55,7 +68,8 @@ const FlowComponent = ({
   continueConversation?: (
     recommendId: number,
     keywordsAnswer: string[],
-    keywordsQuestion: string[]
+    keywordsQuestion: string[],
+    triples: string[][]
   ) => void
   id: any
   append: any
@@ -67,6 +81,7 @@ const FlowComponent = ({
   const [keywordsListQuestion] = useAtom(keywordsListQuestionAtom)
   const keywordsAnswerRef = useRef(keywordsListAnswer)
   const keywordsQuestionRef = useRef(keywordsListQuestion)
+
   // Update refs whenever the keywords state changes
   useEffect(() => {
     keywordsAnswerRef.current = keywordsListAnswer
@@ -99,20 +114,18 @@ const FlowComponent = ({
     adjustView()
   }, [nodes.length, reactFlowInstance])
 
-  const handleonNodeClick = async (event: any, node: any, nodes: any) => {
-    // Set hovered node id in a state that's accessible by the chat component
-    setClickedNode(node)
-    console.log('Clicked Node:', node)
-    if (node.id.startsWith('recommendation-')) {
+  const onRecommendationClick = async (recommendation: any) => {
+    // Handle recommendation button click
+    if (recommendation) {
       await append({
         id,
         content:
           'Can you tell me more about ' +
-          node.data.label +
+          recommendation.text +
           ' related to my previous question?',
         role: 'user'
       })
-      const recommendationId = parseInt(node.id.split('-')[1], 10)
+      const recommendationId = recommendation.id
       // Use the current value of the refs, which is always up-to-date
       const currentKeywordsAnswer = keywordsAnswerRef.current
       const currentKeywordsQuestion = keywordsQuestionRef.current
@@ -122,17 +135,17 @@ const FlowComponent = ({
         continueConversation(
           recommendationId,
           currentKeywordsAnswer,
-          currentKeywordsQuestion
+          currentKeywordsQuestion,
+          []
         )
       }
-
-      // Remove the clicked recommendation nodes from the graph and nodes
-      const updatedNodes = nodes.filter(node)
-      onNodesChange(updatedNodes)
-    } else {
-      setClickedNode(node)
-      console.log('Clicked Node:', node)
     }
+  }
+
+  const handleonNodeClick = async (event: any, node: any) => {
+    // Set hovered node id in a state that's accessible by the chat component
+    setClickedNode(node)
+    console.log('Clicked Node:', node)
   }
 
   const handleonNodeDoubleClick = () => {
@@ -146,7 +159,7 @@ const FlowComponent = ({
       setTotalRecommendations(recommendations.length)
     }
     const exploredRecommendations =
-      totalRecommendations - recommendations.length||0
+      totalRecommendations - recommendations.length || 0
     const progressPercentage =
       (exploredRecommendations / totalRecommendations) * 100
     setProgress(progressPercentage)
@@ -179,6 +192,7 @@ const FlowComponent = ({
           </div>
         </div>
       )}
+
       <ReactFlow
         nodes={nodes.filter(node => node.step <= activeStep)}
         edges={edges.filter(edge => edge.step <= activeStep)}
@@ -189,6 +203,7 @@ const FlowComponent = ({
         onConnect={onConnect}
         onInit={onInit}
         edgeTypes={edgeTypes}
+        nodeTypes={nodesTypes}
         onNodeClick={handleonNodeClick}
         onNodeDoubleClick={handleonNodeDoubleClick}
       >

@@ -18,8 +18,12 @@ export type ServerActionResult<Result> = Promise<Result | { error: string }>
 export type CustomGraphNode = ReactFlowNode & {
   // Label: string
   // group: string
-  data: { kgName: string, gptName: string, 
-    label: string }
+  data: {
+    kgName: string
+    gptName: string
+    label: string
+    recommendations: Recommendation[]
+  }
   category: string
   step?: number
 }
@@ -40,7 +44,7 @@ export type KGNode = {
   category: string
 }
 
-export type KGEdge = {  
+export type KGEdge = {
   source: string
   target: string
   category: string
