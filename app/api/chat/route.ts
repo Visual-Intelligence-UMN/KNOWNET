@@ -85,7 +85,8 @@ export async function POST(req: Request) {
   add () after identified entities and relations to assign unique ids to entities ($N1, $N2, ..) and relations ($R1, $R2, ...).
   For the relation, also add the entities it connects to. Use ; to separate if this relation exist in more than one triples.
 
-  The entities can only be the following types: Dietary Supplement, Drugs, Disease, Symptom, Gene.
+  The entities can only be the following types: Dietary Supplement, Disorders, Drug, Genes & Molecular Sequences, Anatomy, Living Beings, Physiology, Chemicals & Drugs,
+  Procedures, Activities & Behaviors, Concepts & Ideas, Device, Object, Organization, Phenomenon.
   Identified entities must have relations with other entities in the response.
   Each sentence in the response should not include more than one relation.
   Try to provide context in your response.
@@ -95,11 +96,11 @@ export async function POST(req: Request) {
 
   Example 1,
   Question: What are the benefits of fish oil?
-  Answer:  [Fish oil]($N1) is known for [containing]($R1, $N1, $N2) a rich content of [Omega-3 fatty acids]($N2)... [Omega-3 fatty acids]($N2) can [delay]($R2, $N2, $N3) or reduce the risk of [cognitive decline]($N3) || ['fish oil'].
+  Answer:  [Fish oil]($N1) is known for [containing]($R1, $N1, $N2) a rich content of [Omega-3 fatty acids]($N2). Omega-3 fatty acids have anti-inflammatory and neuroprotective properties and are believed to be beneficial for brain health. [Omega-3 fatty acids]($N2) can [delay]($R2, $N2, $N3) or reduce the risk of [cognitive decline]($N3) || ['fish oil'].
 
   Example 2,
   Question: which supplements may prevent Alzheimer's Disease?
-  [Gingko biloba]($N1) and [Vitamin E]($N2) may [improve]($R1, $N1, $N3; $R1, $N2, $N3) [Alzheimer's disease]($N3). [Gingko]($N1) is a ... || ['Alzheimer's Disease']. `
+  [Gingko biloba]($N1) and [Vitamin E]($N2) may [improve]($R1, $N1, $N3; $R1, $N2, $N3) [Alzheimer's disease]($N3). [Gingko]($N1) is often used to improve cognitive function, but studies on its effectiveness in preventing Alzheimer's have been inconclusive || ['Alzheimer's Disease']. `
 
   const res = await openai.chat.completions.create({
     model: 'gpt-4-0125-preview',
