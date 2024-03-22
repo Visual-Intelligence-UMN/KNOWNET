@@ -1,4 +1,4 @@
-import React, { FC, useContext, useState } from 'react'
+import React, { FC, useContext, useEffect, useState } from 'react'
 import {
   Node as ReactFlowNode,
   Handle,
@@ -10,7 +10,8 @@ import { Button } from '../ui/button' // Adjust the import path as necessary
 import 'reactflow/dist/style.css'
 import { CustomGraphNode } from '@/lib/types'
 import FlowContext from './flow-context'
-
+import { recommendationsAtom } from '@/lib/state'
+import { useAtom } from 'jotai'
 export interface Recommendation {
   id: number
   text: string
@@ -24,29 +25,32 @@ const CustomNode: FC<NodeProps> = ({
 }) => {
   const { onRecommendationClick: globalOnRecommendationClick } =
     useContext(FlowContext)
-  const [hiddenRecommendations, setHiddenRecommendations] = useState<
-    Set<number>
-  >(new Set())
+  const [globalRecommendations] = useAtom(recommendationsAtom)
+  const [visibleRecommendations, setVisibleRecommendations] = useState<
+    Recommendation[]
+  >([])
+
+  // Initialize or update visibleRecommendations based on globalRecommendations
+  useEffect(() => {
+    const filteredRecommendations = data.recommendations.filter(
+      recommendation =>
+        globalRecommendations.some(
+          globalRec =>
+            globalRec.id === recommendation.id &&
+            recommendation.text.toLowerCase().includes(data.label.toLowerCase())
+        )
+    )
+    setVisibleRecommendations(filteredRecommendations)
+  }, [data.recommendations, globalRecommendations])
 
   const handleRecommendationClick = (recommendation: Recommendation) => {
-    // Call the global onRecommendationClick function
     globalOnRecommendationClick(recommendation)
-    // Mark this recommendation as hidden
-    setHiddenRecommendations(prev => new Set(prev.add(recommendation.id)))
-  }
-
-  const isRecommended = (label: string) => {
-    return data.recommendations.some(recommendation =>
-      recommendation.text.toLowerCase().includes(label.toLowerCase())
+    // Optionally hide the clicked recommendation by updating visibleRecommendations
+    setVisibleRecommendations(prev =>
+      prev.filter(rec => rec.id !== recommendation.id)
     )
   }
 
-  // Directly filter and map over recommendations that contain the node's label and are not hidden
-  const filteredRecommendations = data.recommendations.filter(
-    recommendation =>
-      recommendation.text.toLowerCase().includes(data.label.toLowerCase()) &&
-      !hiddenRecommendations.has(recommendation.id)
-  )
   return (
     <>
       <div
@@ -68,32 +72,26 @@ const CustomNode: FC<NodeProps> = ({
           boxSizing: 'border-box'
         }}
       >
-        {isRecommended(data.label) && (
+        {visibleRecommendations.length > 0 && (
           <NodeToolbar
             isVisible={data.selected}
             position={Position.Bottom}
             offset={1}
           >
-            {filteredRecommendations.length > 0 && (
-              <div className="text-xs">Tell me more about:</div>
-            )}
-            {filteredRecommendations
-              .filter(
-                recommendation => !hiddenRecommendations.has(recommendation.id)
-              )
-              .map(recommendation => (
-                <Button
-                  key={recommendation.id}
-                  variant="outline"
-                  className="mr-2" // Add some spacing between buttons
-                  onClick={() => handleRecommendationClick(recommendation)}
-                  title={recommendation.text}
-                >
-                  {recommendation.text
-                    .replace(data.label, '')
-                    .replace(' and ', '')}
-                </Button>
-              ))}
+            <div className="text-xs">Tell me more about:</div>
+            {visibleRecommendations.map(recommendation => (
+              <Button
+                key={recommendation.id}
+                variant="outline"
+                className="mr-2" // Add some spacing between buttons
+                onClick={() => handleRecommendationClick(recommendation)}
+                title={recommendation.text}
+              >
+                {recommendation.text
+                  .replace(data.label, '')
+                  .replace(' and ', '')}
+              </Button>
+            ))}
           </NodeToolbar>
         )}
 
