@@ -44,6 +44,7 @@ recommendation_id_counter = 0  # Keep track of the next ID to assign
 def hello_world():
     return "<p>Hello, I am testing flask</p>"
 
+
 @app.route("/api/chat", methods=["POST"])
 def post_chat_message():
     data = request.json
@@ -52,22 +53,23 @@ def post_chat_message():
     keywords_list_answer = data.get("data", {}).get("keywords_list_answer")
     keywords_list_question = data.get("data", {}).get("keywords_list_question")
     triples = data.get("data", {}).get("triples")
+
     recommendId = data.get("data", {}).get("recommendId")
 
     start_time = time.time()
-
+    app.logger.info(triples)
     if not user_id:
         return jsonify({"status": "error", "message": "Unauthorized"}), 401
 
     try:
         # Call the agent function from AI_agent.py
         if input_type == "new_conversation":
-            response_data = agent(keywords_list_answer, keywords_list_question, 0, "new_conversation")
+            response_data = agent(triples, 0, "new_conversation")
 
             # print(response_data)
         elif input_type == "continue_conversation":
             # Handle the continue conversation logic
-            response_data = agent(keywords_list_answer, keywords_list_question, recommendId, "continue_conversation")
+            response_data = agent(triples, recommendId, "continue_conversation")
         else:
             raise ValueError("Invalid input type")
 
@@ -83,11 +85,12 @@ def post_chat_message():
     except Exception as e:
         app.logger.error("Error in processing the request: " + str(e))
         return jsonify({"status": "error", "message": str(e)}), 500
-    
+
     end_time = time.time()
-    app.logger.info("Time taken for the request: "+ str(end_time - start_time))
+    app.logger.info("Time taken for the request: " + str(end_time - start_time))
 
     return jsonify(response)
+
 
 ## AI Agent METHOD
 
@@ -138,12 +141,12 @@ def post_chat_message():
 def match_KG_nodes_old(entity_list, query_embeddings):
     nodes_list = []
     start_time = time.time()
-    
+
     for query_embedding, entity in zip(query_embeddings, entity_list):
-    # for entity in entity_list:
-    #     query_embedding = get_embedding(entity, model="text-embedding-ada-002")
+        # for entity in entity_list:
+        #     query_embedding = get_embedding(entity, model="text-embedding-ada-002")
         normalized_vector = normalize(np.asarray(query_embedding).reshape(1, -1))
-        
+
         similarity_list = cosine_similarity_sklearn(normalized_vector, normalized_embedding)[0]
 
         max_index = np.argmax(similarity_list)
@@ -152,12 +155,13 @@ def match_KG_nodes_old(entity_list, query_embeddings):
         if max_similarity > 0.94:
             nodes_list.append([kg_nodes_embedding.CUI.values[max_index], kg_nodes_embedding.Name.values[max_index], entity])
 
-    app.logger.info("Time taken for the old KG matching: "+ str(time.time() - start_time))
+    app.logger.info("Time taken for the old KG matching: " + str(time.time() - start_time))
     return nodes_list
+
 
 def match_KG_nodes(entity_list, similarity_list):
     nodes_list = []
-    
+
     for entity, similarity in zip(entity_list, similarity_list):
 
         max_index = np.argmax(similarity)
@@ -166,6 +170,7 @@ def match_KG_nodes(entity_list, similarity_list):
             nodes_list.append([kg_nodes_embedding.CUI.values[max_index], kg_nodes_embedding.Name.values[max_index], entity])
 
     return nodes_list
+
 
 def select_subgraph(cypher_statement, node_id_map, rel_id_map):
     uri = neo4j_url
@@ -179,7 +184,7 @@ def select_subgraph(cypher_statement, node_id_map, rel_id_map):
     for record in neo4j_res:
         path_nodes = record['path'].nodes
         path_rels = record['path'].relationships
-         # Process each node in path
+        # Process each node in path
         for node in path_nodes:
             cui = node['CUI']
             if cui not in node_id_map:
@@ -194,7 +199,8 @@ def select_subgraph(cypher_statement, node_id_map, rel_id_map):
             rel_key = (path_nodes[0]['CUI'], path_nodes[1]['CUI'], rel['Type'])
             if pubmed_id not in rel_id_map:
                 rel_id_map[pubmed_id] = pubmed_id
-                rel_res.append({'PubMed_ID': pubmed_id, "source": node_id_map[path_nodes[0]['CUI']], "target": node_id_map[path_nodes[1]['CUI']], "category": rel['Type']})
+                rel_res.append(
+                    {'PubMed_ID': pubmed_id, "source": node_id_map[path_nodes[0]['CUI']], "target": node_id_map[path_nodes[1]['CUI']], "category": rel['Type']})
             else:
                 # Relationship already exists, reuse PubMed_ID from map
                 existing_pubmed_id = rel_id_map[pubmed_id]
@@ -203,6 +209,59 @@ def select_subgraph(cypher_statement, node_id_map, rel_id_map):
                     if existing_rel['PubMed_ID'] == existing_pubmed_id:
                         existing_rel['PubMed_ID'] += " | " + pubmed_id
                         break
+
+    return nodes_res, rel_res
+
+
+def select_subgraph_1Hop(cypher_statement, node_id_map, rel_id_map):
+    uri = neo4j_url
+    driver = GraphDatabase.driver(uri, auth=("neo4j", "yuhou"))
+    session = driver.session()
+    neo4j_res = session.run(cypher_statement)
+
+    nodes_res = []
+    rel_res = []
+
+    for i, record in enumerate(neo4j_res):
+        sub_cui = record['sub']['CUI']
+        inter_cui = record['inter']['CUI']
+        obj_cui = record['obj']['CUI']
+        if sub_cui not in node_id_map:
+            node_id_map[sub_cui] = sub_cui
+            nodes_res.append({'id': sub_cui, "name": record['sub']['Name'], "category": record['sub']['Label']})
+        else:
+            nodes_res.append({'id': sub_cui, "name": record['sub']['Name'], "category": record['sub']['Label']})
+        if inter_cui not in node_id_map:
+            node_id_map[inter_cui] = inter_cui
+            nodes_res.append({'id': inter_cui, "name": record['inter']['Name'], "category": record['inter']['Label']})
+        else:
+            nodes_res.append({'id': inter_cui, "name": record['inter']['Name'], "category": record['inter']['Label']})
+        if obj_cui not in node_id_map:
+            node_id_map[obj_cui] = obj_cui
+            nodes_res.append({'id': obj_cui, "name": record['obj']['Name'], "category": record['obj']['Label']})
+        else:
+            nodes_res.append({'id': obj_cui, "name": record['obj']['Name'], "category": record['obj']['Label']})
+
+        rel_1_pubmed_id = record['rel_1']['PubMed_ID']
+        rel_2_pubmed_id = record['rel_2']['PubMed_ID']
+        if rel_1_pubmed_id not in rel_id_map:
+            rel_id_map[rel_1_pubmed_id] = rel_1_pubmed_id
+            rel_res.append({'PubMed_ID': rel_1_pubmed_id, "source": node_id_map[obj_cui], "target": node_id_map[inter_cui], "category": record['rel_1']['Type']})
+        else:
+            existing_pubmed_id = rel_id_map[rel_1_pubmed_id]
+            for existing_rel in rel_res:
+                if existing_rel['PubMed_ID'] == existing_pubmed_id:
+                    existing_rel['PubMed_ID'] += " | " + rel_1_pubmed_id
+                    break
+        if rel_2_pubmed_id not in rel_id_map:
+            rel_id_map[rel_2_pubmed_id] = rel_2_pubmed_id
+            rel_res.append({'PubMed_ID': rel_2_pubmed_id, "source": node_id_map[inter_cui], "target": node_id_map[obj_cui], "category": record['rel_2']['Type']})
+        else:
+            existing_pubmed_id = rel_id_map[rel_2_pubmed_id]
+            for existing_rel in rel_res:
+                if existing_rel['PubMed_ID'] == existing_pubmed_id:
+                    existing_rel['PubMed_ID'] += " | " + rel_2_pubmed_id
+                    break
 
     return nodes_res, rel_res
 
@@ -229,29 +288,25 @@ def subgraph_type(cui, target_type, node_id_map, rel_id_map):
     res.append({"nodes": nodes, "edges": edges})
     return res
 
-#TODO: Check recommendation visualization logic
-def visualization(node_list, node_id_map, rel_id_map):
-    res = []
-    if len(node_list) == 1:
-        cypher_statement = "MATCH path=(sub:Node{CUI:\"" + node_list[0][0] + "\"})-[rel:Relation*1]-(obj:Node) RETURN path LIMIT 10"
-        nodes, edges = select_subgraph(cypher_statement, node_id_map, rel_id_map)
-        res.append({"nodes": nodes, "edges": edges})
-    else:
-        for i in range(len(node_list) - 1):
-            current_entity = node_list[i][0]
-            for j in range(i + 1, len(node_list)):
-                next_entity = node_list[j][0]
-                cypher_statement = "MATCH path=(sub:Node{CUI:\"" + current_entity + "\"})-[rel:Relation*1]-(obj:Node{CUI:\"" + next_entity + "\"}) RETURN path LIMIT 10"
-                nodes, edges = select_subgraph(cypher_statement, node_id_map, rel_id_map)
-                if len(nodes) != 0:
-                    res.append({"nodes": nodes, "edges": edges})
-    if len(res) == 0:
-        for i in range(len(node_list)):
-            cypher_statement = "MATCH path=(sub:Node{CUI:\"" + node_list[i][0] + "\"})-[rel:Relation*1]-(obj:Node) RETURN path LIMIT 10"
-            nodes, edges = select_subgraph(cypher_statement, node_id_map, rel_id_map)
-            res.append({"nodes": nodes, "edges": edges})
 
+# TODO: Check recommendation visualization logic
+def visualization(node_list, node_id_map, rel_id_map):
+    app.logger.info(node_list)
+    res = []
+    if len(node_list) == 2:
+        cypher_statement = "MATCH path=(sub:Node{CUI:\"" + node_list[0][0] + "\"})-[rel:Relation*1]-(obj:Node{CUI:\"" + node_list[1][0] + "\"}) RETURN path LIMIT 10"
+        nodes, edges = select_subgraph(cypher_statement, node_id_map, rel_id_map)
+        if len(nodes) != 0:
+            res.append({"nodes": nodes, "edges": edges})
+        if len(res) == 0:
+            cypher_statement = "MATCH (sub:Node{CUI:\"" + node_list[0][0] + "\"})-[rel_1:Relation]-(inter:Node)-[rel_2:Relation]-(obj:Node{CUI:\"" + node_list[1][0] + "\"}) RETURN sub,rel_1,inter,rel_2,obj LIMIT 10"
+            nodes, edges = select_subgraph_1Hop(cypher_statement, node_id_map, rel_id_map)
+            if len(nodes) != 0:
+                res.append({"nodes": nodes, "edges": edges})
+                app.logger.info("One-Hop")
+    app.logger.info(res)
     return res
+
 
 # def add_recommendation_space(entity_list):
 #     for entity in entity_list:
@@ -295,33 +350,45 @@ def generate_recommendation():
         })
     return recommendations
 
-def agent(keywords_list_answer, keywords_list_question, recommand_id, input_type):
+
+def agent(triples, recommand_id, input_type):
     node_id_map = {}  # Maps CUI to Node_ID
     rel_id_map = {}  # Maps (Source_CUI, Target_CUI, Relation_Type) to Relation_ID
-    
+
     # start_time = time.time()
-    
 
     response_data = {"vis_res": []}
+    vis_res = []
+    node_name_mapping = {}
+    triple_entity_list = []
+    for triple in triples:
+        head, rel, tail = triple
+        app.logger.info(head == "None")
+        app.logger.info(tail == "None")
+        triple_entity_list.append(head)
+        triple_entity_list.append(tail)
 
-    # speed up the process by using batch processing
-    query_embeddings = get_embeddings(keywords_list_answer+keywords_list_question, model="text-embedding-ada-002")  
-    normalized_vectors = normalize(np.asarray(query_embeddings))    
+    triple_embeddings = get_embeddings(triple_entity_list, model="text-embedding-ada-002")  # speed up the process by using batch processing
+    normalized_vectors = normalize(np.asarray(triple_embeddings))
     similarity_list = cosine_similarity_sklearn(normalized_vectors, normalized_embedding)
 
-    nodes_list_answer = match_KG_nodes(keywords_list_answer, similarity_list[:len(keywords_list_answer)])
-
-    vis_res = visualization(nodes_list_answer, node_id_map, rel_id_map)
-
+    triples_index = 0
+    for triple in triples:
+        head, rel, tail = triple
+        nodes_list = match_KG_nodes([head, tail], similarity_list[triples_index:triples_index + 2])
+        triples_index += 2
+        temp_ves_res = visualization(nodes_list, node_id_map, rel_id_map)
+        vis_res += temp_ves_res
+        for i in range(len(nodes_list)):
+            node_name_mapping[nodes_list[i][1]] = nodes_list[i][2]
 
     response_data["vis_res"] = vis_res
 
-    response_data['node_name_mapping'] = {nodes_list_answer[i][1]: nodes_list_answer[i][2] for i in range(len(nodes_list_answer))}
+    response_data['node_name_mapping'] = node_name_mapping
 
     if input_type == "new_conversation":
-        nodes_list_question = match_KG_nodes(keywords_list_question, similarity_list[len(keywords_list_answer):])
-
-        add_recommendation_space(nodes_list_question)  # Updates the recommendation space
+        triple_nodes_list = match_KG_nodes(triple_entity_list, similarity_list)
+        add_recommendation_space(triple_nodes_list)  # Updates the recommendation space
         recommendation = generate_recommendation()
 
         response_data["recommendation"] = recommendation
@@ -335,7 +402,7 @@ def agent(keywords_list_answer, keywords_list_question, recommand_id, input_type
             if value['id'] == recommendId:
                 selected_recommendation = key
                 break
-
+        app.logger.info(selected_recommendation)
         if selected_recommendation:
             # entity, neighbor = selected_recommendation
             # # generate nodes and edges from chatgpt entity and neighbor
@@ -347,5 +414,3 @@ def agent(keywords_list_answer, keywords_list_question, recommand_id, input_type
 
     # app.logger.info("Time taken for the agent function: "+ str(time.time() - start_time))
     return response_data
-
-
