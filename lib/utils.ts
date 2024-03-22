@@ -11,7 +11,6 @@ export const nanoid = customAlphabet(
   7
 ) // 7-character random string
 
-
 //  a list of nodes that are too much high level and should not be shown
 export const highLevelNodes = ['physiology', 'supplement']
 
@@ -51,12 +50,12 @@ export const categoryColorMapping: { [key: string]: string } = {
   'Concepts & Ideas': '#4e79a7', // Blue
   Device: '#f28e2c', // Orange
   Object: '#e15759', // Red
+  Objects: '#e15759', // Red
   Organization: '#76b7b2', // Cyan
   Phenomenon: '#59a14f', // Green
   NotFind: '#dddddd' //gray
   // Add more label types and colors as needed
 }
-
 
 export function formatDate(input: string | number | Date): string {
   const date = new Date(input)

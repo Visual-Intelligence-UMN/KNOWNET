@@ -145,10 +145,10 @@ export function Chat({ id, initialMessages }: ChatProps) {
   var reloadFlag = useRef(false) // This is a flag to check if the reload button has been clicked. Not use state as it will not trigger a re-render
   const [recommendations, setRecommendations] = useAtom(recommendationsAtom)
   const [backendData, setBackendData] = useAtom(backendDataAtom)
-  const [keywordsAnswer, setKeywordsAnswer] = useAtom(keywordsListAnswerAtom)
-  const [keywordsQuestion, setKeywordsQuestion] = useAtom(
-    keywordsListQuestionAtom
-  )
+  // const [keywordsAnswer, setKeywordsAnswer] = useAtom(keywordsListAnswerAtom)
+  // const [keywordsQuestion, setKeywordsQuestion] = useAtom(
+  //   keywordsListQuestionAtom
+  // )
   const [gptTriples, setGptTriples] = useAtom(gptTriplesAtom)
 
   const router = useRouter()
@@ -165,8 +165,9 @@ export function Chat({ id, initialMessages }: ChatProps) {
   const [previewTokenDialog, setPreviewTokenDialog] = useState(false)
   const [previewTokenInput, setPreviewTokenInput] = useState(previewToken ?? '')
   const [isLoadingBackendData, setIsLoadingBackendData] = useState(true)
-  const keywordsAnswerRef = useRef(keywordsAnswer)
-  const keywordsQuestionRef = useRef(keywordsQuestion)
+  // const keywordsAnswerRef = useRef(keywordsAnswer)
+  // const keywordsQuestionRef = useRef(keywordsQuestion)
+  const gptTriplesRef = useRef(gptTriples)
   const { messages, append, reload, stop, isLoading, input, setInput } =
     useChat({
       initialMessages,
@@ -222,22 +223,17 @@ export function Chat({ id, initialMessages }: ChatProps) {
         // const newkeywordsListAnswer = [... new Set(secondPart.map((d: string[]) => [d[0], d[2]]).flat())]
         // const newkeywordsListQuestion = thirdPart
 
-        const newkeywordsListQuestion = JSON.parse(parts[1] || '')
-        const { entities: newkeywordsListAnswer, relations: triples } =
-          extractRelations(parts[0])
+        // const newkeywordsListQuestion = JSON.parse(parts[1] || '')
+        const { relations: triples } = extractRelations(parts[0])
 
-        setKeywordsAnswer(newkeywordsListAnswer)
-        setKeywordsQuestion(newkeywordsListQuestion)
+        // setKeywordsAnswer(newkeywordsListAnswer)
+        // setKeywordsQuestion(newkeywordsListQuestion)
         setGptTriples(triples)
 
         // console.log('set Chat Keywords List Answer:', keywordsAnswer)
         // console.log('set Chat Keywords List Question:', keywordsQuestion)
         if (recommendations.length === 0) {
-          firstConversation(
-            newkeywordsListAnswer,
-            newkeywordsListQuestion,
-            triples
-          )
+          firstConversation(triples)
         }
         router.refresh()
       }
@@ -251,9 +247,8 @@ export function Chat({ id, initialMessages }: ChatProps) {
   }
 
   useEffect(() => {
-    keywordsAnswerRef.current = keywordsAnswer
-    keywordsQuestionRef.current = keywordsQuestion
-  }, [keywordsAnswer, keywordsQuestion])
+    gptTriplesRef.current = gptTriples
+  }, [gptTriples])
 
   useEffect(() => {
     if (initialRender.current) {
@@ -509,8 +504,6 @@ export function Chat({ id, initialMessages }: ChatProps) {
 
   const continueConversation = async (
     recommendId: number,
-    keywordsAnswer: string[],
-    keywordsQuestion: string[],
     triples: string[][]
   ) => {
     // setActiveStep(activeStep => activeStep + 1)
@@ -519,8 +512,6 @@ export function Chat({ id, initialMessages }: ChatProps) {
       userId: id,
       data: {
         recommendId: recommendId,
-        keywords_list_answer: keywordsAnswer,
-        keywords_list_question: keywordsQuestion,
         triples
       }
     }
@@ -557,18 +548,12 @@ export function Chat({ id, initialMessages }: ChatProps) {
     [setEdges]
   )
 
-  const firstConversation = async (
-    keywordsAnswer: string[],
-    keywordsQuestion: string[],
-    triples: string[][]
-  ) => {
+  const firstConversation = async (triples: string[][]) => {
     // setActiveStep(activeStep + 1)
     const payload = {
       input_type: 'new_conversation',
       userId: id,
       data: {
-        keywords_list_answer: keywordsAnswer,
-        keywords_list_question: keywordsQuestion,
         triples
       }
     }
@@ -744,7 +729,7 @@ export function Chat({ id, initialMessages }: ChatProps) {
 
 const extractRelations = (
   text: string
-): { entities: string[]; relations: Array<Array<string>> } => {
+): { relations: Array<Array<string>> } => {
   // Define the patterns to match entities and relations
   const entityPattern = /\[([^\]]+)\]\(\$N(\d+)\)/g
   const relationPattern = /\[([^\]]+)\]\((\$R\d+), (.+?)\)/g
@@ -776,5 +761,5 @@ const extractRelations = (
       outputRelations.push([entity1Name, relationName, entity2Name])
     })
   }
-  return { entities: Object.values(entities), relations: outputRelations }
+  return { relations: outputRelations }
 }

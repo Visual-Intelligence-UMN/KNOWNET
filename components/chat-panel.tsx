@@ -17,8 +17,8 @@ import {
 import { useAtom } from 'jotai'
 import {
   recommendationsAtom,
-  keywordsListAnswerAtom,
-  keywordsListQuestionAtom,
+  // keywordsListAnswerAtom,
+  // keywordsListQuestionAtom,
   gptTriplesAtom
 } from '@/lib/state'
 
@@ -36,17 +36,8 @@ export interface ChatPanelProps
   id?: string
   title?: string
   activeStep: number
-  continueConversation?: (
-    recommendId: number,
-    keywordsAnswer: string[],
-    keywordsQuestion: string[],
-    gptTriples: string[][]
-  ) => void
-  firstConversation?: (
-    keywordsAnswer: string[],
-    keywordsQuestion: string[],
-    gptTriples: string[][]
-  ) => void
+  continueConversation?: (recommendId: number, gptTriples: string[][]) => void
+  firstConversation?: (gptTriples: string[][]) => void
 }
 
 export function ChatPanel({
@@ -64,22 +55,20 @@ export function ChatPanel({
   firstConversation
 }: ChatPanelProps) {
   const [recommendations, setRecommendations] = useAtom(recommendationsAtom)
-  const [keywordsListAnswer] = useAtom(keywordsListAnswerAtom)
-  const [keywordsListQuestion] = useAtom(keywordsListQuestionAtom)
+  // const [keywordsListAnswer] = useAtom(keywordsListAnswerAtom)
+  // const [keywordsListQuestion] = useAtom(keywordsListQuestionAtom)
   const [gptTriples] = useAtom(gptTriplesAtom)
 
   const topRecommendations = recommendations?.slice(0, 3) || []
   const otherRecommendations = recommendations?.slice(3) || []
-  const keywordsAnswerRef = useRef(keywordsListAnswer)
-  const keywordsQuestionRef = useRef(keywordsListQuestion)
+  // const keywordsAnswerRef = useRef(keywordsListAnswer)
+  // const keywordsQuestionRef = useRef(keywordsListQuestion)
   const gptTriplesRef = useRef(gptTriples)
 
   // Update refs whenever the keywords state changes
   useEffect(() => {
-    keywordsAnswerRef.current = keywordsListAnswer
-    keywordsQuestionRef.current = keywordsListQuestion
     gptTriplesRef.current = gptTriples
-  }, [keywordsListAnswer, keywordsListQuestion, gptTriples])
+  }, [gptTriples])
 
   // Function to handle specific context button click
   const handleContextButtonClick = async (
@@ -94,20 +83,15 @@ export function ChatPanel({
     })
 
     // Use the current value of the refs, which is always up-to-date
-    const currentKeywordsAnswer = keywordsAnswerRef.current
-    const currentKeywordsQuestion = keywordsQuestionRef.current
+    // const currentKeywordsAnswer = keywordsAnswerRef.current
+    // const currentKeywordsQuestion = keywordsQuestionRef.current
     const currentGptTriples = gptTriplesRef.current
 
-    console.log('Current Keywords Answer:', currentKeywordsAnswer)
-    console.log('Current Keywords Question:', currentKeywordsQuestion)
+    // console.log('Current Keywords Answer:', currentKeywordsAnswer)
+    // console.log('Current Keywords Question:', currentKeywordsQuestion)
     // Use the most updated keywordsAnswer and keywordsQuestion for continueConversation
     if (continueConversation) {
-      continueConversation(
-        recommendId,
-        currentKeywordsAnswer,
-        currentKeywordsQuestion,
-        currentGptTriples
-      )
+      continueConversation(recommendId, currentGptTriples)
     }
   }
 
@@ -120,17 +104,13 @@ export function ChatPanel({
     })
 
     // Use the current value of the refs, which is always up-to-date
-    const currentKeywordsAnswer = keywordsAnswerRef.current
-    const currentKeywordsQuestion = keywordsQuestionRef.current
+    // const currentKeywordsAnswer = keywordsAnswerRef.current
+    // const currentKeywordsQuestion = keywordsQuestionRef.current
     const currentGptTriples = gptTriplesRef.current
 
     // Call continueConversation, using -1 as recommendation id(since the textinpu is customized by user)
     if (firstConversation) {
-      firstConversation(
-        currentKeywordsAnswer,
-        currentKeywordsQuestion,
-        currentGptTriples
-      )
+      firstConversation(currentGptTriples)
     }
   }
 
