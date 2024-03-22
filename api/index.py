@@ -291,7 +291,6 @@ def subgraph_type(cui, target_type, node_id_map, rel_id_map):
 
 # TODO: Check recommendation visualization logic
 def visualization(node_list, node_id_map, rel_id_map):
-    app.logger.info(node_list)
     res = []
     if len(node_list) == 2:
         cypher_statement = "MATCH path=(sub:Node{CUI:\"" + node_list[0][0] + "\"})-[rel:Relation*1]-(obj:Node{CUI:\"" + node_list[1][0] + "\"}) RETURN path LIMIT 10"
@@ -303,8 +302,7 @@ def visualization(node_list, node_id_map, rel_id_map):
             nodes, edges = select_subgraph_1Hop(cypher_statement, node_id_map, rel_id_map)
             if len(nodes) != 0:
                 res.append({"nodes": nodes, "edges": edges})
-                app.logger.info("One-Hop")
-    app.logger.info(res)
+
     return res
 
 
@@ -363,8 +361,8 @@ def agent(triples, recommand_id, input_type):
     triple_entity_list = []
     for triple in triples:
         head, rel, tail = triple
-        app.logger.info(head == "None")
-        app.logger.info(tail == "None")
+        app.logger.info(head is None)
+        app.logger.info(tail is None)
         triple_entity_list.append(head)
         triple_entity_list.append(tail)
 
@@ -402,7 +400,7 @@ def agent(triples, recommand_id, input_type):
             if value['id'] == recommendId:
                 selected_recommendation = key
                 break
-        app.logger.info(selected_recommendation)
+
         if selected_recommendation:
             # entity, neighbor = selected_recommendation
             # # generate nodes and edges from chatgpt entity and neighbor
