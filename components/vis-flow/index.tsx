@@ -1,11 +1,6 @@
 // Import necessary React and React Flow components at the beginning of your file
 import React, { useCallback, useEffect, useRef, useState } from 'react'
-import {
-  ReactFlow,
-  Background,
-  Controls,
-  useReactFlow,
-} from 'reactflow'
+import { ReactFlow, Background, Controls, useReactFlow } from 'reactflow'
 import 'reactflow/dist/style.css'
 import CustomEdge from './customEdge' // Ensure this path is correct
 import CustomNode from './customNode'
@@ -19,6 +14,7 @@ import {
 } from '@/lib/state'
 import { useAtom } from 'jotai'
 import { type UseChatHelpers } from 'ai/react'
+import FlowContext from './flow-context'
 // FlowComponent separated from Chat function
 // Define custom edge types including your CustomEdge
 const edgeTypes = {
@@ -163,62 +159,63 @@ const FlowComponent = ({
   }, [recommendations, totalRecommendations])
 
   return (
-    <div
-      className="sticky top-3 left-10 pb-10 border rounded-md shadow-md bg-white dark:bg-gray-800"
-      style={{
-        width: 'calc(100% - 2rem)',
-        height: 'calc(65vh - 1rem)'
-      }}
-    >
-      {isLoading && (
-        <div className="absolute inset-0 bg-white bg-opacity-[65%] flex flex-wrap justify-center items-center z-10 p-[150px]">
-          <div className="text-gray-700 text-[20px]">
-            Wait for GPT responding...
-          </div>
-        </div>
-      )}
-
-      {isLoadingBackendData && !isLoading && (
-        <div className="absolute inset-0 bg-white bg-opacity-[85%] flex flex-wrap justify-center items-center z-10 p-[150px]">
-          <Spinner color="blue" className="h-[60px] w-[60px]" />
-          <div className="basis-full h-0"></div>
-          <div className="text-gray-700 text-[20px]">
-            Waiting loading data from backend knowledge graph...
-            <br />
-            Searching 162,213 nodes and 1,017,319 edges...
-          </div>
-        </div>
-      )}
-
-      <ReactFlow
-        nodes={nodes.filter(node => node.step <= activeStep)}
-        edges={edges.filter(edge => edge.step <= activeStep)}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        fitView
-        proOptions={proOptions}
-        onConnect={onConnect}
-        onInit={onInit}
-        edgeTypes={edgeTypes}
-        nodeTypes={nodesTypes}
-        onNodeClick={handleonNodeClick}
-        onNodeDoubleClick={handleonNodeDoubleClick}
+    <FlowContext.Provider value={{ onRecommendationClick }}>
+      <div
+        className="sticky top-3 left-10 pb-10 border rounded-md shadow-md bg-white dark:bg-gray-800"
+        style={{
+          width: 'calc(100% - 2rem)',
+          height: 'calc(65vh - 1rem)'
+        }}
       >
-        <Background color="#aaa" gap={16} />
-      </ReactFlow>
-      <div className="m-2 gap-3 flex justify-between items-center">
-        <Button
-          variant="outline"
-          onClick={() => {
-            setLayoutDirection('TB')
-            updateLayout('TB')
-          }}
+        {isLoading && (
+          <div className="absolute inset-0 bg-white bg-opacity-[65%] flex flex-wrap justify-center items-center z-10 p-[150px]">
+            <div className="text-gray-700 text-[20px]">
+              Wait for GPT responding...
+            </div>
+          </div>
+        )}
+
+        {isLoadingBackendData && !isLoading && (
+          <div className="absolute inset-0 bg-white bg-opacity-[85%] flex flex-wrap justify-center items-center z-10 p-[150px]">
+            <Spinner color="blue" className="h-[60px] w-[60px]" />
+            <div className="basis-full h-0"></div>
+            <div className="text-gray-700 text-[20px]">
+              Waiting loading data from backend knowledge graph...
+              <br />
+              Searching 162,213 nodes and 1,017,319 edges...
+            </div>
+          </div>
+        )}
+
+        <ReactFlow
+          nodes={nodes.filter(node => node.step <= activeStep)}
+          edges={edges.filter(edge => edge.step <= activeStep)}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          fitView
+          proOptions={proOptions}
+          onConnect={onConnect}
+          onInit={onInit}
+          edgeTypes={edgeTypes}
+          nodeTypes={nodesTypes}
+          onNodeClick={handleonNodeClick}
+          onNodeDoubleClick={handleonNodeDoubleClick}
         >
-          Top-Bottom Layout
-        </Button>
-        {totalRecommendations > 0 && (
-          <div className="w-1/3 justify-between">
-            {/* <Typography color="blue-gray" variant="h6">
+          <Background color="#aaa" gap={16} />
+        </ReactFlow>
+        <div className="m-2 gap-3 flex justify-between items-center">
+          <Button
+            variant="outline"
+            onClick={() => {
+              setLayoutDirection('TB')
+              updateLayout('TB')
+            }}
+          >
+            Top-Bottom Layout
+          </Button>
+          {totalRecommendations > 0 && (
+            <div className="w-1/3 justify-between">
+              {/* <Typography color="blue-gray" variant="h6">
               {' '}
               Recommendations explored
             </Typography>
@@ -226,31 +223,32 @@ const FlowComponent = ({
               {progress.toFixed(0)}
             </Typography> */}
 
-            {/* <span>Knowledge graph explored %</span> */}
-            <Progress
-              value={Number(progress.toFixed(0))}
-              color="green"
-              variant="filled"
-              size="md"
-              // label="Completed"
-              className="border border-gray-900/10 bg-gray-900/5 p-0.5 rounded-md"
-            />
-          </div>
-        )}
-        <Button
-          variant="outline"
-          onClick={() => {
-            setLayoutDirection('LR')
-            updateLayout('LR')
-          }}
-        >
-          Left-Right Layout
-        </Button>
+              {/* <span>Knowledge graph explored %</span> */}
+              <Progress
+                value={Number(progress.toFixed(0))}
+                color="green"
+                variant="filled"
+                size="md"
+                // label="Completed"
+                className="border border-gray-900/10 bg-gray-900/5 p-0.5 rounded-md"
+              />
+            </div>
+          )}
+          <Button
+            variant="outline"
+            onClick={() => {
+              setLayoutDirection('LR')
+              updateLayout('LR')
+            }}
+          >
+            Left-Right Layout
+          </Button>
+        </div>
+        <div className="absolute bottom-0 right-0">
+          <Controls />
+        </div>
       </div>
-      <div className="absolute bottom-0 right-0">
-        <Controls />
-      </div>
-    </div>
+    </FlowContext.Provider>
   )
 }
 

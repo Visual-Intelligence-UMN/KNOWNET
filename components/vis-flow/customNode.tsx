@@ -1,4 +1,4 @@
-import React, { FC } from 'react'
+import React, { FC, useContext, useState } from 'react'
 import {
   Node as ReactFlowNode,
   Handle,
@@ -9,14 +9,11 @@ import {
 import { Button } from '../ui/button' // Adjust the import path as necessary
 import 'reactflow/dist/style.css'
 import { CustomGraphNode } from '@/lib/types'
+import FlowContext from './flow-context'
+
 export interface Recommendation {
   id: number
   text: string
-}
-const handleRecommendationClick = (recommendation: Recommendation) => {
-  console.log('Recommendation clicked:', recommendation)
-  // Implement your logic to handle the recommendation click here
-  // This might involve setting state, fetching more data, etc.
 }
 
 const CustomNode: FC<NodeProps> = ({
@@ -25,11 +22,31 @@ const CustomNode: FC<NodeProps> = ({
   targetPosition,
   data
 }) => {
+  const { onRecommendationClick: globalOnRecommendationClick } =
+    useContext(FlowContext)
+  const [hiddenRecommendations, setHiddenRecommendations] = useState<
+    Set<number>
+  >(new Set())
+
+  const handleRecommendationClick = (recommendation: Recommendation) => {
+    // Call the global onRecommendationClick function
+    globalOnRecommendationClick(recommendation)
+    // Mark this recommendation as hidden
+    setHiddenRecommendations(prev => new Set(prev.add(recommendation.id)))
+  }
+
   const isRecommended = (label: string) => {
     return data.recommendations.some(recommendation =>
       recommendation.text.toLowerCase().includes(label.toLowerCase())
     )
   }
+
+  // Directly filter and map over recommendations that contain the node's label and are not hidden
+  const filteredRecommendations = data.recommendations.filter(
+    recommendation =>
+      recommendation.text.toLowerCase().includes(data.label.toLowerCase()) &&
+      !hiddenRecommendations.has(recommendation.id)
+  )
   return (
     <>
       <div
@@ -57,22 +74,26 @@ const CustomNode: FC<NodeProps> = ({
             position={Position.Bottom}
             offset={1}
           >
-            {data.recommendations.length > 0 && (
+            {filteredRecommendations.length > 0 && (
               <div className="text-xs">Tell me more about:</div>
             )}
-            {data.recommendations.map(recommendation => (
-              <Button
-                key={recommendation.id}
-                variant="outline"
-                className="mr-2" // Add some spacing between buttons
-                onClick={() => handleRecommendationClick(recommendation)}
-                title={recommendation.text}
-              >
-                {recommendation.text
-                  .replace(data.label, '')
-                  .replace(' and ', '')}
-              </Button>
-            ))}
+            {filteredRecommendations
+              .filter(
+                recommendation => !hiddenRecommendations.has(recommendation.id)
+              )
+              .map(recommendation => (
+                <Button
+                  key={recommendation.id}
+                  variant="outline"
+                  className="mr-2" // Add some spacing between buttons
+                  onClick={() => handleRecommendationClick(recommendation)}
+                  title={recommendation.text}
+                >
+                  {recommendation.text
+                    .replace(data.label, '')
+                    .replace(' and ', '')}
+                </Button>
+              ))}
           </NodeToolbar>
         )}
 
