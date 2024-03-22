@@ -246,7 +246,7 @@ def select_subgraph_1Hop(cypher_statement, node_id_map, rel_id_map):
         rel_2_pubmed_id = record['rel_2']['PubMed_ID']
         if rel_1_pubmed_id not in rel_id_map:
             rel_id_map[rel_1_pubmed_id] = rel_1_pubmed_id
-            rel_res.append({'PubMed_ID': rel_1_pubmed_id, "source": node_id_map[obj_cui], "target": node_id_map[inter_cui], "category": record['rel_1']['Type']})
+            rel_res.append({'PubMed_ID': rel_1_pubmed_id, "source": node_id_map[sub_cui], "target": node_id_map[inter_cui], "category": record['rel_1']['Type']})
         else:
             existing_pubmed_id = rel_id_map[rel_1_pubmed_id]
             for existing_rel in rel_res:
