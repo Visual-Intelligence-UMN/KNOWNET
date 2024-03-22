@@ -727,6 +727,43 @@ export function Chat({ id, initialMessages }: ChatProps) {
   )
 }
 
+// const extractRelations = (
+//   text: string
+// ): { relations: Array<Array<string>> } => {
+//   // Define the patterns to match entities and relations
+//   const entityPattern = /\[([^\]]+)\]\(\$N(\d+)\)/g
+//   const relationPattern = /\[([^\]]+)\]\((\$R\d+), (.+?)\)/g
+
+//   // Extract entities and map their codes to names
+//   let entityMatch: RegExpExecArray | null
+//   const entities: { [key: string]: string } = {}
+
+//   while ((entityMatch = entityPattern.exec(text)) !== null) {
+//     const [_, name, code] = entityMatch
+//     entities[`$N${code}`] = name
+//   }
+
+//   // Process the relation strings, including multiple relations
+//   let relationMatch: RegExpExecArray | null
+//   const outputRelations: Array<Array<string>> = []
+
+//   while ((relationMatch = relationPattern.exec(text)) !== null) {
+//     const [_, relationName, relationCode, relationDetails] = relationMatch
+//     const details = relationDetails.split(';')
+
+//     details.forEach(detail => {
+//       const [entity1Code, entity2Code] = detail
+//         .trim()
+//         .split(', ')
+//         .map(code => code.trim())
+//       const entity1Name = entities[entity1Code]
+//       const entity2Name = entities[entity2Code]
+//       outputRelations.push([entity1Name, relationName, entity2Name])
+//     })
+//   }
+//   return { relations: outputRelations }
+// }
+
 const extractRelations = (
   text: string
 ): { relations: Array<Array<string>> } => {
@@ -743,7 +780,7 @@ const extractRelations = (
     entities[`$N${code}`] = name
   }
 
-  // Process the relation strings, including multiple relations
+  // Process the relation strings, now correctly handling multiple relations per match
   let relationMatch: RegExpExecArray | null
   const outputRelations: Array<Array<string>> = []
 
@@ -752,13 +789,20 @@ const extractRelations = (
     const details = relationDetails.split(';')
 
     details.forEach(detail => {
-      const [entity1Code, entity2Code] = detail
+      const entityCodes = detail
         .trim()
         .split(', ')
         .map(code => code.trim())
-      const entity1Name = entities[entity1Code]
-      const entity2Name = entities[entity2Code]
-      outputRelations.push([entity1Name, relationName, entity2Name])
+
+      // Adjusted to handle relations correctly, including undefined entities
+      if (entityCodes.every(code => entities[code] !== undefined)) {
+        // Check if all entity codes are defined
+        const entity1Name = entities[entityCodes[0]]
+        const entity2Name = entities[entityCodes[1]]
+        outputRelations.push([entity1Name, relationName, entity2Name])
+      } else {
+        // Handle undefined entities. Here, just skipping, but could add logic to indicate missing entities
+      }
     })
   }
   return { relations: outputRelations }
