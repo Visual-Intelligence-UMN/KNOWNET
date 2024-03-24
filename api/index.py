@@ -61,6 +61,48 @@ def post_chat_message():
     if not user_id:
         return jsonify({"status": "error", "message": "Unauthorized"}), 401
 
+        # For a new conversation with no triples, return a message indicating there are no triples to process
+    if input_type == "new_conversation" and not triples:
+        return jsonify({
+            "status": "success",
+            "message": "No triples to process",
+            "data": {
+                "vis_res": [],
+                "node_name_mapping": {},
+                "recommendation": []
+            }
+        })
+
+    # For continuing a conversation with no new triples, return the previous recommendations
+    if input_type == "continue_conversation" and not triples and recommendId is not None:
+        # Convert recommendId to integer if it's passed as a string
+        recommendId = int(recommendId)
+        # Process the selected recommendation
+        selected_recommendation = None
+        for key, value in recommendation_space.items():
+            if value['id'] == recommendId:
+                selected_recommendation = key
+                break
+
+        if selected_recommendation:
+            # entity, neighbor = selected_recommendation
+            # # generate nodes and edges from chatgpt entity and neighbor
+            # node_id, rel_id = subgraph_type(entity, neighbor, node_id, rel_id, node_id_map, rel_id_map)
+            # # Optionally, remove the selected recommendation
+            del recommendation_space[selected_recommendation]
+            recommendation = generate_recommendation()
+
+
+        return jsonify({
+            "status": "success",
+            "message": "Continuing conversation with previous recommendations",
+            "data": {
+                "vis_res": [],
+                "node_name_mapping": {},
+                "recommendation": recommendation,
+            }
+        })
+
     try:
         # Call the agent function from AI_agent.py
         if input_type == "new_conversation":
@@ -160,16 +202,16 @@ def match_KG_nodes_old(entity_list, query_embeddings):
 
 def match_KG_nodes(entity_list, similarity_list):
     nodes_list = []
-    # unmathced_entity_list = []
+    unmathced_entity_list = []
     for entity, similarity in zip(entity_list, similarity_list):
 
         max_index = np.argmax(similarity)
         max_similarity = similarity[max_index]
         if max_similarity > 0.94:
             nodes_list.append([kg_nodes_embedding.CUI.values[max_index], kg_nodes_embedding.Name.values[max_index], entity])
-        # else:
-        # TODO: Handle the unmatched entities
-    return nodes_list
+        else:
+            unmathced_entity_list.append(entity)
+    return nodes_list, unmathced_entity_list
 
 
 def select_subgraph(cypher_statement, node_id_map, rel_id_map):
@@ -369,23 +411,46 @@ def agent(triples, recommand_id, input_type):
     triple_embeddings = get_embeddings(triple_entity_list, model="text-embedding-ada-002")  # speed up the process by using batch processing
     normalized_vectors = normalize(np.asarray(triple_embeddings))
     similarity_list = cosine_similarity_sklearn(normalized_vectors, normalized_embedding)
-
+    unmatched_entities = []  # Store unmatched entities
     triples_index = 0
     for triple in triples:
         head, rel, tail = triple
-        nodes_list = match_KG_nodes([head, tail], similarity_list[triples_index:triples_index + 2])
+        nodes_list, unmatched = match_KG_nodes([head, tail], similarity_list[triples_index:triples_index + 2])
+        unmatched_entities.extend(unmatched)  # Add unmatched entities
         triples_index += 2
         temp_ves_res = visualization(nodes_list, node_id_map, rel_id_map)
         vis_res += temp_ves_res
         for i in range(len(nodes_list)):
             node_name_mapping[nodes_list[i][1]] = nodes_list[i][2]
+     # Handle unmatched entities by creating special nodes
+    for unmatched_entity in unmatched_entities:
+        special_node = {
+            "category": "NotFind",
+            "id": unmatched_entity,
+            "name": unmatched_entity
+        }
+        vis_res.append({"nodes": [special_node], "edges": []})
+
+    # Handle unmatched edges
+    for triple in triples:
+        head, rel, tail = triple
+        # This example assumes a simplistic logic where if both head and tail are unmatched, a special edge is created
+        if head in unmatched_entities and tail in unmatched_entities:
+            special_edge = {
+                "PubMed_ID": "None",
+                "category": "NotFind",
+                "source": head,
+                "target": tail
+            }
+            # Create a visualization entry with no nodes but the special edge
+            vis_res.append({"nodes": [], "edges": [special_edge]})
 
     response_data["vis_res"] = vis_res
 
     response_data['node_name_mapping'] = node_name_mapping
 
     if input_type == "new_conversation":
-        triple_nodes_list = match_KG_nodes(triple_entity_list, similarity_list)
+        triple_nodes_list, unmatched = match_KG_nodes(triple_entity_list, similarity_list)
         add_recommendation_space(triple_nodes_list)  # Updates the recommendation space
         recommendation = generate_recommendation()
 
