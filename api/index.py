@@ -333,19 +333,71 @@ def subgraph_type(cui, target_type, node_id_map, rel_id_map):
 
 # TODO: Check recommendation visualization logic
 def visualization(node_list, node_id_map, rel_id_map):
-    res = []
+    nodes_res = []
+    edges_res = []
     if len(node_list) == 2:
         cypher_statement = "MATCH path=(sub:Node{CUI:\"" + node_list[0][0] + "\"})-[rel:Relation*1]-(obj:Node{CUI:\"" + node_list[1][0] + "\"}) RETURN path LIMIT 10"
         nodes, edges = select_subgraph(cypher_statement, node_id_map, rel_id_map)
-        if len(nodes) != 0:
-            res.append({"nodes": nodes, "edges": edges})
-        if len(res) == 0:
+        if nodes:
+            nodes_res.extend(nodes)
+            edges_res.extend(edges)
+        else:
             cypher_statement = "MATCH (sub:Node{CUI:\"" + node_list[0][0] + "\"})-[rel_1:Relation]-(inter:Node)-[rel_2:Relation]-(obj:Node{CUI:\"" + node_list[1][0] + "\"}) RETURN sub,rel_1,inter,rel_2,obj LIMIT 10"
             nodes, edges = select_subgraph_1Hop(cypher_statement, node_id_map, rel_id_map)
-            if len(nodes) != 0:
-                res.append({"nodes": nodes, "edges": edges})
+            nodes_res.extend(nodes)
+            edges_res.extend(edges)
 
-    return res
+    return nodes_res, edges_res
+
+def visualization_partial_match(matched_entity, unmatched_entity, relation, is_head_matched):
+    """
+    Create visualization components for partial matches.
+
+    Parameters:
+    - matched_entity: Tuple with matched entity CUI and name.
+    - unmatched_entity: The unmatched entity name.
+    - relation: The relation between the entities.
+    - is_head_matched: Boolean indicating if the matched entity is the head of the triple.
+    """
+    nodes_res = []
+    edges_res = []
+    matched_cui = matched_entity[0]
+    matched_category =  matched_entity[2]
+    # Define the special node for the unmatched entity
+    special_node = {
+        "category": "NotFind",
+        "id": unmatched_entity,
+        "name": unmatched_entity
+    }
+    # using CUI to find the category of the matched entity
+    cypher_statement = "MATCH (n:Node{CUI:\"" + matched_cui + "\"}) RETURN n.Label"
+    uri = neo4j_url
+    driver = GraphDatabase.driver(uri, auth=("neo4j", "yuhou"))
+    session = driver.session()
+    neo4j_res = session.run(cypher_statement)
+    for record in neo4j_res:
+       matched_category = record['n.Label']
+
+    # Create the node for the matched entity
+    matched_node = {
+        "category": matched_category,
+        "id": matched_cui,
+        "name": matched_entity[1]
+    }
+
+    # Create the edge with the correct direction based on is_head_matched
+    special_edge = {
+        "PubMed_ID": "None",
+        "category": relation,
+        "source": matched_cui if is_head_matched else unmatched_entity,
+        "target": unmatched_entity if is_head_matched else matched_cui
+    }
+
+    # Append the nodes and edges to the visualization response
+    nodes_res.append(special_node)
+    nodes_res.append(matched_node)
+    edges_res.append(special_edge)
+    return nodes_res, edges_res
 
 
 # def add_recommendation_space(entity_list):
@@ -398,7 +450,7 @@ def agent(triples, recommand_id, input_type):
     # start_time = time.time()
 
     response_data = {"vis_res": []}
-    vis_res = []
+    vis_res = {"nodes": [], "edges": []}
     node_name_mapping = {}
     triple_entity_list = []
     for triple in triples:
@@ -415,45 +467,54 @@ def agent(triples, recommand_id, input_type):
     triples_index = 0
     for triple in triples:
         head, rel, tail = triple
-        nodes_list, unmatched = match_KG_nodes([head, tail], similarity_list[triples_index:triples_index + 2])
+        matched_nodes, unmatched = match_KG_nodes([head, tail], similarity_list[triples_index:triples_index + 2])
         unmatched_entities.extend(unmatched)  # Add unmatched entities
-        triples_index += 2
-        temp_ves_res = visualization(nodes_list, node_id_map, rel_id_map)
-        vis_res += temp_ves_res
-        for i in range(len(nodes_list)):
-            node_name_mapping[nodes_list[i][1]] = nodes_list[i][2]
-     # Handle unmatched entities by creating special nodes
-    for unmatched_entity in unmatched_entities:
-        special_node = {
-            "category": "NotFind",
-            "id": unmatched_entity,
-            "name": unmatched_entity
-        }
-        vis_res.append({"nodes": [special_node], "edges": []})
-
-    # Handle unmatched edges
-    for triple in triples:
-        head, rel, tail = triple
-        # This example assumes a simplistic logic where if both head and tail are unmatched, a special edge is created
-        if head in unmatched_entities and tail in unmatched_entities:
-            special_edge = {
-                "PubMed_ID": "None",
-                "category": "NotFind",
-                "source": head,
-                "target": tail
-            }
-            # Create a visualization entry with no nodes but the special edge
-            vis_res.append({"nodes": [], "edges": [special_edge]})
-
+        # Logic to handle different match scenarios
+        if len(matched_nodes) == 1 and len(unmatched) == 1:
+            # Identify if the head or tail is the matched entity
+            is_head_matched = head in [node[2] for node in matched_nodes]  # Check if head is in matched_nodes by names
+            matched_entity = matched_nodes[0]  # We have only one matched entity
+            unmatched_entity = unmatched[0]  # Only one unmatched entity
+            # Call visualization_partial_match with the correct parameters
+            temp_nodes, temp_edges = visualization_partial_match(matched_entity, unmatched_entity, rel, is_head_matched)
+            vis_res["nodes"].extend(temp_nodes)
+            vis_res["edges"].extend(temp_edges)
+        elif len(matched_nodes) == 2:
+            triples_index += 2
+            temp_nodes, temp_edges = visualization(matched_nodes, node_id_map, rel_id_map)
+            vis_res["nodes"].extend(temp_nodes)
+            vis_res["edges"].extend(temp_edges)
+            for i in range(len(matched_nodes)):
+                node_name_mapping[matched_nodes[i][1]] = matched_nodes[i][2]
+        else:
+        # Handle cases where neither entity is matched, if needed
+            for unmatched_entity in unmatched_entities:
+                special_node = {
+                    "category": "NotFind",
+                    "id": unmatched_entity,
+                    "name": unmatched_entity
+                }
+                vis_res["nodes"].extend(special_node)
+            # Handle unmatched edges
+            for triple in triples:
+                head, rel, tail = triple
+                # if both head and tail are unmatched, a special edge is created
+                if head in unmatched_entities and tail in unmatched_entities:
+                    special_edge = {
+                        "PubMed_ID": "None",
+                        "category": "NotFind",
+                        "source": head,
+                        "target": tail
+                    }
+                    # Create a visualization entry with no nodes but the special edge
+                    vis_res["edges"].extend(special_edge)
     response_data["vis_res"] = vis_res
-
     response_data['node_name_mapping'] = node_name_mapping
 
     if input_type == "new_conversation":
         triple_nodes_list, unmatched = match_KG_nodes(triple_entity_list, similarity_list)
         add_recommendation_space(triple_nodes_list)  # Updates the recommendation space
         recommendation = generate_recommendation()
-
         response_data["recommendation"] = recommendation
 
     elif input_type == "continue_conversation" and recommand_id is not None:
@@ -465,7 +526,6 @@ def agent(triples, recommand_id, input_type):
             if value['id'] == recommendId:
                 selected_recommendation = key
                 break
-
         if selected_recommendation:
             # entity, neighbor = selected_recommendation
             # # generate nodes and edges from chatgpt entity and neighbor
@@ -474,6 +534,5 @@ def agent(triples, recommand_id, input_type):
             del recommendation_space[selected_recommendation]
             recommendation = generate_recommendation()
             response_data["recommendation"] = recommendation
-
     # app.logger.info("Time taken for the agent function: "+ str(time.time() - start_time))
     return response_data
