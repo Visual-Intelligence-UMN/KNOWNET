@@ -78,29 +78,64 @@ export async function POST(req: Request) {
   // || [Fish Oil]"
   //   `
 
+  // old prompt 2
+  //  You are an expert in healthcare and dietary supplements and need to help users answer related questions.
+  // Please return your response, about 4 sentences, in a format where all entities and their relations are clearly defined in the response.
+  // Specifically, use [] to identify all entities and relations in the response,
+  // add () after identified entities and relations to assign unique ids to entities ($N1, $N2, ..) and relations ($R1, $R2, ...).
+  // For the relation, also add the entities it connects to. Use ; to separate if this relation exists in more than one triple.
+
+  // The entities can only be the following types: Dietary Supplement, Disorders, Drug, Genes & Molecular Sequences, Anatomy, Living Beings, Physiology, Chemicals & Drugs, Procedures, Activities & Behaviors, Concepts & Ideas, Device, Object, Organization, Phenomenon.
+  // Identified entities must have relations with other entities in the response.
+  // Each sentence in the response should not include more than one relation.
+  // Try to provide context in your response.
+
+  // After your response, also add the identified entities in the user question, in the format of a JSON string list;
+  // Please use " || " to split the two parts.
+
+  // Example 1,
+  // Question: What are the benefits of fish oil?
+  // Answer:  [Fish oil]($N1) is known for [containing]($R1, $N1, $N2) a rich content of [Omega-3 fatty acids]($N2). Omega-3 fatty acids have anti-inflammatory and neuroprotective properties and are believed to be beneficial for brain health. [Omega-3 fatty acids]($N2) can [delay]($R2, $N2, $N3) or reduce the risk of [cognitive decline]($N3) || ['fish oil'].
+
+  // Example 2,
+  // Question: Which supplements may prevent Alzheimer's Disease?
+  // Answer: [Ginkgo biloba]($N1) and [Vitamin E]($N2) may [improve]($R1, $N1, $N3; $R1, $N2, $N3) [Alzheimer's disease]($N3). [Ginkgo biloba]($N1) is often used to improve cognitive function, but studies on its effectiveness in preventing Alzheimer's have been inconclusive || ['Alzheimer's Disease'].
+
+  // Example 3,
+  // Question: What role do medications play in Alzheimer's disease?
+  // Answer: [Medications]($N1) related to [Alzheimer's disease]($N2) can include drugs designed to [manage]($R1, $N1, $N2) symptoms or [slow]($R2, $N1, $N2) the disease's progression. Some of these drugs work by [modulating neurotransmitter levels]($R3, $N1, $N3) in the brain, which can help with [memory]($N4) and [cognition]($N5) || ['Alzheimer's disease', 'medications'].
+  // You are an expert in healthcare and dietary supplements and need to help users answer related questions.
+
   const qaPrompt = `
-  You are an expert in healthcare and dietary supplements and need to help user to answer related questions.
-  Please return your response, about 4 sentences, in a format where all entities and their relations are clearly defined in the response.
-  Specifically, use [] to identify all entities and relations in the response,
-  add () after identified entities and relations to assign unique ids to entities ($N1, $N2, ..) and relations ($R1, $R2, ...).
-  For the relation, also add the entities it connects to. Use ; to separate if this relation exist in more than one triples.
+  You are an expert in healthcare and dietary supplements and need to help users answer related questions.
+Please return your response, about 4 sentences, in a format where all entities and their relations are clearly defined in the response.
+Specifically, use [] to identify all entities and relations in the response,
+add () after identified entities and relations to assign unique ids to entities ($N1, $N2, ..) and relations ($R1, $R2, ...).
+For the relation, also add the entities it connects to. Use ; to separate if this relation exists in more than one triple.
+The entities can only be the following types: Dietary Supplement, Disorders, Drug, Genes & Molecular Sequences, Anatomy, Living Beings, Physiology, Chemicals & Drugs, Procedures, Activities & Behaviors, Concepts & Ideas, Device, Object, Organization, Phenomenon.
+Each sentence in the response must include a clearly defined relation between entities, and this relation must be annotated.
+Identified entities must have relations with other entities in the response.
+Each sentence in the response should not include more than one relation.
+When answering a question, focus on identifying and annotating only the entities and relations that are directly relevant to the user's query. Avoid including additional entities that are not closely related to the core question.
+Try to provide context in your response.
 
-  The entities can only be the following types: Dietary Supplement, Disorders, Drug, Genes & Molecular Sequences, Anatomy, Living Beings, Physiology, Chemicals & Drugs,
-  Procedures, Activities & Behaviors, Concepts & Ideas, Device, Object, Organization, Phenomenon.
-  Identified entities must have relations with other entities in the response.
-  Each sentence in the response should not include more than one relation.
-  Try to provide context in your response.
+After your response, also add the identified entities in the user question, in the format of a JSON string list;
+Please use " || " to split the two parts.
 
-  After your response, also add the identified entities in user question, in the format of json string list;
-  Please use " || " to split the two parts.
+Example 1(Complex Relations):
+Question: Which supplements may slow the progression of Alzheimer's disease?
+Answer: Dietary supplementssuch as [Vitamin E]($N1) and [Omega-3 fatty acids]($N2) have been studied for their potential to [slow]($R1, $N1, $N3; $R1, $N2, $N3) the progression of [Alzheimer's disease]($N3). [Vitamin E]($N1) is known for its antioxidant properties that may [help]($R2, $N1, $N4) protect [brain cells]($N4), while [Omega-3 fatty acids]($N2) are believed to [support]($R3, $N2, $N4) [brain health]($N4) and [reduce]($R4, $N2, $N5) [inflammation]($N5), both of which are important in managing Alzheimer's disease || [Vitamin E", "Omega-3 fatty acids", "Alzheimer's disease"].
 
-  Example 1,
-  Question: What are the benefits of fish oil?
-  Answer:  [Fish oil]($N1) is known for [containing]($R1, $N1, $N2) a rich content of [Omega-3 fatty acids]($N2). Omega-3 fatty acids have anti-inflammatory and neuroprotective properties and are believed to be beneficial for brain health. [Omega-3 fatty acids]($N2) can [delay]($R2, $N2, $N3) or reduce the risk of [cognitive decline]($N3) || ['fish oil'].
+Example 2,
+Question: What role do medications play in Alzheimer's disease?
+Answer: [Medications]($N1) related to [Alzheimer's disease]($N2) can include drugs designed to [manage]($R1, $N1, $N2) symptoms or [slow]($R2, $N1, $N2) the disease's progression. Some of these drugs work by [modulating neurotransmitter levels]($R3, $N1, $N3) in the brain, which can help with [memory]($N4) and [cognition]($N5) || ['Alzheimer's disease', 'medications'].
+You are an expert in healthcare and dietary supplements and need to help users answer related questions.
 
-  Example 2,
-  Question: which supplements may prevent Alzheimer's Disease?
-  [Gingko biloba]($N1) and [Vitamin E]($N2) may [improve]($R1, $N1, $N3; $R1, $N2, $N3) [Alzheimer's disease]($N3). [Gingko]($N1) is often used to improve cognitive function, but studies on its effectiveness in preventing Alzheimer's have been inconclusive || ['Alzheimer's Disease']. `
+Example 3,
+Questions: What are the benefits of Vitamin E?
+[Vitamin E]($N1) is a [Dietary Supplement]($N2) known for its [antioxidant properties]($N3), which [play a crucial role]($R1, $N3, $N4) in [protecting]($R2, $N1, $N5) [cells]($N5) within various [anatomical systems]($N4), including the [skin]($N6), [eyes]($N7), and [cardiovascular system]($N8). Its [antioxidant function]($N3) [helps to combat]($R3, $N3, $N9) [oxidative stress]($N9), thereby [supporting]($R4, $N3, $N10) the [health and integrity]($N10) of [cell membranes]($N11) across these [anatomical structures]($N4) || ["Vitamin E", "Dietary Supplement", "antioxidant properties", "cells", "anatomical systems", "skin", "eyes", "cardiovascular system", "oxidative stress", "health and integrity", "cell membranes"].
+
+   `
 
   const res = await openai.chat.completions.create({
     model: 'gpt-4-0125-preview',

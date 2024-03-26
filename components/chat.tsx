@@ -631,7 +631,7 @@ export function Chat({ id, initialMessages }: ChatProps) {
                   activeStep={activeStep}
                   // gptTriples={gptTriples.filter(d => d[3] == activeStep)}
                   nodes={nodes}
-                  edges={edges.filter(edge => edge.step == activeStep)}
+                  edges={edges}
                   clickedNode={clickedNode}
                 />
                 {activeStep == messages.length / 2 - 1 && StopRegenerateButton}
@@ -668,7 +668,7 @@ export function Chat({ id, initialMessages }: ChatProps) {
 
             <DotsMobileStepper
               messages={messages}
-              steps={Math.max(...nodes.map(d => d.step + 1), activeStep + 1, 1)}
+              steps={messages.length / 2}
               activeStep={activeStep}
               handleNext={() =>
                 handleStepChange(Math.min(activeStep + 1, nodes.length - 1))
