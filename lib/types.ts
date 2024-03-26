@@ -50,10 +50,10 @@ export type KGEdge = {
   PubMed_ID: string
 }
 
-export interface VisualizationResult {
-  nodes: KGNode[]
-  edges: KGEdge[]
-}
+// export interface VisualizationResult {
+//   nodes: KGNode[]
+//   edges: KGEdge[]
+// }
 
 export interface Recommendation {
   id: number
@@ -63,7 +63,7 @@ export interface Recommendation {
 export interface BackendData {
   data: {
     recommendation: Recommendation[]
-    vis_res: VisualizationResult[]
+    vis_res: { nodes: KGNode[]; edges: KGEdge[] }
     node_name_mapping: { [KGName: string]: string } // naming KG name to GPT name
   }
   keywords_list_answer: string[]

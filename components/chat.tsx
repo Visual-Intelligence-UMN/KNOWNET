@@ -289,66 +289,65 @@ export function Chat({ id, initialMessages }: ChatProps) {
       return { nodes, edges }
     }
 
-    data.vis_res.forEach(graph => {
-      graph.nodes.forEach(node => {
-        if (!nodeIds.has(node.id)) {
-          const nodeColor =
-            categoryColorMapping[node.category] ||
-            categoryColorMapping['NotFind'] // White as default color
-          nodes.push({
-            id: node.id,
-            data: {
-              label: node.name,
-              kgName: node.name,
-              gptName: data.node_name_mapping[node.name],
-              recommendations: data.recommendation
-            },
-            position: { x: 0, y: 0 },
-            // type: 'default',
-            type: 'custom',
-            category: node.category,
-            style: {
-              opacity: 1,
-              background: nodeColor,
-              borderRadius: '5px'
-            },
-            step: currentStep
-          })
-          nodeIds.add(node.id)
-        }
-      })
-
-      graph.edges.forEach((edge, index: any) => {
-        // const edgeId = `e${edge.Source}-${edge.Target}-${edge.Type}`
-        const edgeId = `e${edge.source}-${edge.target}`
-        const edgeRevId = `e${edge.target}-${edge.source}`
-        if (!edgeIds.has(edgeId) && !edgeIds.has(edgeRevId)) {
-          edges.push({
-            id: edgeId,
-            source: edge.source,
-            target: edge.target,
-            label: edge.category, // use the first edge type as label
-            data: {
-              papers: { [edge.category]: [edge.PubMed_ID] },
-              sourceName: graph.nodes.find(n => n.id === edge.source)?.name,
-              targetName: graph.nodes.find(n => n.id === edge.target)?.name
-            },
-            // type: 'smoothstep',
-            type: 'custom',
-            step: currentStep,
-            style: { opacity: 1 }
-          })
-          edgeIds.add(edgeId)
-        } else {
-          var existEdge = edges.find(e => e.id === edgeId)
-          if (existEdge!['data']['papers'][edge.category]) {
-            existEdge!['data']['papers'][edge.category].push(edge.PubMed_ID)
-          } else {
-            existEdge!['data']['papers'][edge.category] = [edge.PubMed_ID]
-          }
-        }
-      })
+    data.vis_res.nodes.forEach(node => {
+      if (!nodeIds.has(node.id)) {
+        const nodeColor =
+          categoryColorMapping[node.category] || categoryColorMapping['NotFind'] // White as default color
+        nodes.push({
+          id: node.id,
+          data: {
+            label: node.name,
+            kgName: node.name,
+            gptName: data.node_name_mapping[node.name],
+            recommendations: data.recommendation
+          },
+          position: { x: 0, y: 0 },
+          // type: 'default',
+          type: 'custom',
+          category: node.category,
+          style: {
+            opacity: 1,
+            background: nodeColor,
+            borderRadius: '5px'
+          },
+          step: currentStep
+        })
+        nodeIds.add(node.id)
+      }
     })
+
+    data.vis_res.edges.forEach((edge, index: any) => {
+      // const edgeId = `e${edge.Source}-${edge.Target}-${edge.Type}`
+      const edgeId = `e${edge.source}-${edge.target}`
+      const edgeRevId = `e${edge.target}-${edge.source}`
+      if (!edgeIds.has(edgeId) && !edgeIds.has(edgeRevId)) {
+        edges.push({
+          id: edgeId,
+          source: edge.source,
+          target: edge.target,
+          label: edge.category, // use the first edge type as label
+          data: {
+            papers: { [edge.category]: [edge.PubMed_ID] },
+            sourceName: data.vis_res.nodes.find(n => n.id === edge.source)
+              ?.name,
+            targetName: data.vis_res.nodes.find(n => n.id === edge.target)?.name
+          },
+          // type: 'smoothstep',
+          type: 'custom',
+          step: currentStep,
+          style: { opacity: 1 }
+        })
+        edgeIds.add(edgeId)
+      } else {
+        var existEdge = edges.find(e => e.id === edgeId)
+        if (existEdge!['data']['papers'][edge.category]) {
+          existEdge!['data']['papers'][edge.category].push(edge.PubMed_ID)
+        } else {
+          existEdge!['data']['papers'][edge.category] = [edge.PubMed_ID]
+        }
+      }
+    })
+
     setIsLoadingBackendData(false)
     return { nodes, edges }
   }
