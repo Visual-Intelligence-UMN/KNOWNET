@@ -86,7 +86,7 @@ const CustomEdge: FC<EdgeProps> = ({
 
   return (
     <>
-      <BaseEdge id={id} path={edgePath} style={style} />
+      <BaseEdge id={id} path={edgePath} style={{...style, strokeDasharray: hasValidPubMedID? '4 0': '4 4'}} />
       <EdgeLabelRenderer>
         <Popover>
           <PopoverHandler>
