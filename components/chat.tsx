@@ -612,7 +612,6 @@ export function Chat({ id, initialMessages }: ChatProps) {
   var r = 18, c = Math.PI*(r*2), val = (recommendations.length -1 )/recommendationMaxLen.current, pct = val*c;
 
   // only shown when recommendations are available
-  console.log('debug', recommendationMaxLen)
   const circleProgress = recommendationMaxLen.current > 0 && recommendations.length>0 ? <svg id="svg" width="40" height="40">
     <g transform={`rotate(-90 20 20)`}>
       <circle r={r} cx="20" cy="20" fill="transparent" strokeDasharray={c} strokeDashoffset="0" stroke='#aaa' strokeWidth="5px"></circle>
