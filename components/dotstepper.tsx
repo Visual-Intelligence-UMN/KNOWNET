@@ -52,7 +52,7 @@ export default function DotsMobileStepper({
   }
 
   return (
-    <div className="pt-3 px-5">
+    <div className="px-5 w-[80vw]">
       <div className="flex justify-between items-center">
         <Button
           variant="outline"

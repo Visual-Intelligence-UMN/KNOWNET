@@ -6,7 +6,6 @@ import CustomEdge from './customEdge' // Ensure this path is correct
 import CustomNode from './customNode'
 import { Button } from '../ui/button'
 import { Spinner } from '@material-tailwind/react'
-import { Progress } from '@material-tailwind/react'
 import { gptTriplesAtom } from '@/lib/state'
 import { useAtom } from 'jotai'
 import { type UseChatHelpers } from 'ai/react'
@@ -59,7 +58,6 @@ const FlowComponent = ({
   append: any
 }) => {
   const reactFlowInstance = useReactFlow()
-  const [progress, setProgress] = useState(0)
   const [totalRecommendations, setTotalRecommendations] = useState(0)
   const [gptTriples] = useAtom(gptTriplesAtom)
   const gptTriplesRef = useRef(gptTriples)
@@ -130,11 +128,6 @@ const FlowComponent = ({
     if (recommendations && recommendations.length > totalRecommendations) {
       setTotalRecommendations(recommendations.length)
     }
-    const exploredRecommendations =
-      totalRecommendations - recommendations.length || 0
-    const progressPercentage =
-      (exploredRecommendations / totalRecommendations) * 100
-    setProgress(progressPercentage)
   }, [recommendations, totalRecommendations])
 
   return (
@@ -201,16 +194,6 @@ const FlowComponent = ({
             <Typography color="blue-gray" variant="h6">
               {progress.toFixed(0)}
             </Typography> */}
-
-              {/* <span>Knowledge graph explored %</span> */}
-              <Progress
-                value={Number(progress.toFixed(0))}
-                color="green"
-                variant="filled"
-                size="md"
-                // label="Completed"
-                className="border border-gray-900/10 bg-gray-900/5 p-0.5 rounded-md"
-              />
             </div>
           )}
           <Button

@@ -162,6 +162,7 @@ export function Chat({ id, initialMessages }: ChatProps) {
     useState<ReactFlowInstance | null>(null)
 
   const initialRender = useRef(true)
+  const recommendationMaxLen = useRef(0)
   const [previewTokenDialog, setPreviewTokenDialog] = useState(false)
   const [previewTokenInput, setPreviewTokenInput] = useState(previewToken ?? '')
   const [isLoadingBackendData, setIsLoadingBackendData] = useState(true)
@@ -569,9 +570,16 @@ export function Chat({ id, initialMessages }: ChatProps) {
       appendDataToFlow(backendData.data, activeStep)
       setRecommendations(backendData.data.recommendation)
 
+
       // appendDataToFlow(testBackendData.data)
     }
   }, [backendData, appendDataToFlow, setRecommendations, activeStep])
+
+  useEffect(() => {
+    if (backendData && backendData.data && backendData.data.recommendation.length >= recommendationMaxLen.current) {
+      recommendationMaxLen.current = recommendations.length
+    }
+  }, [recommendations])
 
   // useEffect(() => {
   //   // Perform actions based on updated keywordsAnswer and keywordsQuestion
@@ -600,6 +608,19 @@ export function Chat({ id, initialMessages }: ChatProps) {
       <IconRefresh className="mr-2" /> Regenerate
     </Button>
   )
+  
+  var r = 18, c = Math.PI*(r*2), val = (recommendations.length -1 )/recommendationMaxLen.current, pct = val*c;
+
+  // only shown when recommendations are available
+  console.log('debug', recommendationMaxLen)
+  const circleProgress = recommendationMaxLen.current > 0 && recommendations.length>0 ? <svg id="svg" width="40" height="40">
+    <g transform={`rotate(-90 20 20)`}>
+      <circle r={r} cx="20" cy="20" fill="transparent" strokeDasharray={c} strokeDashoffset="0" stroke='#aaa' strokeWidth="5px"></circle>
+      <circle id="bar" r={r} cx="20" cy="20" fill="transparent" strokeDasharray={c} strokeDashoffset={pct} stroke='#111' strokeWidth="5px"></circle>
+    </g>
+      <text x="50%" y="50%" textAnchor="middle" fontSize='12px' dy=".3em">{recommendationMaxLen.current-recommendations.length + 1}/{recommendationMaxLen.current}</text>
+    </svg>:<></>
+
 
   useEffect(() => {
     const handleResize = () => {
@@ -665,16 +686,21 @@ export function Chat({ id, initialMessages }: ChatProps) {
               </div>
             </div>
 
-            <DotsMobileStepper
-              messages={messages}
-              steps={messages.length / 2}
-              activeStep={activeStep}
-              handleNext={() =>
-                handleStepChange(Math.min(activeStep + 1, nodes.length - 1))
-              }
-              handleBack={() => handleStepChange(Math.max(activeStep - 1, 0))}
-              jumpToStep={handleStepChange}
-            />
+            <div className="flex justify-center items-center pt-3 ">
+              <DotsMobileStepper
+                messages={messages}
+                steps={messages.length / 2}
+                activeStep={activeStep}
+                handleNext={() =>
+                  handleStepChange(Math.min(activeStep + 1, nodes.length - 1))
+                }
+                handleBack={() => handleStepChange(Math.max(activeStep - 1, 0))}
+                jumpToStep={handleStepChange}
+              />
+              {circleProgress}
+            </div>
+
+            
           </>
         ) : (
           <EmptyScreen setInput={setInput} id={id!} append={append} />
