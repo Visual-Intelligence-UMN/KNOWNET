@@ -37,7 +37,9 @@ const CustomNode: FC<NodeProps> = ({
         globalRecommendations.some(
           globalRec =>
             globalRec.id === recommendation.id &&
-            recommendation.text.toLowerCase().includes(data.label.toLowerCase())
+            recommendation.text
+              .toLowerCase()
+              .includes(data.label?.toLowerCase())
         )
     )
     setVisibleRecommendations(filteredRecommendations)

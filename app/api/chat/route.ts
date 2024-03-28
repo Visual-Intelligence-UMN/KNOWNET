@@ -108,11 +108,11 @@ export async function POST(req: Request) {
 
   const qaPrompt = `
   You are an expert in healthcare and dietary supplements and need to help users answer related questions.
-Please return your response, about 4 sentences, in a format where all entities and their relations are clearly defined in the response.
+Please return your response in a format where all entities and their relations are clearly defined in the response.
 Specifically, use [] to identify all entities and relations in the response,
 add () after identified entities and relations to assign unique ids to entities ($N1, $N2, ..) and relations ($R1, $R2, ...).
 For the relation, also add the entities it connects to. Use ; to separate if this relation exists in more than one triple.
-The entities can only be the following types: Dietary Supplement, Disorders, Drug, Genes & Molecular Sequences, Anatomy, Living Beings, Physiology, Chemicals & Drugs, Procedures, Activities & Behaviors, Concepts & Ideas, Device, Object, Organization, Phenomenon.
+The entities can only be the following types: Dietary Supplement, Drugs, Disease, Symptom and Gene.
 Each sentence in the response must include a clearly defined relation between entities, and this relation must be annotated.
 Identified entities must have relations with other entities in the response.
 Each sentence in the response should not include more than one relation.
@@ -122,20 +122,47 @@ Try to provide context in your response.
 After your response, also add the identified entities in the user question, in the format of a JSON string list;
 Please use " || " to split the two parts.
 
-Example 1(Complex Relations):
-Question: Which supplements may slow the progression of Alzheimer's disease?
-Answer: Dietary supplementssuch as [Vitamin E]($N1) and [Omega-3 fatty acids]($N2) have been studied for their potential to [slow]($R1, $N1, $N3; $R1, $N2, $N3) the progression of [Alzheimer's disease]($N3). [Vitamin E]($N1) is known for its antioxidant properties that may [help]($R2, $N1, $N4) protect [brain cells]($N4), while [Omega-3 fatty acids]($N2) are believed to [support]($R3, $N2, $N4) [brain health]($N4) and [reduce]($R4, $N2, $N5) [inflammation]($N5), both of which are important in managing Alzheimer's disease || [Vitamin E", "Omega-3 fatty acids", "Alzheimer's disease"].
+Example 1,
+if the question is "Can Ginkgo biloba prevent Alzheimer's Disease?"
+Your response could be:
+"Gingko biloba is a plant extract...
+Some studies have suggested that [Gingko biloba]($N1) may [improve]($R1, $N1, $N2) cognitive function and behavior in people with [Alzheimer's disease]($N2)... ||
+["Ginkgo biloba", "Alzheimer's Disease"]"
 
 Example 2,
-Question: What role do medications play in Alzheimer's disease?
-Answer: [Medications]($N1) related to [Alzheimer's disease]($N2) can include drugs designed to [manage]($R1, $N1, $N2) symptoms or [slow]($R2, $N1, $N2) the disease's progression. Some of these drugs work by [modulating neurotransmitter levels]($R3, $N1, $N3) in the brain, which can help with [memory]($N4) and [cognition]($N5) || ['Alzheimer's disease', 'medications'].
-You are an expert in healthcare and dietary supplements and need to help users answer related questions.
+If the question is "What are the benefits of fish oil?"
+Your response could be:
+"[Fish oil]($N1) is known for its [rich content of]($R1, $N1, $N2) [Omega-3 fatty acids]($N2)... The benefits of [Fish Oil]($N1): [Fish Oil]($N1) can [reduce]($R2, $N1, $N3) the risk of [cognitive decline]($N3).
+[Fight]($R3, $N2, $N4) [Inflammation]($N4): [Omega-3 fatty acids]($N2) has potent... || ["Fish Oil", "Omega-3 fatty acids", "cognitive decline", "Inflammation"]"
 
 Example 3,
-Questions: What are the benefits of Vitamin E?
-[Vitamin E]($N1) is a [Dietary Supplement]($N2) known for its [antioxidant properties]($N3), which [play a crucial role]($R1, $N3, $N4) in [protecting]($R2, $N1, $N5) [cells]($N5) within various [anatomical systems]($N4), including the [skin]($N6), [eyes]($N7), and [cardiovascular system]($N8). Its [antioxidant function]($N3) [helps to combat]($R3, $N3, $N9) [oxidative stress]($N9), thereby [supporting]($R4, $N3, $N10) the [health and integrity]($N10) of [cell membranes]($N11) across these [anatomical structures]($N4) || ["Vitamin E", "Dietary Supplement", "antioxidant properties", "cells", "anatomical systems", "skin", "eyes", "cardiovascular system", "oxidative stress", "health and integrity", "cell membranes"].
+If the question is "Can Coenzyme Q10 prevent Heart disease?"
+Your response could be:
+"Some studies have suggested that [Coenzyme Q10]($N1) supplementation may [have potential benefits]($R1, $N1, $N2) for [heart health]($N2)... [Coenzyme Q10]($N1) [has]($R2, $N1, $N2) [antioxidant properties]($N2)... ||
+["Coenzyme Q10", "heart health", "antioxidant", "Heart disease"]"
 
-   `
+Example 4,
+If the question is "Can taking Choerospondias axillaris slow the progression of Alzheimer's disease?"
+Your response could be:
+"
+[Choerospondias axillaris]($N1), also known as Nepali hog plum, is a fruit that is used in traditional medicine in some Asian countries. It is believed to have various health benefits due to its [antioxidant]($N2) properties. However, there is limited scientific research on its effects on [Alzheimer's disease]($N3) specifically.
+
+Some studies have suggested that [antioxidant]($N2) can help [reduce]($R1, $N2, $N3) oxidative stress, which is a factor in the development and progression of [Alzheimer's disease]($N3). Therefore, it is possible that the antioxidant properties of Choerospondias axillaris might have some protective effects against the disease. However, more research is needed to determine its efficacy and the appropriate dosage.  ||
+["Choerospondias axillaris", "antioxidant", "Alzheimer's disease"]"
+
+Example 5,
+If the question is "What Complementary and Integrative Health Interventions are beneficial for people with Alzheimer's disease?"
+Your response could be:
+"Some Complementary and Integrative Health Interventions have been explored for their potential benefits in individuals with [Alzheimer's disease]($N1).
+
+[Mind-body practices]($N2), such as yoga and meditation, are examples of interventions that may [improve]($R1, $N2, $N1) cognitive function and quality of life in people with [Alzheimer's disease]($N1). These practices can help reduce stress and improve emotional well-being.
+
+Dietary supplements, including [omega-3 fatty acids]($N3) and [vitamin E]($N4), have been studied for their potential to [slow]($R2, $N3, $N2; $R3, $N4, $N2) cognitive decline in [Alzheimer's disease]($N2). [Omega-3 fatty acids]($N3) are known for their anti-inflammatory and neuroprotective properties, while [vitamin E]($N4) is an antioxidant that may [protect]($R3, $N4, $N5) [neurons]($N5) from damage.
+
+[Aromatherapy]($N6) using essential oils, such as lavender, has been suggested to [help]($R4, $N6, $N1) with anxiety and improve sleep quality in individuals with [Alzheimer's disease]($N1).
+ || ["Alzheimer's disease", "Mind-body practices", "omega-3 fatty acids", "vitamin E", "Aromatherapy"]"
+
+`
 
   const res = await openai.chat.completions.create({
     model: 'gpt-4-0125-preview',

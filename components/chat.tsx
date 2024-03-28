@@ -290,7 +290,7 @@ export function Chat({ id, initialMessages }: ChatProps) {
       return { nodes, edges }
     }
 
-    data.vis_res.nodes.forEach(node => {
+    data.vis_res.nodes?.forEach(node => {
       if (!nodeIds.has(node.id)) {
         const nodeColor =
           categoryColorMapping[node.category] || categoryColorMapping['NotFind'] // White as default color
@@ -317,7 +317,7 @@ export function Chat({ id, initialMessages }: ChatProps) {
       }
     })
 
-    data.vis_res.edges.forEach((edge, index: any) => {
+    data.vis_res.edges?.forEach((edge, index: any) => {
       // const edgeId = `e${edge.Source}-${edge.Target}-${edge.Type}`
       const edgeId = `e${edge.source}-${edge.target}`
       const edgeRevId = `e${edge.target}-${edge.source}`
@@ -417,7 +417,7 @@ export function Chat({ id, initialMessages }: ChatProps) {
         const updatedNodes = mergeNodes(currentNodes, newNodes).filter(
           node =>
             !highLevelNodes.some(d => {
-              node.data.label.includes(d)
+              node.data.label?.includes(d)
             })
         )
         // const uniqueNodes:string[] = [...new Set(gptTriples.map((triple, i) => ([triple[0], triple[2]])).flat())]
@@ -570,13 +570,16 @@ export function Chat({ id, initialMessages }: ChatProps) {
       appendDataToFlow(backendData.data, activeStep)
       setRecommendations(backendData.data.recommendation)
 
-
       // appendDataToFlow(testBackendData.data)
     }
   }, [backendData, appendDataToFlow, setRecommendations, activeStep])
 
   useEffect(() => {
-    if (backendData && backendData.data && backendData.data.recommendation.length >= recommendationMaxLen.current) {
+    if (
+      backendData &&
+      backendData.data &&
+      backendData.data.recommendation.length >= recommendationMaxLen.current
+    ) {
       recommendationMaxLen.current = recommendations.length
     }
   }, [recommendations])
@@ -608,18 +611,47 @@ export function Chat({ id, initialMessages }: ChatProps) {
       <IconRefresh className="mr-2" /> Regenerate
     </Button>
   )
-  
-  var r = 18, c = Math.PI*(r*2), val = (recommendations.length -1 )/recommendationMaxLen.current, pct = val*c;
+
+  var r = 18,
+    c = Math.PI * (r * 2),
+    val = (recommendations.length - 1) / recommendationMaxLen.current,
+    pct = val * c
 
   // only shown when recommendations are available
-  const circleProgress = recommendationMaxLen.current > 0 && recommendations.length>0 ? <svg id="svg" width="40" height="40">
-    <g transform={`rotate(-90 20 20)`}>
-      <circle r={r} cx="20" cy="20" fill="transparent" strokeDasharray={c} strokeDashoffset="0" stroke='#aaa' strokeWidth="5px"></circle>
-      <circle id="bar" r={r} cx="20" cy="20" fill="transparent" strokeDasharray={c} strokeDashoffset={pct} stroke='#111' strokeWidth="5px"></circle>
-    </g>
-      <text x="50%" y="50%" textAnchor="middle" fontSize='12px' dy=".3em">{recommendationMaxLen.current-recommendations.length + 1}/{recommendationMaxLen.current}</text>
-    </svg>:<></>
-
+  const circleProgress =
+    recommendationMaxLen.current > 0 && recommendations.length > 0 ? (
+      <svg id="svg" width="40" height="40">
+        <g transform={`rotate(-90 20 20)`}>
+          <circle
+            r={r}
+            cx="20"
+            cy="20"
+            fill="transparent"
+            strokeDasharray={c}
+            strokeDashoffset="0"
+            stroke="#aaa"
+            strokeWidth="5px"
+          ></circle>
+          <circle
+            id="bar"
+            r={r}
+            cx="20"
+            cy="20"
+            fill="transparent"
+            strokeDasharray={c}
+            strokeDashoffset={pct}
+            stroke="#111"
+            strokeWidth="5px"
+          ></circle>
+        </g>
+        <text x="50%" y="50%" textAnchor="middle" fontSize="12px" dy=".3em">
+          {recommendationMaxLen.current - recommendations.length + 1}/
+          {recommendationMaxLen.current}
+        </text>
+      </svg>
+    ) : (
+      <></>
+    )
 
   useEffect(() => {
     const handleResize = () => {
@@ -698,8 +730,6 @@ export function Chat({ id, initialMessages }: ChatProps) {
               />
               {circleProgress}
             </div>
-
-            
           </>
         ) : (
           <EmptyScreen setInput={setInput} id={id!} append={append} />

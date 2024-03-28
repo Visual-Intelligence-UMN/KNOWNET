@@ -13,6 +13,7 @@ from embeddings_utils import get_embedding, get_embeddings
 import pandas as pd
 import gdown
 import time
+from fuzzywuzzy import fuzz
 
 # Initialize Flask App
 app = Flask(__name__)
@@ -106,6 +107,8 @@ def post_chat_message():
     try:
         # Call the agent function from AI_agent.py
         if input_type == "new_conversation":
+            #reset the recommendation space
+            recommendation_space.clear()
             response_data = agent(triples, 0, "new_conversation")
 
             # print(response_data)
@@ -202,16 +205,31 @@ def match_KG_nodes_old(entity_list, query_embeddings):
 
 def match_KG_nodes(entity_list, similarity_list):
     nodes_list = []
-    unmathced_entity_list = []
+    unmatched_entity_list = []
     for entity, similarity in zip(entity_list, similarity_list):
-
         max_index = np.argmax(similarity)
         max_similarity = similarity[max_index]
-        if max_similarity > 0.94:
+        # Lowered the threshold to 0.85 for initial similarity match
+        if max_similarity > 0.85:
             nodes_list.append([kg_nodes_embedding.CUI.values[max_index], kg_nodes_embedding.Name.values[max_index], entity])
         else:
-            unmathced_entity_list.append(entity)
-    return nodes_list, unmathced_entity_list
+            # Implement fuzzy matching as a secondary check
+            possible_matches = [(i, sim) for i, sim in enumerate(similarity) if sim > 0.7]  # Consider matches above 0.7 for fuzzy matching
+            best_fuzzy_match = None
+            highest_fuzzy_score = 0
+            for i, sim in possible_matches:
+                fuzzy_score = fuzz.partial_ratio(entity.lower(), kg_nodes_embedding.Name.values[i].lower())
+                if fuzzy_score > highest_fuzzy_score:
+                    highest_fuzzy_score = fuzzy_score
+                    best_fuzzy_match = i
+
+            # If the best fuzzy match score is above a certain threshold, consider it a match
+            if highest_fuzzy_score > 80:  # Adjust this threshold as needed
+                nodes_list.append([kg_nodes_embedding.CUI.values[best_fuzzy_match], kg_nodes_embedding.Name.values[best_fuzzy_match], entity])
+            else:
+                unmatched_entity_list.append(entity)
+                app.logger.info(f"Unmatched entity: {entity} - Max similarity: {max_similarity}, Highest fuzzy score: {highest_fuzzy_score}")
+    return nodes_list, unmatched_entity_list
 
 
 def select_subgraph(cypher_statement, node_id_map, rel_id_map):
@@ -411,7 +429,7 @@ def visualization_partial_match(matched_entity, unmatched_entity, relation, is_h
 def add_recommendation_space(entity_list):
     global recommendation_id_counter
     for entity in entity_list:
-        cypher_statement = f"MATCH path=(sub:Node{{CUI:\"{entity[0]}\"}})-[rel:Relation*1]-(obj:Node) RETURN path LIMIT 30"
+        cypher_statement = f"MATCH path=(sub:Node{{CUI:\"{entity[0]}\"}})-[rel:Relation*1]-(obj:Node) RETURN path LIMIT 10"
         neighbor_list = summarize_neighbor_type(cypher_statement)
         for neighbor in neighbor_list:
             key = (entity[0], neighbor)  # Unique tuple to identify the recommendation

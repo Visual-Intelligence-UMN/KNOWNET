@@ -53,6 +53,7 @@ export const categoryColorMapping: { [key: string]: string } = {
   Objects: '#e15759', // Red
   Organization: '#76b7b2', // Cyan
   Phenomenon: '#59a14f', // Green
+  'Complementary and Integrative Health': '#ff0000', // Red
   NotFind: '#dddddd' //gray
   // Add more label types and colors as needed
 }
