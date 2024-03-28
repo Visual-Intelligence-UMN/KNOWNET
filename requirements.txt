@@ -55,4 +55,4 @@ tzdata==2023.4
 urllib3==2.2.1
 Werkzeug==2.2.2
 fuzzywuzzy==0.18.0
-python-Levenshtein=0.25.0
+python-Levenshtein==0.25.0
