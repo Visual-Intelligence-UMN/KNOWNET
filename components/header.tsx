@@ -34,16 +34,21 @@ async function UserOrLogin() {
         </Sidebar>
       ) : (
         <Link href="/" target="_blank" rel="nofollow">
-          <IconNextChat className="size-6 mr-2 dark:hidden" inverted />
+          {/* <IconNextChat className="size-6 mr-2 dark:hidden" inverted /> */}
           {/* <IconNextChat className="hidden w-6 h-6 mr-2 dark:block" /> */}
         </Link>
       )}
-      
+
       <div className="flex items-center">
-        <span className='items-center justify-center inline-flex text-[30px]'>KNOWNET</span>
+        <a
+          className="items-center justify-center inline-flex text-[30px]"
+          href="/"
+        >
+          KNOWNET
+        </a>
         <IconSeparator className="size-6 text-muted-foreground/50" />
         {session?.user ? (
-            <UserMenu user={session.user} />
+          <UserMenu user={session.user} />
         ) : (
           <Button variant="link" asChild className="-ml-2">
             <Link href="/sign-in?callbackUrl=/">Login</Link>
