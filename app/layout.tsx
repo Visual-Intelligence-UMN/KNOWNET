@@ -11,10 +11,11 @@ import { Header } from '@/components/header'
 export const metadata = {
   metadataBase: new URL(`https://${process.env.VERCEL_URL}`),
   title: {
-    default: 'Vis-Con Agent AI Chatbot!',
-    template: `%s - Visualization Conversational Agent AI Chatbot!`
+    default: 'KNOWNET',
+    template: `%s - KNOWNET`
   },
-  description: 'An AI-powered chatbot',
+  description:
+    'A visualization system designed to enhance health information retrieval by integrating Large Language Models with Knowledge Graphs.',
   icons: {
     icon: '/favicon.ico',
     shortcut: '/favicon-16x16.png',
