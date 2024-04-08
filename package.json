@@ -14,6 +14,8 @@
     "format:check": "prettier --check \"{app,lib,components}**/*.{ts,tsx,mdx}\" --cache"
   },
   "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.549.0",
+    "@aws-sdk/lib-dynamodb": "^3.549.0",
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
     "@material-tailwind/react": "^2.1.8",
@@ -32,6 +34,7 @@
     "@vercel/kv": "^1.0.0",
     "@vercel/og": "^0.5.20",
     "ai": "^2.2.25",
+    "aws-sdk": "^2.1594.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
     "d3": "^7.8.5",

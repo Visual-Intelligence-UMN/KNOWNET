@@ -1,15 +1,30 @@
-import { kv } from '@vercel/kv'
 import { OpenAIStream, StreamingTextResponse } from 'ai'
 import OpenAI from 'openai'
 
 import { auth } from '@/auth'
 import { nanoid } from '@/lib/utils'
-
-export const runtime = 'edge'
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
+import {
+  DynamoDBDocumentClient,
+  QueryCommand,
+  GetCommand,
+  DeleteCommand,
+  PutCommand
+} from '@aws-sdk/lib-dynamodb'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 })
+
+const dynamoDBClient = new DynamoDBClient({
+  region: 'us-east-1',
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID as string,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY as string
+  }
+})
+
+const docClient = DynamoDBDocumentClient.from(dynamoDBClient)
 
 export async function POST(req: Request) {
   const json = await req.json()
@@ -223,11 +238,12 @@ Dietary supplements, including [omega-3 fatty acids]($N3) and [vitamin E]($N4), 
         // keywordsListAnswer,
         // keywordsListQuestion
       }
-      await kv.hmset(`chat:${id}`, payload)
-      await kv.zadd(`user:chat:${userId}`, {
-        score: createdAt,
-        member: `chat:${id}`
-      })
+      const params = {
+        TableName: 'Chats',
+        Item: payload
+      }
+
+      await docClient.send(new PutCommand(params))
     }
   })
 
