@@ -42,3 +42,60 @@ pnpm dev
 ```
 
 Your app template should now be running on [localhost:3000](http://localhost:3000/).
+
+
+## Opertaion on EC2
+
+```bash
+cd KNOWNET
+pnpm install
+```
+### Execute the below code to run Next.js with PM2:
+```bash
+pm2 start npm --name nextjs-app -- run start -- -p 3000
+pm2 list nextjs-app
+```
+### STOP the next.js
+```bash
+pm2 stop nextjs-app
+```
+### Flask backend
+To keep your Flask app running in the background even after you close the terminal, you can use a tool like screen or tmux. These tools allow you to create a detached session that will continue running on the server even when you disconnect.
+
+Here's how you can do it using screen:
+
+Install screen (if it's not already installed):
+
+```bash
+sudo apt-get install screen  # For Debian/Ubuntu
+sudo yum install screen      # For CentOS/RHEL
+```
+
+#### Start a new screen session:
+
+```bash
+screen
+```
+Run your Flask app within the screen session:
+
+```bash
+flask --app api/index --debug run -h 0.0.0.0 -p 5328
+```
+
+#### Detach from the screen session:
+
+Press Ctrl + A, then D. This will detach you from the screen session and return you to your normal terminal, but your Flask app will continue running in the background.
+
+#### Reattach to the screen session (if needed):
+
+If you want to check on your Flask app or stop it, you can reattach to the screen session:
+
+```bash
+screen -r
+```
+#### Exit screen session:
+
+When you're done and want to stop your Flask app, reattach to the screen session and stop your Flask app with Ctrl + C. Then, you can exit the screen session by typing exit.
+
+Using screen allows you to keep your Flask app running in the background without needing to keep your terminal open.
+
