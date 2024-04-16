@@ -14,9 +14,11 @@ import pandas as pd
 import gdown
 import time
 from fuzzywuzzy import fuzz
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 # Initialize Flask App
 app = Flask(__name__)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 app.secret_key = os.urandom(12)
 CORS(app)
 
@@ -41,12 +43,12 @@ recommendation_space = {}
 recommendation_id_counter = 0  # Keep track of the next ID to assign
 
 
-@app.route("/api/python", methods=["GET"])
+@app.route("/flask/api/python", methods=["GET"])
 def hello_world():
     return "<p>Hello, I am testing flask</p>"
 
 
-@app.route("/api/chat", methods=["POST"])
+@app.route("/flask/api/chat", methods=["POST"])
 def post_chat_message():
     data = request.json
     input_type = data.get("input_type")
