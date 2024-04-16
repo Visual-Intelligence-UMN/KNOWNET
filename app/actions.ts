@@ -16,8 +16,8 @@ import { type Chat } from '@/lib/types'
 const dynamoDBClient = new DynamoDBClient({
   region: 'us-east-1',
   credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID as string,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY as string
+    accessKeyId: process.env.MY_AWS_ACCESS_KEY_ID as string,
+    secretAccessKey: process.env.MY_AWS_SECRET_ACCESS_KEY as string
   }
 })
 const docClient = DynamoDBDocumentClient.from(dynamoDBClient)
