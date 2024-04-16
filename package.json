@@ -3,7 +3,7 @@
   "scripts": {
     "flask-dev": "./run_flask.sh",
     "next-dev": "next dev --turbo",
-    "dev": "concurrently \"pnpm run next-dev\" \"pnpm run flask-dev\"",
+    "dev": "pnpm run next-dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",

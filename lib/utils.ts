@@ -69,7 +69,7 @@ export function formatDate(input: string | number | Date): string {
 
 export async function fetchBackendData(payload: any) {
   try {
-    const response = await fetch('http://0.0.0.0:5328/api/chat', {
+    const response = await fetch(`http://34.192.167.210:5328/api/chat`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
