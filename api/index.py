@@ -234,7 +234,7 @@ def match_KG_nodes(entity_list, similarity_list):
 
 def select_subgraph(cypher_statement, node_id_map, rel_id_map):
     uri = neo4j_url
-    driver = GraphDatabase.driver(uri, auth=("neo4j", "yuhou"))
+    driver = GraphDatabase.driver(uri, auth=("neo4j", "knownet"))
     session = driver.session()
     neo4j_res = session.run(cypher_statement)
 
@@ -275,7 +275,7 @@ def select_subgraph(cypher_statement, node_id_map, rel_id_map):
 
 def select_subgraph_1Hop(cypher_statement, node_id_map, rel_id_map):
     uri = neo4j_url
-    driver = GraphDatabase.driver(uri, auth=("neo4j", "yuhou"))
+    driver = GraphDatabase.driver(uri, auth=("neo4j", "knownet"))
     session = driver.session()
     neo4j_res = session.run(cypher_statement)
 
@@ -328,7 +328,7 @@ def select_subgraph_1Hop(cypher_statement, node_id_map, rel_id_map):
 
 def summarize_neighbor_type(cypher_statement):
     uri = neo4j_url
-    driver = GraphDatabase.driver(uri, auth=("neo4j", "yuhou"))
+    driver = GraphDatabase.driver(uri, auth=("neo4j", "knownet"))
     session = driver.session()
     neo4j_res = session.run(cypher_statement)
     res = []
@@ -390,7 +390,7 @@ def visualization_partial_match(matched_entity, unmatched_entity, relation, is_h
     # using CUI to find the category of the matched entity
     cypher_statement = "MATCH (n:Node{CUI:\"" + matched_cui + "\"}) RETURN n.Label"
     uri = neo4j_url
-    driver = GraphDatabase.driver(uri, auth=("neo4j", "yuhou"))
+    driver = GraphDatabase.driver(uri, auth=("neo4j", "knownet"))
     session = driver.session()
     neo4j_res = session.run(cypher_statement)
     for record in neo4j_res:
@@ -554,3 +554,7 @@ def agent(triples, recommand_id, input_type):
             response_data["recommendation"] = recommendation
     # app.logger.info("Time taken for the agent function: "+ str(time.time() - start_time))
     return response_data
+
+
+if __name__ == "__main__":
+    app.run(debug=True, host="0.0.0.0", port=5328)
