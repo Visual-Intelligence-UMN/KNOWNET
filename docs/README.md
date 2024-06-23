@@ -1,6 +1,6 @@
 # KNOWNET
 
-## [LINK TO DEMO](https://www.umn-visual-intelligence-lab.com/)
+<!-- ## [LINK TO DEMO](https://www.umn-visual-intelligence-lab.com/) -->
 
 KNOWNET is a visualization system that enhances health information retrieval by integrating Large Language Models (LLMs) with Knowledge Graphs (KGs). In the era of information overload, finding accurate and relevant health information can be challenging, especially when it involves complex topics like Alzheimer's disease and dietary supplements. Traditional LLMs, while powerful, often generate responses that lack factual accuracy, structured exploration, and clear representation of intricate information structures.
 
