@@ -2,7 +2,7 @@
 
 > This page illustrates how to run KNOWNET in your local computer in the development mode.
 
-First, download or clone our github repo at https://github.com/youfuyan/KNOWNET.
+First, download or clone our github repo at https://github.com/Visual-Intelligence-UMN/KNOWNET.
 
 ## Backend
 
