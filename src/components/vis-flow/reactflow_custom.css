@@ -1,0 +1,7 @@
+g.react-flow__edge-textwrapper .react-flow__edge-textbg{
+    opacity: 0.8;
+}
+
+.react-flow__edge-path {
+    stroke: #222 !important;
+}
