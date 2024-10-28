@@ -24,9 +24,12 @@ dist-ssr
 *.sw?
 
 
-venv/
-.venv/
-env/
-.env/
-.venv*/
-venv*/
+.venv
+venv
+api/__pycache__
+
+# local env files
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
