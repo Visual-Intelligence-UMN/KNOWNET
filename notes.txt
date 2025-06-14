@@ -1,0 +1,20 @@
+Improve accuracy of diagrams
+-Current issue, text on left side is too complicated and makes it hard to extrapolate diagrams.
+-Note relations
+-Algorithm gets confused by sentences like this
+-Prompting engineering might be necessary
+--Give good and bad examples
+--Develop something easier to detect 
+--Maybe only short sentences
+Make left side and right side go at same time
+-Make right side build progressively as gpt generates
+-Add nodes in real time
+
+Next thing: Try connecting front-end with back-end of graph database
+Finish these tasks by end of summer.
+
+Push to GitHub
+
+Slack
+
+Implementation Questions? Reach Out to Pan Hao
