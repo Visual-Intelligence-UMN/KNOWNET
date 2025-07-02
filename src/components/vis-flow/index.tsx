@@ -127,7 +127,7 @@ const FlowComponent = ({
                 width: 'calc(100% - 2rem)',
                 height: 'calc(65vh - 1rem)'
                 }}>
-                {isLoading && (
+                {isLoading && nodes.length === 0 && (
                     <div className="absolute inset-0 bg-white bg-opacity-[65%] flex flex-wrap justify-center items-center z-10 p-[150px]">
                         <div className="text-gray-700 text-[20px]">
                             Wait for GPT responding...

@@ -202,18 +202,22 @@ export function Chat({ id, initialMessages }: ChatProps) {
     id,
     body: { id },
     streamProtocol:"text",
+    
 
     onResponse(response) {
-      console.log("LLM response received:", response)
+      console.log("LLM response received:", response);
       if (response.status === 401) {
         toast.error(response.statusText);
+        return;
       }
       if (reloadFlag.current) {
         reloadFlag.current = false;
-      }else if (messages.length !== 0) {
-        setActiveStep(activeStep => activeStep + 1)
+      } else if (messages.length !== 0) {
+        setActiveStep((activeStep) => activeStep + 1);
       }
     },
+
+
 
     // onFinish to log the final message
     onFinish(message) {
@@ -260,6 +264,24 @@ export function Chat({ id, initialMessages }: ChatProps) {
       initialRender.current = false
     }
   }, [])
+  const seenTriples = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    const latestAssistantMsg = [...messages].reverse().find(m => m.role === 'assistant');
+    if (!latestAssistantMsg) return;
+
+    const parts = latestAssistantMsg.content.split('||');
+    const { relations: triples } = extractRelations(parts[0]);
+
+    const newTriples = triples.filter(triple => {
+      const key = triple.join('|');
+      return !seenTriples.current.has(key);
+    });
+
+    if (newTriples.length > 0) {
+      newTriples.forEach(t => seenTriples.current.add(t.join('|')));
+      setGptTriples(prev => [...prev, ...newTriples]);
+    }
+  }, [messages]);
 
 
   //  Preview Token Check
