@@ -2,7 +2,7 @@
 import { Message } from 'ai'
 import { useViewMode } from './ui/view-mode'
 import { ChatMessage } from './chat-message'
-import { CustomGraphNode } from '../lib/types'
+import { CustomGraphNode, CustomGraphEdge } from '../lib/types'
 
 export interface ChatListProps {
     messages: Message[]

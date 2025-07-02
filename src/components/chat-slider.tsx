@@ -2,9 +2,9 @@
 import React from 'react'
 import { Stepper, Step, Tooltip } from '@material-tailwind/react'
 import { Button } from './ui/button'
-import {type Message } from 'ai/react'
+import { type Message } from 'ai/react'
 
-type sliderProps = {
+type SliderProps = {
   messages: Message[]
   steps: number
   activeStep: number
@@ -13,7 +13,6 @@ type sliderProps = {
   jumpToStep: (step: number) => void
 }
 
-
 export default function Slider({
   messages,
   steps,
@@ -21,27 +20,26 @@ export default function Slider({
   handleNext,
   handleBack,
   jumpToStep,
-}: sliderProps) {
-  // console.log("steps", steps)
+}: SliderProps) {
   const isLastStep = activeStep === steps - 1
   const isFirstStep = activeStep === 0
 
-  const renderTest = () => {
+  // Renders either clickable step dots or a compact step indicator
+  const renderStepUI = () => {
     if (steps >= 10) {
-      // steps > 10 
       return <div className="text-center">{`${activeStep + 1}/${steps}`}</div>
     }
-    
+
     return (
-      <Stepper
-        activeStep = {activeStep}
-      >
-        {Array.from({length: steps}, (_, index) =>(
-          <Tooltip key={index} content={messages[index*2]['content']}>
-              <Step
-                key={index}
-              className={`size-3 flex items-center justify-center rounded-full ${index<=activeStep ? 'bg-black text-white':'bg-gray-300 text-gray-600'} cursor-pointer`}
-              // onClick={() => handleBack()}
+      <Stepper activeStep={activeStep}>
+        {Array.from({ length: steps }, (_, index) => (
+          <Tooltip key={index} content={messages[index * 2]?.content || 'Step'}>
+            <Step
+              className={`size-3 flex items-center justify-center rounded-full ${
+                index <= activeStep
+                  ? 'bg-black text-white'
+                  : 'bg-gray-300 text-gray-600'
+              } cursor-pointer`}
               onClick={() => jumpToStep(index)}
               style={{ padding: '2px' }}
             >
@@ -49,37 +47,9 @@ export default function Slider({
             </Step>
           </Tooltip>
         ))}
-
       </Stepper>
     )
   }
-
-  // const renderStepIndicator = () => {
-  //   // If steps are too many, show in text format like "1/8"
-  //   if (steps > 10) {
-  //     return <div className="text-center">{`${activeStep + 1}/${steps}`}</div>
-  //   }
-  //   // Otherwise, render individual dots for each step
-  //   return (
-  //     <Stepper 
-  //       activeStep={activeStep}
-  //     >
-  //       {Array.from({ length: steps }, (_, index) => (
-  //         <Tooltip key={index} content={messages[index*2]['content']}>
-  //           <Step
-  //             key={index}
-  //             className={`size-3 flex items-center justify-center rounded-full ${index<=activeStep ? 'bg-black text-white':'bg-gray-300 text-gray-600'} cursor-pointer`}
-  //             // onClick={() => handleBack()}
-  //             onClick={() => jumpToStep(index)}
-  //             style={{ padding: '2px' }}
-  //           >
-  //             {index + 1}
-  //           </Step>
-  //         </Tooltip>
-  //       ))}
-  //     </Stepper>
-  //   )
-  // }
 
   return (
     <div className="px-5 w-[80vw]">
@@ -92,8 +62,7 @@ export default function Slider({
         >
           Back
         </Button>
-        {/* {renderStepIndicator()} */}
-        {renderTest()}
+        {renderStepUI()}
         <Button
           variant="outline"
           onClick={handleNext}
