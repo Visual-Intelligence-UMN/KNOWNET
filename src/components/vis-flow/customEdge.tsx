@@ -1,7 +1,8 @@
-import { BaseEdge, EdgeLabelRenderer, EdgeProps } from "reactflow";
+import { EdgeLabelRenderer, EdgeProps } from "reactflow";
 import { FC } from "react";
 import { getBezierPath } from "reactflow";
 import { Popover, PopoverHandler } from "@material-tailwind/react";
+import { motion } from "framer-motion";
 
 const CustomEdge: FC<EdgeProps> = ({
     sourceX,
@@ -12,7 +13,8 @@ const CustomEdge: FC<EdgeProps> = ({
     targetPosition,
     style,
     data,
-    label
+    label,
+    id
 }) => {
     const [edgePath, labelX, labelY] = getBezierPath({
         sourceX,
@@ -21,12 +23,26 @@ const CustomEdge: FC<EdgeProps> = ({
         targetX,
         targetY,
         targetPosition
-      })
-    // console.log("edge data", data)
+    });
+
     return (
         <>
-            {/* <BaseEdge id = {id} path={edgePath} style={{...style, strokeDasharray: hasValidPubMedID? '4 0': '4 4'}} /> */}
-            <BaseEdge path={edgePath} style={{...style, strokeDasharray: '4 4'}} />
+            <motion.path
+                id={id}
+                d={edgePath}
+                fill="none"
+                stroke="black"
+                strokeWidth={1.5}
+                strokeDasharray="4 4"
+                initial={{ pathLength: 0, opacity: 0 }}
+                animate={{ pathLength: 1, opacity: 1 }}
+                transition={{
+                    duration: 0.4,
+                    ease: "easeInOut",
+                    delay: 0.2 // optional delay for stagger effect
+                }}
+                style={style}
+            />
             <EdgeLabelRenderer>
                 <Popover>
                     <PopoverHandler>
@@ -41,18 +57,13 @@ const CustomEdge: FC<EdgeProps> = ({
                             }}
                             className="nodrag nopan"
                         >
-                            {label!.toString().toLowerCase()}
-                            {``}
-                             {/* <span className="border-l border-gray-400 px-[2px] text-gray-600 text-sm">
-                                <i className={`fas fa-regular ${iconClass} px-1`} />
-                                {num_papers}
-                            </span> */}
+                            {label?.toString().toLowerCase()}
                         </div>
                     </PopoverHandler>
                 </Popover>
             </EdgeLabelRenderer>
         </>
-    )
-}
+    );
+};
 
-export default CustomEdge
+export default CustomEdge;
