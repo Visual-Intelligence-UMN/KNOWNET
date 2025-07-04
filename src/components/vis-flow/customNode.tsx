@@ -13,7 +13,10 @@ const CustomNode: FC<NodeProps> = ({
             <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.7 }}
+                transition={{ 
+                    duration: 0.9, 
+                    delay: data?.animationOrder ? data.animation * 0.75 : 0
+                }}
                 style={{
                     overflow: 'hidden',
                     borderColor: '#1A192B',

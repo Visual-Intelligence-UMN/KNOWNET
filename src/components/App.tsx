@@ -387,7 +387,8 @@ export function Chat({ id, initialMessages }: ChatProps) {
         nodes.push({
           id: subjectId,
           data: {
-            label: subject
+            label: subject,
+            animationOrder: index
           },
           position: {x:0, y:0},
           style: {
@@ -405,7 +406,10 @@ export function Chat({ id, initialMessages }: ChatProps) {
       if(!nodeIds.has(objectId)) {
         nodes.push({
           id: objectId,
-          data: {label: object},
+          data: {
+            label: object,
+            animationOrder: index + 0.5
+          },
           position: {x:0, y:0},
           style: {
             opacity: 1,
