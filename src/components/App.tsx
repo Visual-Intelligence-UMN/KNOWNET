@@ -470,7 +470,7 @@ export function Chat({ id, initialMessages }: ChatProps) {
       setEdges(layoutedEdges)
       
       if (reactFlowInstance) {
-        setTimeout(() => reactFlowInstance.fitView(), 0)
+        reactFlowInstance.fitView({ duration: 200, padding: 0.2 })
       }
       
     },
