@@ -149,7 +149,22 @@ const FlowComponent = ({
                 )}
 
                 <ReactFlow
-                    nodes = {nodes.filter(node => node.step <= activeStep)}
+                    nodes = {
+                        nodes
+                            .filter(node => node.step <= activeStep)
+                            .map(node => ({
+                            ...node,
+                            style: {
+                                backgroundColor: categoryColorMapping[node.category] || '#cccccc',
+                                borderRadius: 6,
+                                padding: 0,
+                                color: '#000',
+                                fontWeight: 500,
+                                fontSize: 14
+                            }
+                            }))
+                        }
+
                     edges = {edges.filter(edge => edge.step <= activeStep)}
                     onNodesChange={onNodesChange}
                     onEdgesChange={onEdgesChange}
