@@ -5,6 +5,7 @@ import CustomEdge from "./customEdge";
 import CustomNode from "./customNode";
 import FlowContext from "./flow-context";
 import { gptTriplesAtom } from "../../lib/state";
+import { categoryColorMapping } from "../../lib/utils";
 import { useAtom } from "jotai";
 import { Button } from "../ui/button";
 import { Spinner } from "@material-tailwind/react";
