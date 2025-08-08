@@ -1,0 +1,1 @@
+regex:sk-[A-Za-z0-9_-]{10,}=>OPENAI_API_KEY_REDACTED
