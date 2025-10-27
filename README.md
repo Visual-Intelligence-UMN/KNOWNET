@@ -10,13 +10,6 @@ This paper received the **Best Paper Honorable Mention** at IEEE VIS 2024.
 
 ---
 
-## Overview
-
-**KNOWNET** is an interactive system that integrates **Large Language Models (LLMs)** with **Knowledge Graphs (KGs)** to guide health information seeking.  
-It visualizes *entity–relation triples* generated from user queries, validates them via biomedical knowledge graphs, and presents verified knowledge through a dynamic **graph-based interface**.
-
----
-
 ## KNOWNET v2: Guided Health Information Seeking via Web Search Verification & Edge Uncertainty
 
 A follow-up version of KNOWNET explores **web search–based validation** as an alternative to static knowledge-graph integration.  
