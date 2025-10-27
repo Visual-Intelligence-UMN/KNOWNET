@@ -19,7 +19,7 @@ This prototype introduces **edge-level uncertainty quantification** to assess th
 
 ---
 
-## 🧭 Quick Start
+## Quick Start
 
 ### 1. Clone the repository
 
@@ -57,7 +57,7 @@ The app will be served locally at:
 
 ---
 
-## ⚙️ Development Setup
+## Development Setup
 
 If you are modifying the codebase:
 
@@ -79,7 +79,7 @@ Both servers must run concurrently in development mode.
 
 
 
-## 📄 Citation
+## Citation
 
 If you use or reference this project, please cite:
 
