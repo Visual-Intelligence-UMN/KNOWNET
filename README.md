@@ -10,14 +10,6 @@ This paper received the **Best Paper Honorable Mention** at IEEE VIS 2024.
 
 ---
 
-## KNOWNET v2: Guided Health Information Seeking via Web Search Verification & Edge Uncertainty
-
-A follow-up version of KNOWNET explores **web search–based validation** as an alternative to static knowledge-graph integration.  
-This prototype introduces **edge-level uncertainty quantification** to assess the reliability of model-generated relations in real time.
-
-🔗 **View KNOWNET v2 here:** [https://maurilaparva.github.io/prototype/](https://maurilaparva.github.io/prototype/)
-
----
 
 ## Quick Start
 
@@ -87,6 +79,15 @@ If you use or reference this project, please cite:
 > *KNOWNET: Guided Health Information Seeking from LLMs via Knowledge Graph Integration.*  
 > IEEE VIS 2024 — Best Paper Honorable Mention.  
 > [arXiv:2407.13598](https://arxiv.org/abs/2407.13598)
+
+---
+
+## KNOWNET v2: Guided Health Information Seeking via Web Search Verification & Edge Uncertainty
+
+A follow-up version of KNOWNET explores **web search–based validation** as an alternative to static knowledge-graph integration.  
+This prototype introduces **edge-level uncertainty quantification** to assess the reliability of model-generated relations in real time.
+
+🔗 **View KNOWNET v2 here:** [https://maurilaparva.github.io/prototype/](https://maurilaparva.github.io/prototype/)
 
 ---
 
