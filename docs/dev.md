@@ -1,50 +1,78 @@
-# Run Drava in Development Mode
+# Run KNOWNET in Development Mode
 
-> This page illustrates how to run KNOWNET in your local computer in the development mode.
+This page explains how to run **KNOWNET** on your local computer in development mode.
 
-First, download or clone our github repo at https://github.com/Visual-Intelligence-UMN/KNOWNET.
+First, clone the GitHub repository:
+
+```bash
+git clone https://github.com/Visual-Intelligence-UMN/KNOWNET.git
+cd KNOWNET
+```
+
+---
 
 ## Backend
 
-The backend is developed and tested with `python@3.11`
+The backend is developed and tested with **Python 3.11**.
 
-- Go to the repo folder and install all dependent packages.
-  To manage dependencies more effectively, you can create and use a virtrual environment using `python3 -m venv venv` command before installing all packages:
+### 1. Create and activate a virtual environment
 
 ```bash
-#!/bin/bash
+python3 -m venv venv
 source venv/bin/activate
-pip install -r requirements.txt
-
-
-# # Windows users:
-# @echo off
-# call venv\Scripts\activate
-# pip install -r requirements.txt
 ```
 
-- Start the flask server:
+*(On Windows: `venv\Scripts\activate`)*
+
+### 2. Install dependencies
 
 ```bash
-flask --app api/index --debug run -p 5328
+pip install -r requirements.txt
 ```
 
-The backend server should be running at `localhost:5328`.
+### 3. Start the backend server
+
+```bash
+cd api
+python3 index.py
+```
+
+The backend server should now be running at `http://localhost:5328`.
+
+---
 
 ## Frontend
 
-The front-end visual interface is developed and tested using `node@v20.9.0` at Chrome web browser.
+The frontend interface is developed with **React + TypeScript + Vite**, and tested using **Node v20.9.0** on Chrome.
 
-- Go to the repo front-end folder and install all dependent packages:
+### 1. Install dependencies
 
-```
+```bash
 pnpm install
 ```
 
-- Then, launch the Drava react application on the browser:
+If you do not have `pnpm` installed, run:
 
-```
-pnpm dev
+```bash
+npm install -g pnpm
 ```
 
-Now you can open `localhost:3000` in your web browser and interact with KNOWNET in the development mode.
+### 2. Launch the frontend in development mode
+
+```bash
+pnpm run dev
+```
+
+The frontend will be available at:  
+[http://localhost:5173](http://localhost:5173)
+
+---
+
+## Verifying Your Setup
+
+Once both servers are running:
+
+- The **backend** should be accessible at: `http://localhost:5328`
+- The **frontend** should be accessible at: `http://localhost:5173`
+
+You can now open your browser and interact with **KNOWNET** in development mode.

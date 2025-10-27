@@ -4,7 +4,7 @@ This is the GitHub repository for our **IEEE VIS 2024 paper**,
 **“KNOWNET: Guided Health Information Seeking from LLMs via Knowledge Graph Integration”** ([Pre-Print](https://arxiv.org/abs/2407.13598)).  
 This paper received the **Best Paper Honorable Mention** at IEEE VIS 2024.
 
-📘 **Documentation:** [https://visual-intelligence-umn.github.io/KNOWNET/](https://visual-intelligence-umn.github.io/KNOWNET/)
+ **Documentation:** [https://visual-intelligence-umn.github.io/KNOWNET/](https://visual-intelligence-umn.github.io/KNOWNET/)
 
 ![image](https://github.com/user-attachments/assets/dd1fe256-da49-44c0-8311-294802850f78)
 
@@ -44,7 +44,7 @@ pnpm run dev
 ```
 
 The app will be served locally at:  
-👉 [http://localhost:5173](http://localhost:5173)
+[http://localhost:5173](http://localhost:5173)
 
 
 ---
@@ -87,7 +87,7 @@ If you use or reference this project, please cite:
 A follow-up version of KNOWNET explores **web search–based validation** as an alternative to static knowledge-graph integration.  
 This prototype introduces **edge-level uncertainty quantification** to assess the reliability of model-generated relations in real time.
 
-🔗 **View KNOWNET v2 here:** [https://maurilaparva.github.io/prototype/](https://maurilaparva.github.io/prototype/)
+ **View KNOWNET v2 here:** [https://maurilaparva.github.io/prototype/](https://maurilaparva.github.io/prototype/)
 
 ---
 

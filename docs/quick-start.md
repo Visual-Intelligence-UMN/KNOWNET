@@ -1,33 +1,74 @@
 # Quick Start
 
-The easiest way to run KNOWNET on your computer is to download the [zip file from Google Drive](https://drive.google.com/file/d/XXXX) and run it using Python.
+Follow these steps to run **KNOWNET** locally on your computer.
 
-1. Download and unzip the file to your local computer
-2. Start a virtual environment and install dependency packages
+---
 
-   ```bash
-    python3 -m venv venv
-    pnpm install
-
-   ```
-
-> Note: For Windows users, please uncomment the command in `run_flask.sh` to set the flask environment variables before running the script. The `run_flask.sh` script should look like this after uncommenting the command:
+## 1. Clone the repository
 
 ```bash
-        # Windows users:
-        @echo off
-        call venv\Scripts\activate
-        pip install -r requirements.txt
-        flask --app api/index run -p 5328
+git clone https://github.com/visual-intelligence-umn/KNOWNET.git
+cd KNOWNET
 ```
 
-3. Setting up your environment variables
-   You will need to use the environment variables defined in `.env.example` to run KNOWNET.
+---
 
-> Note: You should not commit your `.env` file or it will expose secrets that will allow others to control access to your various OpenAI and authentication provider accounts.
+## 2. Set up a Python virtual environment
 
-4. Run the demo
-   ```bash
-    pnpm preview
-   ```
-   Your app template should now be running on [localhost:3000](http://localhost:3000/).
+```bash
+python3 -m venv venv
+source venv/bin/activate   # (on Windows: venv\Scripts\activate)
+```
+
+---
+
+## 3. Install frontend dependencies
+
+KNOWNET uses **React + TypeScript + Vite**.
+
+```bash
+pnpm install
+```
+
+If you do not have `pnpm` installed, run:
+
+```bash
+npm install -g pnpm
+```
+
+---
+
+## 4. Run the development server
+
+```bash
+pnpm run dev
+```
+
+The app will be served locally at:  
+[http://localhost:5173](http://localhost:5173)
+
+---
+
+## 5. Development setup (optional)
+
+If you plan to modify or develop the codebase further, you can run both the frontend and backend locally.
+
+### Frontend
+
+```bash
+pnpm install
+pnpm run dev
+```
+
+### Backend
+
+```bash
+cd api
+python3 index.py
+```
+
+Both servers should run concurrently in development mode.
+
+---
+
+Your application should now be running locally. You can access it in your browser at [http://localhost:5173](http://localhost:5173).
