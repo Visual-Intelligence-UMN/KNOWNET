@@ -76,9 +76,10 @@ Both servers must run concurrently in development mode.
 If you use or reference this project, please cite:
 
  
-> *KNOWNET: Guided Health Information Seeking from LLMs via Knowledge Graph Integration.*  
-> IEEE VIS 2024 — Best Paper Honorable Mention.  
-> [arXiv:2407.13598](https://arxiv.org/abs/2407.13598)
+> Youfu Yan, Yu Hou, Yongkang Xiao, Rui Zhang, and Qianwen Wang. 2025.  
+> **KNowNet: Guided Health Information Seeking from LLMs via Knowledge Graph Integration.**  
+> *IEEE Transactions on Visualization and Computer Graphics*, 31(1), 547–557.  
+> https://doi.org/10.1109/TVCG.2024.3456364
 
 ---
 
