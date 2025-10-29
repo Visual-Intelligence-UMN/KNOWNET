@@ -69,6 +69,67 @@ Both servers must run concurrently in development mode.
 
 ---
 
+## Backend Data and Database Setup
+
+The KNOWNET backend relies on two primary data resources:
+
+1. **Embedding Files** — Precomputed text embeddings used for entity and relation verification.  
+   These embeddings are stored on the server and accessed through `embedding_utils.py` and `embeds.py`.  
+   Developers reproducing the system locally can either:
+   - Use existing OpenAI or local embedding models to regenerate these vectors from the source entity/relation files.
+   - Or download the precomputed embedding files (available upon request or through institutional collaboration).
+
+2. **Knowledge Graph Database (Neo4j)** —  
+   The deployed version of KNOWNET connects to a Neo4j database hosted on **AWS EC2**, which contains the curated biomedical knowledge graph used for verification and recommendation.  
+   The hosted instance supports the public demo and is **read-only** for external users.
+
+### Setting Up a Local Neo4j Instance
+
+To reproduce or extend KNOWNET with a custom knowledge graph:
+
+1. **Install Neo4j Community or AuraDB**
+   - Local setup: [https://neo4j.com/download/](https://neo4j.com/download/)
+   - Cloud setup (recommended for collaboration): [https://neo4j.com/cloud/aura/](https://neo4j.com/cloud/aura/)
+
+2. **Create a New Database**
+   - Configure a database (e.g., `knownet_db`) and note your connection credentials:
+     ```
+     NEO4J_URI=bolt://localhost:7687
+     NEO4J_USER=neo4j
+     NEO4J_PASSWORD=<your-password>
+     ```
+   - Update these credentials in your local `.env` or configuration file (used by `verify.py` and `recommend.py`).
+
+3. **Load Graph Data**
+   - Import entity and relation CSV files into Neo4j via the **Neo4j Browser** or **cypher-shell**:
+     ```cypher
+     LOAD CSV WITH HEADERS FROM 'file:///entities.csv' AS row
+     CREATE (:Entity {name: row.name, type: row.type});
+
+     LOAD CSV WITH HEADERS FROM 'file:///relations.csv' AS row
+     MATCH (a:Entity {name: row.source}), (b:Entity {name: row.target})
+     CREATE (a)-[:RELATION {type: row.relation}]->(b);
+     ```
+   - Alternatively, adapt these commands to match your domain-specific data format.
+
+4. **Generate or Import Embeddings**
+   - Use `embedding_utils.py` to compute embeddings for all entities and relations:
+     ```bash
+     python3 api/embedding_utils.py
+     ```
+   - Store resulting vectors locally or in a connected S3 bucket.
+
+### AWS Deployment (for Reference)
+
+The hosted KNOWNET backend runs on **AWS EC2** with a connected Neo4j instance configured for read access.  
+Developers replicating this deployment can follow a similar setup:
+- Launch an EC2 instance (Ubuntu 22.04 or later).
+- Install Neo4j, Flask, and dependencies listed in `requirements.txt`.
+- Configure security groups to allow `bolt://` (7687) and HTTPS (443) traffic.
+- Use Nginx or a similar reverse proxy for routing and SSL termination.
+
+---
+
 ## Project Structure
 
 The KNOWNET repository follows a modular full-stack architecture composed of a Python-based backend and a React + TypeScript frontend.  
