@@ -1,6 +1,8 @@
 # Quick Start
 
 Follow these steps to run **KNOWNET** locally on your computer.
+*(Note: The hosted demo uses a remote backend. Running the backend locally is only necessary for development or when connecting to a custom Neo4j instance. See development mode for more notes.)*
+
 
 ---
 

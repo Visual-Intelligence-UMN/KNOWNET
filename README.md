@@ -75,9 +75,7 @@ The KNOWNET backend relies on two primary data resources:
 
 1. **Embedding Files** — Precomputed text embeddings used for entity and relation verification.  
    These embeddings are stored on the server and accessed through `embedding_utils.py` and `embeds.py`.  
-   Developers reproducing the system locally can either:
-   - Use existing OpenAI or local embedding models to regenerate these vectors from the source entity/relation files.
-   - Or download the precomputed embedding files (available upon request or through institutional collaboration).
+   Developers reproducing the system locally can use existing OpenAI or local embedding models to regenerate these vectors from the source entity/relation files.
 
 2. **Knowledge Graph Database (Neo4j)** —  
    The deployed version of KNOWNET connects to a Neo4j database hosted on **AWS EC2**, which contains the curated biomedical knowledge graph used for verification and recommendation.  
@@ -85,7 +83,7 @@ The KNOWNET backend relies on two primary data resources:
 
 ### Setting Up a Local Neo4j Instance
 
-To reproduce or extend KNOWNET with a custom knowledge graph:
+To reproduce or extend KNOWNET locally with a custom knowledge graph:
 
 1. **Install Neo4j Community or AuraDB**
    - Local setup: [https://neo4j.com/download/](https://neo4j.com/download/)
