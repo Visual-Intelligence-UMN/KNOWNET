@@ -69,6 +69,57 @@ Both servers must run concurrently in development mode.
 
 ---
 
+## Project Structure
+
+The KNOWNET repository follows a modular full-stack architecture composed of a Python-based backend and a React + TypeScript frontend.  
+Below is an overview of the top-level structure:
+
+```
+KNOWNET/
+├── api/                     # Flask backend (embedding, verification, recommendation)
+│   ├── embedding_utils.py
+│   ├── embeds.py
+│   ├── index.py
+│   ├── recommend.py
+│   └── verify.py
+│
+├── src/                     # React + TypeScript frontend
+│   ├── assets/
+│   ├── components/
+│   ├── lib/
+│   ├── main.tsx
+│   ├── App.css
+│   └── index.css
+│
+├── docs/                    # Documentation and setup guides
+├── requirements.txt         # Python dependencies
+├── package.json             # Frontend dependencies
+├── vite.config.js           # Vite build configuration
+├── tailwind.config.js       # TailwindCSS configuration
+├── postcss.config.js        # PostCSS configuration
+├── run_flask.sh             # Flask startup script
+└── README.md
+```
+
+---
+
+### `src/components/` — Component Description
+
+This directory contains the primary interface modules that enable chat-based interaction, visualization, and dynamic user feedback.
+
+| Component | Description |
+|------------|--------------|
+| **`App.tsx`** | The top-level container that integrates the chat interface, visualization panel, and application layout. |
+| **`chat.tsx`, `chat-panel.tsx`, `chat-list.tsx`** | Manage chat session state, message rendering, and the overall conversational layout. |
+| **`chat-message.tsx`, `chat-message-action.tsx`** | Define the structure and behavior of individual chat messages, including interaction elements such as feedback or copy actions. |
+| **`prompt-form.tsx`** | Handles user prompt input and communication with the backend API. |
+| **`recommendation_tray.tsx`** | Displays suggested follow-up queries or related entities produced by the recommendation module. |
+| **`vis-flow/`** | Implements the interactive visualization of knowledge graph entities and relations using React Flow. |
+| **`markdown.tsx`** | Renders model responses with Markdown and syntax highlighting for readable structured output. |
+| **`external-link.tsx`, `footer.tsx`, `providers.tsx`, `tailwind-indicator.tsx`** | Supporting components for layout, theming, developer utilities, and external linking behavior. |
+
+---
+
 
 
 ## Citation
