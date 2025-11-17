@@ -4,6 +4,8 @@ This is the GitHub repository for our **IEEE VIS 2024 paper**,
 **“KNOWNET: Guided Health Information Seeking from LLMs via Knowledge Graph Integration”** ([Pre-Print](https://arxiv.org/abs/2407.13598)).  
 This paper received the **Best Paper Honorable Mention** at IEEE VIS 2024.
 
+ **Demo:** [https://maurilaparva.github.io/KNOWNET/](https://maurilaparva.github.io/KNOWNET/) 
+
  **Documentation:** [https://visual-intelligence-umn.github.io/KNOWNET/](https://visual-intelligence-umn.github.io/KNOWNET/)
 
 ![image](https://github.com/user-attachments/assets/dd1fe256-da49-44c0-8311-294802850f78)
@@ -81,7 +83,30 @@ The KNOWNET backend relies on two primary data resources:
    The deployed version of KNOWNET connects to a Neo4j database hosted on **AWS EC2**, which contains the curated biomedical knowledge graph used for verification and recommendation.  
    The hosted instance supports the public demo and is **read-only** for external users.
 
-### Setting Up a Local Neo4j Instance
+### **Production vs. Local Neo4j Setup**
+
+KNOWNET uses two different Neo4j environments, each serving a different purpose:
+
+#### **1. Production Neo4j (AWS EC2) — Used by the Public Demo**
+- Hosts the *curated, final* biomedical knowledge graph used in the VIS 2024 paper  
+- Contains data imported from `node_data.csv` and `rel_data_filtered.csv`, plus several rounds of filtering and manual verification  
+- Read-only for all external users  
+- Connected directly to the deployed Flask backend  
+- Includes precomputed embeddings and optimized indexes  
+- Intended **only for running the public demo**, not for developer experimentation
+
+#### **2. Local Neo4j (Developer Setup)**
+- Used when developers want to:
+  - extend KNOWNET  
+  - test custom knowledge graphs  
+  - run experiments offline  
+- Requires creating your own copies of `node_data.csv` and `rel_data_filtered.csv` based of ADInt_CUI_embeddings.parquet (can be downloaded below).
+- Requires computing or providing your own embeddings (see next section)  
+- Credentials and database URI must be configured locally  
+- Fully editable and meant for development
+
+
+### Setting Up a Local Neo4j Instance (Developer Setup)
 
 To reproduce or extend KNOWNET locally with a custom knowledge graph:
 
@@ -99,16 +124,25 @@ To reproduce or extend KNOWNET locally with a custom knowledge graph:
    - Update these credentials in your local `.env` or configuration file (used by `verify.py` and `recommend.py`).
 
 3. **Load Graph Data**
-   - Import entity and relation CSV files into Neo4j via the **Neo4j Browser** or **cypher-shell**:
+   The biomedical knowledge graph used for KNOWNET is constructed from two ADInt-derived files:
+   - node_data.csv - list of biomedical entities
+   - rel_data_filtered.csv - filtered relations between entities
+   These files were used to build both the AWS Neo4j database and the local development setup. 
+   **Note:** KNOWNET does not include these files in the repository.
      ```cypher
-     LOAD CSV WITH HEADERS FROM 'file:///entities.csv' AS row
-     CREATE (:Entity {name: row.name, type: row.type});
+      LOAD CSV WITH HEADERS FROM 'file:///node_data.csv' AS row
+      CREATE (:Entity {
+      cui: row.CUI,
+      name: row.name,
+      type: row.type
+      });
 
-     LOAD CSV WITH HEADERS FROM 'file:///relations.csv' AS row
-     MATCH (a:Entity {name: row.source}), (b:Entity {name: row.target})
-     CREATE (a)-[:RELATION {type: row.relation}]->(b);
+      LOAD CSV WITH HEADERS FROM 'file:///rel_data_filtered.csv' AS row
+      MATCH (a:Entity {cui: row.Source}), (b:Entity {cui: row.Target})
+      CREATE (a)-[:RELATION {type: row.Relation}]->(b);
+
      ```
-   - Alternatively, adapt these commands to match your domain-specific data format.
+   - If you are using your own biomedical dataset, you may adapt this format to match your schema.
 
 4. **Generate or Import Embeddings**
    - Use `embedding_utils.py` to compute embeddings for all entities and relations:
@@ -116,6 +150,23 @@ To reproduce or extend KNOWNET locally with a custom knowledge graph:
      python3 api/embedding_utils.py
      ```
    - Store resulting vectors locally or in a connected S3 bucket.
+
+### **Downloading Precomputed Embeddings**
+
+KNOWNET uses precomputed concept embeddings stored in:
+
+- **`ADInt_CUI_embeddings.parquet`**
+
+A copy of the embeddings file can be downloaded here:
+
+**[Download ADInt_CUI_embeddings.parquet](https://drive.google.com/file/d/1ZBV03xVsFgYZYT-mehgx9BjOeUh6gvq1/view?usp=drive_link)**
+
+After downloading the file, place it in the
+`api/` directory (or your preferred location), and update the path in `embeds.py`:
+
+```python
+EMBEDDING_FILE = "api/ADInt_CUI_embeddings.parquet"
+```
 
 ### AWS Deployment (for Reference)
 

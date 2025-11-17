@@ -2,6 +2,8 @@
 
 <!-- ## [LINK TO DEMO](https://www.umn-visual-intelligence-lab.com/) -->
 
+ **Demo:** [https://maurilaparva.github.io/KNOWNET/](https://maurilaparva.github.io/KNOWNET/) 
+
 KNOWNET is a visualization system that enhances health information retrieval by integrating Large Language Models (LLMs) with Knowledge Graphs (KGs). In the era of information overload, finding accurate and relevant health information can be challenging, especially when it involves complex topics like Alzheimer's disease and dietary supplements. Traditional LLMs, while powerful, often generate responses that lack factual accuracy, structured exploration, and clear representation of intricate information structures.
 
 To address these challenges, KNOWNET leverages the structured representation of knowledge graphs to provide enhanced accuracy and structured exploration. It extracts triples (e.g., entities and their relations) from LLM outputs and maps them into the validated information and supported evidence in external KGs. For structured exploration, KNOWNET provides next-step recommendations based on the neighborhood of the currently explored entities in KGs, aiming to guide a comprehensive understanding without overlooking critical aspects.
@@ -28,8 +30,8 @@ Following the IEEE VIS 2024 version, we have developed an extended prototype of 
 This version explores a more general and scalable approach to grounding LLM-generated relations by dynamically validating them against current web sources.  
 It maintains KNOWNET’s original goals of transparency and interpretability while expanding its reach beyond curated biomedical graphs.
 
-🔗 **Repository:** [KNOWNET v2 (Web Search + Edge Uncertainty)](https://github.com/maurilaparva/prototype)  
-🎥 **Demo:** [View the Web Search Demo](https://maurilaparva.github.io/prototype/)
+**Repository:** [KNOWNET v2 (Web Search + Edge Uncertainty)](https://github.com/maurilaparva/prototype)  
+**Demo:** [View the Web Search Demo](https://maurilaparva.github.io/prototype/)
 
 <figure>
   
